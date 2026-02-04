@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import UserMenu from '../components/UserMenu'
+import AddBookButton from '../library/AddBookButton'
 
 export default async function Dashboard() {
   const supabase = await createServerSupabaseClient()
@@ -50,12 +51,15 @@ export default async function Dashboard() {
             <h1 className="text-3xl font-bold">My Book Circles</h1>
             <p className="text-sm text-gray-500 mt-1">Welcome back, {profile?.full_name || user.email}!</p>
           </div>
-          <UserMenu user={{
-            id: user.id,
-            email: user.email || '',
-            full_name: profile?.full_name,
-            avatar_url: profile?.avatar_url
-          }} />
+          <div className="flex items-center gap-3">
+            <AddBookButton userId={user.id} userCircles={circles as any} />
+            <UserMenu user={{
+              id: user.id,
+              email: user.email || '',
+              full_name: profile?.full_name,
+              avatar_url: profile?.avatar_url
+            }} />
+          </div>
         </div>
 
         <div className="mb-6 flex gap-4 flex-wrap">

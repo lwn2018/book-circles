@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LibraryBookCard from './LibraryBookCard'
+import AddBookButton from './AddBookButton'
 
 export default async function MyLibrary() {
   const supabase = await createServerSupabaseClient()
@@ -61,6 +62,7 @@ export default async function MyLibrary() {
               All your books • {booksWithVisibility.length} total
             </p>
           </div>
+          <AddBookButton userId={user.id} userCircles={circles as any} />
         </div>
 
         {booksWithVisibility.length === 0 ? (
