@@ -4,6 +4,7 @@ import Link from 'next/link'
 import AddBookForm from './AddBookForm'
 import BooksList from './BooksList'
 import InviteLink from './InviteLink'
+import LeaveCircleButton from './LeaveCircleButton'
 
 export default async function CirclePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -92,7 +93,15 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{circle.name}</h1>
+          <div className="flex justify-between items-start mb-2">
+            <h1 className="text-3xl font-bold">{circle.name}</h1>
+            <LeaveCircleButton 
+              circleId={id}
+              circleName={circle.name}
+              userId={user.id}
+              isOwner={circle.owner_id === user.id}
+            />
+          </div>
           {circle.description && (
             <p className="text-gray-600 mb-2">{circle.description}</p>
           )}
