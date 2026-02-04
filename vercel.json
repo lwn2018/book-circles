@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/timeout-offers",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
