@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import UserMenu from '../components/UserMenu'
 
 export default async function Dashboard() {
   const supabase = await createServerSupabaseClient()
@@ -9,6 +10,13 @@ export default async function Dashboard() {
   if (!user) {
     redirect('/auth/signin')
   }
+
+  // Get user profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
 
   // Get user's circles
   const { data: memberships } = await supabase
@@ -34,23 +42,17 @@ export default async function Dashboard() {
     .eq('next_recipient', user.id)
     .eq('status', 'ready_for_next')
 
-  async function signOut() {
-    'use server'
-    const supabase = await createServerSupabaseClient()
-    await supabase.auth.signOut()
-    redirect('/')
-  }
-
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">My Book Circles</h1>
-          <form action={signOut}>
-            <button className="text-sm text-gray-600 hover:text-gray-900">
-              Sign Out
-            </button>
-          </form>
+          <UserMenu user={{
+            id: user.id,
+            email: user.email || '',
+            full_name: profile?.full_name,
+            avatar_url: profile?.avatar_url
+          }} />
         </div>
 
         <div className="mb-6 flex gap-4 flex-wrap">
