@@ -62,7 +62,15 @@ export default async function MyLibrary() {
               All your books • {booksWithVisibility.length} total
             </p>
           </div>
-          <AddBookButton userId={user.id} userCircles={circles as any} />
+          <div className="flex gap-2">
+            <Link
+              href="/library/import"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+            >
+              📥 Import from Goodreads
+            </Link>
+            <AddBookButton userId={user.id} userCircles={circles as any} />
+          </div>
         </div>
 
         {booksWithVisibility.length === 0 ? (
