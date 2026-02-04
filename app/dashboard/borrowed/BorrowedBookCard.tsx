@@ -39,19 +39,25 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
 
   const handleReadyToPassOn = async () => {
     setLoading(true)
+    console.log('Calling markReadyToPassOn with:', { bookId: book.id, userId })
     const result = await markReadyToPassOn(book.id, userId)
+    console.log('markReadyToPassOn result:', result)
     
     if (result.error) {
-      alert(result.error)
+      alert(`Error: ${result.error}`)
       setLoading(false)
       return
     }
 
     if (result.success) {
+      alert(`Success! Offering to ${result.nextRecipientName}. Check if status updates...`)
       setPassOnData(result)
       setShowPassOnModal(true)
       setLoading(false)
       router.refresh()
+    } else {
+      alert('Unexpected response: ' + JSON.stringify(result))
+      setLoading(false)
     }
   }
 
