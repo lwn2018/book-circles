@@ -60,6 +60,12 @@ export default async function Dashboard() {
 
         <div className="mb-6 flex gap-4 flex-wrap">
           <Link
+            href="/library"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
+          >
+            📚 My Library
+          </Link>
+          <Link
             href="/dashboard/offers"
             className={`px-4 py-2 rounded-lg font-medium relative ${
               offersCount && offersCount > 0
@@ -78,13 +84,13 @@ export default async function Dashboard() {
             href="/dashboard/borrowed"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            📚 My Borrowed Books
+            📖 Borrowed Books
           </Link>
           <Link
             href="/dashboard/owned"
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
-            🏠 My Books (Borrowed Out)
+            🏠 Books Lent Out
           </Link>
           <Link
             href="/circles/create"
