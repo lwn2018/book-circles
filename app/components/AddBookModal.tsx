@@ -141,6 +141,12 @@ export default function AddBookModal({
     setScanning(true)
     setError('')
 
+    if (!scannerRef.current) {
+      setError('Scanner element not found')
+      setScanning(false)
+      return
+    }
+
     // Dynamically import Quagga
     const Quagga = (await import('@ericblade/quagga2')).default
 
