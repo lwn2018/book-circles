@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { markReadyToPassOn, handleAcceptResponse, confirmHandoff } from '@/lib/queue-actions'
+import { extendLoan } from '@/lib/loan-actions'
 
 type Book = {
   id: string
@@ -101,6 +102,36 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
     router.refresh()
   }
 
+  const handleExtendLoan = async () => {
+    if (book.owner_recall_active) {
+      alert('❌ Owner has requested this book back. Extension not allowed.')
+      return
+    }
+
+    if (!confirm('Extend loan by 7 days?')) {
+      return
+    }
+
+    setLoading(true)
+    console.log('🔵 Extending loan:', { bookId: book.id, userId })
+    
+    const result = await extendLoan(book.id, userId, 7)
+    console.log('🔵 Extension result:', result)
+    
+    if (result.error) {
+      console.error('🔴 Error:', result.error)
+      alert(`❌ Error: ${result.error}`)
+      setLoading(false)
+      return
+    }
+
+    const newDate = new Date(result.newDueDate!)
+    console.log('✅ Loan extended!')
+    alert(`✅ Loan extended! New due date: ${newDate.toLocaleDateString()}`)
+    setLoading(false)
+    router.refresh()
+  }
+
   return (
     <>
       <div className="border rounded-lg p-6 bg-white shadow-sm">
@@ -182,9 +213,12 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
                     {loading ? 'Processing...' : 'Ready to Pass On'}
                   </button>
                   <button
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
+                    onClick={handleExtendLoan}
+                    disabled={loading || book.owner_recall_active}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    title={book.owner_recall_active ? 'Owner has requested this book back' : 'Extend loan by 7 days'}
                   >
-                    Extend Loan
+                    {book.owner_recall_active ? '🚫 Extend Loan' : 'Extend Loan'}
                   </button>
                 </div>
               </div>
