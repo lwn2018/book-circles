@@ -137,53 +137,62 @@ export default function AddBookModal({
     }
   }
 
-  const startScanner = async () => {
+  const startScanner = () => {
     setScanning(true)
     setError('')
+  }
 
-    if (!scannerRef.current) {
-      setError('Scanner element not found')
-      setScanning(false)
-      return
+  // Initialize Quagga when scanner element appears
+  useEffect(() => {
+    if (!scanning || !scannerRef.current) return
+
+    const initQuagga = async () => {
+      try {
+        // Dynamically import Quagga
+        const Quagga = (await import('@ericblade/quagga2')).default
+
+        Quagga.init(
+          {
+            inputStream: {
+              type: 'LiveStream',
+              target: scannerRef.current!,
+              constraints: {
+                facingMode: 'environment',
+                width: { min: 640 },
+                height: { min: 480 }
+              }
+            },
+            decoder: {
+              readers: ['ean_reader', 'ean_8_reader']
+            }
+          },
+          (err: any) => {
+            if (err) {
+              console.error('Quagga init error:', err)
+              setError('Failed to start camera. Please check permissions.')
+              setScanning(false)
+              return
+            }
+            Quagga.start()
+          }
+        )
+
+        Quagga.onDetected((data: any) => {
+          const code = data.codeResult.code
+          handleIsbnChange(code)
+          stopScanner()
+        })
+
+        quaggaRef.current = Quagga
+      } catch (err) {
+        console.error('Failed to load scanner:', err)
+        setError('Failed to initialize scanner')
+        setScanning(false)
+      }
     }
 
-    // Dynamically import Quagga
-    const Quagga = (await import('@ericblade/quagga2')).default
-
-    Quagga.init(
-      {
-        inputStream: {
-          type: 'LiveStream',
-          target: scannerRef.current,
-          constraints: {
-            facingMode: 'environment',
-            width: { min: 640 },
-            height: { min: 480 }
-          }
-        },
-        decoder: {
-          readers: ['ean_reader', 'ean_8_reader']
-        }
-      },
-      (err: any) => {
-        if (err) {
-          console.error('Quagga init error:', err)
-          setError('Failed to start camera. Please check permissions.')
-          setScanning(false)
-          return
-        }
-        Quagga.start()
-      }
-    )
-
-    Quagga.onDetected((data: any) => {
-      const code = data.codeResult.code
-      handleIsbnChange(code)
-      stopScanner()
-    })
-
-    quaggaRef.current = Quagga
-  }
+    initQuagga()
+  }, [scanning])
 
   const stopScanner = () => {
     if (quaggaRef.current) {
