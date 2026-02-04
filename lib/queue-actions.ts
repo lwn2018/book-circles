@@ -37,6 +37,23 @@ async function sendNotification(type: string, recipientId: string, bookId: strin
 export async function markReadyToPassOn(bookId: string, currentHolderId: string) {
   const supabase = await getSupabase()
 
+  // Debug: Check auth
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  console.log('Auth check:', { 
+    userId: user?.id, 
+    currentHolderId, 
+    match: user?.id === currentHolderId,
+    authError 
+  })
+
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  if (user.id !== currentHolderId) {
+    return { error: `Auth mismatch: logged in as ${user.id} but trying to act as ${currentHolderId}` }
+  }
+
   // 1. Get book details
   const { data: book, error: bookError } = await supabase
     .from('books')
@@ -45,8 +62,16 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
     .single()
 
   if (bookError || !book) {
+    console.error('Book query error:', bookError)
     return { error: 'Book not found' }
   }
+
+  console.log('Book data:', { 
+    bookId: book.id, 
+    currentBorrowerId: book.current_borrower_id,
+    currentHolderId,
+    match: book.current_borrower_id === currentHolderId 
+  })
 
   // Verify current holder
   if (book.current_borrower_id !== currentHolderId) {
