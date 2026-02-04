@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 
 type User = {
@@ -19,7 +19,10 @@ export default function SettingsForm({ user }: { user: User }) {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   
-  const supabase = createClientComponentClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const router = useRouter()
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
