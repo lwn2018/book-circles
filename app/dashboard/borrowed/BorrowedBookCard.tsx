@@ -39,24 +39,38 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
 
   const handleReadyToPassOn = async () => {
     setLoading(true)
-    console.log('Calling markReadyToPassOn with:', { bookId: book.id, userId })
-    const result = await markReadyToPassOn(book.id, userId)
-    console.log('markReadyToPassOn result:', result)
+    console.log('🔵 Starting pass-on process:', { bookId: book.id, userId, bookStatus: book.status })
     
-    if (result.error) {
-      alert(`Error: ${result.error}`)
-      setLoading(false)
-      return
-    }
+    try {
+      const result = await markReadyToPassOn(book.id, userId)
+      console.log('🔵 Server response:', result)
+      
+      if (result.error) {
+        console.error('🔴 Error from server:', result.error)
+        alert(`Error: ${result.error}`)
+        setLoading(false)
+        return
+      }
 
-    if (result.success) {
-      alert(`Success! Offering to ${result.nextRecipientName}. Check if status updates...`)
-      setPassOnData(result)
-      setShowPassOnModal(true)
-      setLoading(false)
-      router.refresh()
-    } else {
-      alert('Unexpected response: ' + JSON.stringify(result))
+      if (result.success) {
+        console.log('✅ Success! Next recipient:', result.nextRecipientName)
+        alert(`✅ Book offered to ${result.nextRecipientName}! Waiting for them to accept...`)
+        setPassOnData(result)
+        setShowPassOnModal(true)
+        setLoading(false)
+        
+        // Force a page refresh to show updated status
+        setTimeout(() => {
+          router.refresh()
+        }, 1000)
+      } else {
+        console.error('🔴 Unexpected response:', result)
+        alert('Unexpected response: ' + JSON.stringify(result))
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('🔴 Exception caught:', error)
+      alert(`Exception: ${error}`)
       setLoading(false)
     }
   }
@@ -142,19 +156,27 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
 
             {/* Actions */}
             {book.status === 'borrowed' && (
-              <div className="flex gap-3">
-                <button
-                  onClick={handleReadyToPassOn}
-                  disabled={loading}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm font-medium"
-                >
-                  {loading ? 'Processing...' : 'Ready to Pass On'}
-                </button>
-                <button
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
-                >
-                  Extend Loan
-                </button>
+              <div>
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Ready to pass this book on?</strong> Click below to offer it to the next person in the queue. 
+                    They'll have 48 hours to accept or pass.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleReadyToPassOn}
+                    disabled={loading}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    {loading ? 'Processing...' : 'Ready to Pass On'}
+                  </button>
+                  <button
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium"
+                  >
+                    Extend Loan
+                  </button>
+                </div>
               </div>
             )}
 
