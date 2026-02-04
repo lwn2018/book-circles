@@ -142,7 +142,7 @@ export default function AddBookModal({
     setError('')
 
     // Dynamically import Quagga
-    const Quagga = (await import('quagga')).default
+    const Quagga = (await import('@ericblade/quagga2')).default
 
     Quagga.init(
       {
