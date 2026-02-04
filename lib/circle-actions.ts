@@ -87,16 +87,21 @@ export async function leaveCircle(circleId: string, userId: string) {
   }
 
   // Hide all your books from this circle
-  await supabase
-    .from('book_circle_visibility')
-    .update({ is_visible: false })
-    .eq('circle_id', circleId)
-    .in('book_id', 
-      supabase
-        .from('books')
-        .select('id')
-        .eq('owner_id', userId)
-    )
+  // First get all your book IDs
+  const { data: yourBooks } = await supabase
+    .from('books')
+    .select('id')
+    .eq('owner_id', userId)
+
+  if (yourBooks && yourBooks.length > 0) {
+    const bookIds = yourBooks.map(b => b.id)
+    
+    await supabase
+      .from('book_circle_visibility')
+      .update({ is_visible: false })
+      .eq('circle_id', circleId)
+      .in('book_id', bookIds)
+  }
 
   // Remove from circle members
   const { error: removeError } = await supabase
