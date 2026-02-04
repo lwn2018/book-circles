@@ -55,7 +55,7 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
 
   // 2. Check for owner recall (takes priority)
   if (book.owner_recall_active) {
-    await supabase
+    const { error: updateError } = await supabase
       .from('books')
       .update({
         status: 'returning_to_owner',
@@ -63,6 +63,11 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
         ready_for_pass_on_date: new Date().toISOString()
       })
       .eq('id', bookId)
+
+    if (updateError) {
+      console.error('Failed to update book for owner recall:', updateError)
+      return { error: `Failed to update book: ${updateError.message}` }
+    }
 
     return {
       success: true,
@@ -83,7 +88,7 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
     // Offer to first person in queue
     const nextPerson = queue[0]
     
-    await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from('books')
       .update({
         status: 'ready_for_next',
@@ -91,6 +96,14 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
         ready_for_pass_on_date: new Date().toISOString()
       })
       .eq('id', bookId)
+      .select()
+
+    if (updateError) {
+      console.error('Failed to update book:', updateError)
+      return { error: `Failed to update book: ${updateError.message}` }
+    }
+
+    console.log('Book updated successfully:', updateData)
 
     // Send notification to next person
     await sendNotification('book_offered', nextPerson.user_id, bookId, currentHolderId)
@@ -105,7 +118,7 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
   }
 
   // 4. No queue, return to owner
-  await supabase
+  const { error: updateError } = await supabase
     .from('books')
     .update({
       status: 'returning_to_owner',
@@ -113,6 +126,11 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
       ready_for_pass_on_date: new Date().toISOString()
     })
     .eq('id', bookId)
+
+  if (updateError) {
+    console.error('Failed to update book for return to owner:', updateError)
+    return { error: `Failed to update book: ${updateError.message}` }
+  }
 
   return {
     success: true,
