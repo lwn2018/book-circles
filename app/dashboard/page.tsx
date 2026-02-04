@@ -46,7 +46,10 @@ export default async function Dashboard() {
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Book Circles</h1>
+          <div>
+            <h1 className="text-3xl font-bold">My Book Circles</h1>
+            <p className="text-sm text-gray-500 mt-1">Welcome back, {profile?.full_name || user.email}!</p>
+          </div>
           <UserMenu user={{
             id: user.id,
             email: user.email || '',
