@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 
@@ -18,6 +18,12 @@ export default function AddBookModal({
   userCircles: Circle[]
   onClose: () => void
 }) {
+  const handleClose = () => {
+    if (quaggaRef.current) {
+      quaggaRef.current.stop()
+    }
+    onClose()
+  }
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [isbn, setIsbn] = useState('')
@@ -26,6 +32,9 @@ export default function AddBookModal({
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [lookupStatus, setLookupStatus] = useState('')
+  const [scanning, setScanning] = useState(false)
+  const scannerRef = useRef<HTMLDivElement>(null)
+  const quaggaRef = useRef<any>(null)
   const router = useRouter()
   
   const supabase = createClient(
@@ -121,19 +130,77 @@ export default function AddBookModal({
       if (visError) throw visError
 
       router.refresh()
-      onClose()
+      handleClose()
     } catch (err: any) {
       setError(err.message || 'Failed to add book')
       setLoading(false)
     }
   }
 
+  const startScanner = async () => {
+    setScanning(true)
+    setError('')
+
+    // Dynamically import Quagga
+    const Quagga = (await import('quagga')).default
+
+    Quagga.init(
+      {
+        inputStream: {
+          type: 'LiveStream',
+          target: scannerRef.current,
+          constraints: {
+            facingMode: 'environment',
+            width: { min: 640 },
+            height: { min: 480 }
+          }
+        },
+        decoder: {
+          readers: ['ean_reader', 'ean_8_reader']
+        }
+      },
+      (err: any) => {
+        if (err) {
+          console.error('Quagga init error:', err)
+          setError('Failed to start camera. Please check permissions.')
+          setScanning(false)
+          return
+        }
+        Quagga.start()
+      }
+    )
+
+    Quagga.onDetected((data: any) => {
+      const code = data.codeResult.code
+      handleIsbnChange(code)
+      stopScanner()
+    })
+
+    quaggaRef.current = Quagga
+  }
+
+  const stopScanner = () => {
+    if (quaggaRef.current) {
+      quaggaRef.current.stop()
+      quaggaRef.current = null
+    }
+    setScanning(false)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (quaggaRef.current) {
+        quaggaRef.current.stop()
+      }
+    }
+  }, [])
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Add Book to Library</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">
+          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 text-2xl">
             ×
           </button>
         </div>
@@ -147,17 +214,40 @@ export default function AddBookModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">ISBN (Optional)</label>
-            <input
-              type="text"
-              value={isbn}
-              onChange={(e) => handleIsbnChange(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-              placeholder="Scan or enter ISBN"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={isbn}
+                onChange={(e) => handleIsbnChange(e.target.value)}
+                className="flex-1 px-3 py-2 border rounded-lg"
+                placeholder="Enter ISBN or scan barcode"
+                disabled={scanning}
+              />
+              <button
+                type="button"
+                onClick={scanning ? stopScanner : startScanner}
+                className={`px-4 py-2 rounded-lg font-medium ${
+                  scanning 
+                    ? 'bg-red-600 text-white hover:bg-red-700' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {scanning ? '⏹ Stop' : '📷 Scan'}
+              </button>
+            </div>
             {lookupStatus && (
               <p className="text-sm text-gray-600 mt-1">{lookupStatus}</p>
             )}
           </div>
+
+          {scanning && (
+            <div className="border rounded-lg overflow-hidden bg-black">
+              <div ref={scannerRef} className="w-full h-64" />
+              <p className="text-center text-sm text-white py-2 bg-black">
+                Position barcode in camera view
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-1">Title *</label>
@@ -216,7 +306,7 @@ export default function AddBookModal({
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               Cancel
