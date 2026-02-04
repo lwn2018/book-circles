@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { markReadyToPassOn, handleAcceptResponse, confirmHandoff } from '@/lib/queue-actions'
 
@@ -26,7 +26,16 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
   const [loading, setLoading] = useState(false)
   const [showPassOnModal, setShowPassOnModal] = useState(false)
   const [passOnData, setPassOnData] = useState<any>(null)
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null)
   const router = useRouter()
+
+  // Calculate days remaining on client side only to avoid hydration mismatch
+  useEffect(() => {
+    if (book.due_date) {
+      const days = Math.ceil((new Date(book.due_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      setDaysRemaining(days)
+    }
+  }, [book.due_date])
 
   const handleReadyToPassOn = async () => {
     setLoading(true)
@@ -61,10 +70,6 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
     setShowPassOnModal(false)
     router.refresh()
   }
-
-  const daysRemaining = book.due_date 
-    ? Math.ceil((new Date(book.due_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : null
 
   return (
     <>
