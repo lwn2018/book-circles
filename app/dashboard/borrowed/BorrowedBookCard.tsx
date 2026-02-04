@@ -76,18 +76,28 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
   }
 
   const handleConfirmHandoff = async () => {
-    if (!passOnData?.nextRecipient) return
+    if (!book.next_recipient) {
+      alert('Error: No next recipient found')
+      return
+    }
 
     setLoading(true)
-    const result = await confirmHandoff(book.id, userId, passOnData.nextRecipient)
+    console.log('🔵 Confirming handoff:', { bookId: book.id, userId, nextRecipient: book.next_recipient })
+    
+    const result = await confirmHandoff(book.id, userId, book.next_recipient)
+    console.log('🔵 Handoff result:', result)
     
     if (result.error) {
-      alert(result.error)
+      console.error('🔴 Error:', result.error)
+      alert(`Error: ${result.error}`)
       setLoading(false)
       return
     }
 
+    console.log('✅ Handoff confirmed!')
+    alert('✅ Book handoff complete!')
     setShowPassOnModal(false)
+    setLoading(false)
     router.refresh()
   }
 
