@@ -72,6 +72,12 @@ export default async function Dashboard() {
             </Link>
           )}
           <Link
+            href="/invite"
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+          >
+            ✉️ Invite Friends
+          </Link>
+          <Link
             href="/library"
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
           >

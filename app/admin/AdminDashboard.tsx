@@ -69,6 +69,31 @@ export default function AdminDashboard({ adsEnabled }: Props) {
       {/* Date Range Picker */}
       <DateRangePicker onChange={setDateRange} />
 
+      {/* Quick Links */}
+      <div className="grid md:grid-cols-3 gap-4 mb-8">
+        <a 
+          href="/admin/signup-analytics"
+          className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
+        >
+          <h3 className="font-semibold text-blue-600 mb-1">👥 Signup Analytics</h3>
+          <p className="text-sm text-gray-600">Sources, referrers, invite tracking</p>
+        </a>
+        <a 
+          href="/admin/queue-analytics"
+          className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
+        >
+          <h3 className="font-semibold text-purple-600 mb-1">📋 Queue Analytics</h3>
+          <p className="text-sm text-gray-600">Pass rates, wait times, acceptance</p>
+        </a>
+        <a 
+          href="/admin/idle-books"
+          className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
+        >
+          <h3 className="font-semibold text-orange-600 mb-1">😴 Idle Books</h3>
+          <p className="text-sm text-gray-600">Books never borrowed</p>
+        </a>
+      </div>
+
       {/* Ad Controls */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <div className="flex justify-between items-center mb-4">
