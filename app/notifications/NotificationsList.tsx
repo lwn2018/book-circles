@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation'
 type Notification = {
   id: string
   type: string
-  title: string
   message: string
-  link: string | null
+  action_url: string | null
+  book_id: string | null
+  sender_id: string | null
   read: boolean
   created_at: string
 }
@@ -74,8 +75,8 @@ export default function NotificationsList() {
     if (!notification.read) {
       markAsRead(notification.id)
     }
-    if (notification.link) {
-      router.push(notification.link)
+    if (notification.action_url) {
+      router.push(notification.action_url)
     }
   }
 
@@ -175,7 +176,7 @@ export default function NotificationsList() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-3 mb-1">
-                    <h3 className="font-semibold text-base">{notification.title}</h3>
+                    <h3 className="font-semibold text-base">{notification.message}</h3>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -188,8 +189,7 @@ export default function NotificationsList() {
                       </svg>
                     </button>
                   </div>
-                  <p className="text-gray-700 mb-2">{notification.message}</p>
-                  <p className="text-sm text-gray-500">{formatTime(notification.created_at)}</p>
+                  <p className="text-sm text-gray-500 mt-1">{formatTime(notification.created_at)}</p>
                 </div>
               </div>
               {!notification.read && (

@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { type, title, message, link } = await request.json()
+    const { type, message, action_url, book_id, sender_id, metadata } = await request.json()
 
     console.log('Creating notification for user:', user.id, 'type:', type)
 
@@ -74,9 +74,11 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: user.id,
         type,
-        title,
         message,
-        link: link || null
+        action_url: action_url || null,
+        book_id: book_id || null,
+        sender_id: sender_id || null,
+        metadata: metadata || null
       })
       .select()
       .single()

@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation'
 type Notification = {
   id: string
   type: string
-  title: string
   message: string
-  link: string | null
+  action_url: string | null
+  book_id: string | null
+  sender_id: string | null
   read: boolean
   created_at: string
 }
@@ -94,8 +95,8 @@ export default function NotificationBell() {
     if (!notification.read) {
       markAsRead(notification.id)
     }
-    if (notification.link) {
-      router.push(notification.link)
+    if (notification.action_url) {
+      router.push(notification.action_url)
       setShowDropdown(false)
     }
   }
@@ -187,7 +188,7 @@ export default function NotificationBell() {
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="font-medium text-sm">{notification.title}</p>
+                          <p className="font-medium text-sm">{notification.message}</p>
                           <button
                             onClick={(e) => deleteNotification(notification.id, e)}
                             className="text-gray-400 hover:text-gray-600 flex-shrink-0"
@@ -197,7 +198,6 @@ export default function NotificationBell() {
                             </svg>
                           </button>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
                         <p className="text-xs text-gray-400 mt-2">{formatTime(notification.created_at)}</p>
                       </div>
                     </div>
