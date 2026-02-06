@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { joinQueue, leaveQueue } from '@/lib/queue-actions'
-import BuyBookButton from '@/app/components/BuyBookButton'
+import BuyAmazonButton from '@/app/components/BuyAmazonButton'
 
 type QueueEntry = {
   id: string
@@ -296,13 +296,60 @@ export default function BooksList({
               )}
             </div>
 
-            {/* Buy This Book Button */}
-            <BuyBookButton 
-              bookId={book.id}
-              isbn={book.isbn}
-              title={book.title}
-              author={book.author}
-            />
+            {/* Buy Option for Unavailable Books */}
+            {book.status === 'borrowed' && 
+             book.owner_id !== userId && 
+             book.current_borrower_id !== userId && (
+              <div className="mt-3 pt-3 border-t">
+                {book.book_queue && book.book_queue.length > 0 && (
+                  <>
+                    {/* Show estimated wait for current queue position */}
+                    {book.book_queue.some(q => q.user_id === userId) ? (
+                      <p className="text-sm text-gray-600 mb-2">
+                        You'd be #{book.book_queue.find(q => q.user_id === userId)?.position} — 
+                        estimated wait: {Math.ceil((book.book_queue.find(q => q.user_id === userId)?.position || 1) * 3)}-
+                        {Math.ceil((book.book_queue.find(q => q.user_id === userId)?.position || 1) * 4)} weeks
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-600 mb-2">
+                        You'd be #{book.book_queue.length + 1} — 
+                        estimated wait: {Math.ceil((book.book_queue.length + 1) * 3)}-
+                        {Math.ceil((book.book_queue.length + 1) * 4)} weeks
+                      </p>
+                    )}
+                    
+                    {/* More prominent buy link if queue is long */}
+                    {(book.book_queue.length >= 3 || 
+                      (book.book_queue.some(q => q.user_id === userId) && 
+                       book.book_queue.find(q => q.user_id === userId)?.position! >= 3)) && (
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        Want your own copy instead?
+                      </p>
+                    )}
+                  </>
+                )}
+                
+                <BuyAmazonButton
+                  book={{
+                    id: book.id,
+                    title: book.title,
+                    author: book.author,
+                    isbn: book.isbn
+                  }}
+                  context="unavailable_to_borrow"
+                  circleId={circleId}
+                  variant={
+                    book.book_queue && book.book_queue.length >= 3 
+                      ? 'primary' 
+                      : 'link'
+                  }
+                >
+                  {book.book_queue && book.book_queue.length >= 3 
+                    ? '🛒 Buy on Amazon' 
+                    : 'Or buy on Amazon'}
+                </BuyAmazonButton>
+              </div>
+            )}
           </div>
         </div>
       ))}

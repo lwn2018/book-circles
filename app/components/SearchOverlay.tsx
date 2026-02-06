@@ -16,6 +16,14 @@ type SearchResult = {
   owner_name?: string
   circle_name?: string
   source?: 'google' | 'openlibrary'
+  // Rich metadata from Google Books
+  genres?: string[]
+  description?: string | null
+  page_count?: number | null
+  published_date?: string | null
+  publisher?: string | null
+  language?: string
+  google_books_id?: string
 }
 
 export default function SearchOverlay({ userId }: { userId: string }) {
@@ -121,7 +129,15 @@ export default function SearchOverlay({ userId }: { userId: string }) {
           isbn: book.isbn,
           cover_url: book.cover_url,
           owner_id: userId,
-          status: 'available'
+          status: 'available',
+          // NEW: Rich metadata from Google Books
+          genres: book.genres || null,
+          description: book.description || null,
+          page_count: book.page_count || null,
+          published_date: book.published_date || null,
+          publisher: book.publisher || null,
+          language: book.language || 'en',
+          google_books_id: book.google_books_id || null
         })
 
       if (error) throw error

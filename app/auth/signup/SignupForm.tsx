@@ -166,6 +166,14 @@ export default function SignupForm() {
               />
             </div>
           )}
+          {/* Privacy Message */}
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-800 text-center">
+              🔒 <strong>Your reading data is yours.</strong><br />
+              We never sell individual data to anyone.
+            </p>
+          </div>
+
           <button
             type="submit"
             disabled={loading}

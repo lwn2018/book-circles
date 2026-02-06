@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { markReadyToPassOn, handleAcceptResponse, confirmHandoff } from '@/lib/queue-actions'
 import { extendLoan } from '@/lib/loan-actions'
+import PagePassCompletionScreen from '@/app/components/PagePassCompletionScreen'
 
 type Book = {
   id: string
@@ -28,6 +29,7 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
   const [showPassOnModal, setShowPassOnModal] = useState(false)
   const [passOnData, setPassOnData] = useState<any>(null)
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null)
+  const [showCompletionScreen, setShowCompletionScreen] = useState(false)
   const router = useRouter()
 
   // Calculate days remaining on client side only to avoid hydration mismatch
@@ -96,9 +98,12 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
     }
 
     console.log('✅ Handoff confirmed!')
-    alert('✅ Book handoff complete!')
     setShowPassOnModal(false)
     setLoading(false)
+    
+    // Show completion screen with buy/gift options
+    setShowCompletionScreen(true)
+    
     router.refresh()
   }
 
@@ -289,6 +294,20 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
             </div>
           </div>
         </div>
+      )}
+
+      {/* PagePass Completion Screen */}
+      {showCompletionScreen && (
+        <PagePassCompletionScreen
+          book={{
+            id: book.id,
+            title: book.title,
+            author: book.author,
+            isbn: null, // We don't have ISBN in the Book type, will need to fetch if needed
+            cover_url: book.cover_url
+          }}
+          onClose={() => setShowCompletionScreen(false)}
+        />
       )}
     </>
   )

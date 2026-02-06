@@ -12,6 +12,12 @@ type Notification = {
   sender_id: string | null
   read: boolean
   created_at: string
+  metadata?: {
+    action_buttons?: Array<{
+      label: string
+      action: string
+    }>
+  }
 }
 
 export default function NotificationsList() {
@@ -72,12 +78,48 @@ export default function NotificationsList() {
   }
 
   const handleNotificationClick = (notification: Notification) => {
+    // Don't navigate if it's a soft reminder (has action buttons)
+    if (notification.type === 'soft_reminder') {
+      return
+    }
+
     if (!notification.read) {
       markAsRead(notification.id)
     }
     if (notification.action_url) {
       router.push(notification.action_url)
     }
+  }
+
+  const handleStillReading = async (notification: Notification) => {
+    try {
+      const response = await fetch('/api/notifications/actions/still-reading', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          book_id: notification.book_id,
+          notification_id: notification.id
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        alert(data.message) // "No rush — enjoy!"
+        fetchNotifications()
+      } else {
+        alert(`Error: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to handle still reading:', error)
+      alert('Failed to process action')
+    }
+  }
+
+  const handleReadyToPagepass = (notification: Notification) => {
+    // Navigate to My Shelf (borrowed books)
+    markAsRead(notification.id)
+    router.push('/dashboard/borrowed')
   }
 
   const getNotificationIcon = (type: string) => {
@@ -88,6 +130,7 @@ export default function NotificationsList() {
       case 'book_returned': return '↩️'
       case 'invite_accepted': return '🎉'
       case 'new_book': return '✨'
+      case 'soft_reminder': return '📖'
       default: return '🔔'
     }
   }
@@ -190,6 +233,30 @@ export default function NotificationsList() {
                     </button>
                   </div>
                   <p className="text-sm text-gray-500 mt-1">{formatTime(notification.created_at)}</p>
+                  
+                  {/* Action Buttons for Soft Reminders */}
+                  {notification.type === 'soft_reminder' && notification.metadata?.action_buttons && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleStillReading(notification)
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                      >
+                        Still reading
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleReadyToPagepass(notification)
+                        }}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50"
+                      >
+                        Ready to pagepass
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               {!notification.read && (

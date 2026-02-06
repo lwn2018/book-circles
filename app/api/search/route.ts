@@ -20,6 +20,14 @@ async function searchGoogleBooks(query: string) {
         id.type === 'ISBN_13' || id.type === 'ISBN_10'
       )?.identifier || null,
       cover_url: item.volumeInfo.imageLinks?.thumbnail || null,
+      // NEW: Rich metadata for database
+      genres: item.volumeInfo.categories || [],
+      description: item.volumeInfo.description || null,
+      page_count: item.volumeInfo.pageCount || null,
+      published_date: item.volumeInfo.publishedDate || null,
+      publisher: item.volumeInfo.publisher || null,
+      language: item.volumeInfo.language || 'en',
+      google_books_id: item.id,
       source: 'google'
     }))
   } catch (error) {
