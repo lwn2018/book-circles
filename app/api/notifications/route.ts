@@ -53,14 +53,21 @@ export async function GET(request: NextRequest) {
 // Create notification (server-side only, for testing)
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  console.log('POST /api/notifications - User:', user?.id || 'null', 'Auth error:', authError)
+
+  if (!user || !user.id) {
+    return NextResponse.json({ 
+      error: 'Unauthorized - No user session found',
+      debug: { hasUser: !!user, userId: user?.id || null }
+    }, { status: 401 })
   }
 
   try {
     const { type, title, message, link, data } = await request.json()
+
+    console.log('Creating notification for user:', user.id, 'type:', type)
 
     const { data: notification, error } = await supabase
       .from('notifications')
@@ -69,14 +76,18 @@ export async function POST(request: NextRequest) {
         type,
         title,
         message,
-        link,
-        data
+        link: link || null,
+        data: data || {}
       })
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Database insert error:', error)
+      throw error
+    }
 
+    console.log('Notification created successfully:', notification.id)
     return NextResponse.json({ notification })
   } catch (error: any) {
     console.error('Failed to create notification:', error)
