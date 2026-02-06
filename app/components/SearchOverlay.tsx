@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import RequestConfirmationDialog from './RequestConfirmationDialog'
 
 type SearchResult = {
   id: string
@@ -25,6 +26,7 @@ export default function SearchOverlay({ userId }: { userId: string }) {
   const [external, setExternal] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
   const [addingBook, setAddingBook] = useState<string | null>(null)
+  const [requestingBookId, setRequestingBookId] = useState<string | null>(null)
   
   const searchTimerRef = useRef<NodeJS.Timeout | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -148,8 +150,18 @@ export default function SearchOverlay({ userId }: { userId: string }) {
   }
 
   const handleRequestBook = (bookId: string) => {
-    // TODO: Implement request/borrow flow
-    alert('Request feature coming soon!')
+    setRequestingBookId(bookId)
+  }
+
+  const handleRequestSuccess = () => {
+    // Close dialog
+    setRequestingBookId(null)
+    
+    // Show success message
+    alert('Book requested! The owner has been notified.')
+    
+    // Refresh search results
+    performSearch(query)
   }
 
   if (!isOpen) return null
@@ -304,6 +316,15 @@ export default function SearchOverlay({ userId }: { userId: string }) {
           </div>
         </div>
       </div>
+
+      {/* Request Confirmation Dialog */}
+      {requestingBookId && (
+        <RequestConfirmationDialog
+          bookId={requestingBookId}
+          onClose={() => setRequestingBookId(null)}
+          onSuccess={handleRequestSuccess}
+        />
+      )}
     </>
   )
 }
