@@ -1,14 +1,12 @@
-// ALTERNATIVE: Direct query version (no stored procedures)
-// Use this if search functions aren't working
-
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
+// External API search functions
 async function searchGoogleBooks(query: string) {
   try {
     const response = await fetch(
       `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=10`,
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: 3600 } } // Cache for 1 hour
     )
     const data = await response.json()
     
@@ -62,7 +60,7 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get('q') || ''
   const includeExternal = searchParams.get('external') === 'true'
 
-  if (query.length < 3) {
+  if (query.length < 2) {
     return NextResponse.json({
       myLibrary: [],
       myCircles: [],
@@ -72,99 +70,49 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Search user's own books (direct query with ILIKE)
+    // Search user's own books (full-text search)
     const { data: myBooks, error: myBooksError } = await supabase
-      .from('books')
-      .select('id, title, author, isbn, cover_url, status, current_borrower_id')
-      .eq('owner_id', user.id)
-      .or(`title.ilike.%${query}%,author.ilike.%${query}%`)
-      .limit(20)
+      .rpc('search_my_books', {
+        search_query: query,
+        user_id: user.id
+      })
 
     if (myBooksError) {
-      console.error('My books search error:', myBooksError)
+      console.error('search_my_books error:', myBooksError)
     }
 
     // Search books in user's circles (not owned by them)
-    // First get user's circles
-    const { data: userCircles } = await supabase
-      .from('circle_members')
-      .select('circle_id')
-      .eq('user_id', user.id)
+    const { data: circleBooks, error: circleBooksError } = await supabase
+      .rpc('search_circle_books', {
+        search_query: query,
+        user_id: user.id
+      })
 
-    const circleIds = userCircles?.map(c => c.circle_id) || []
-
-    let circleBooks: any[] = []
-    if (circleIds.length > 0) {
-      const { data, error: circleBooksError } = await supabase
-        .from('books')
-        .select(`
-          id,
-          title,
-          author,
-          isbn,
-          cover_url,
-          status,
-          owner_id,
-          circle_id,
-          profiles!books_owner_id_fkey (
-            id,
-            full_name
-          ),
-          circles!books_circle_id_fkey (
-            id,
-            name
-          )
-        `)
-        .in('circle_id', circleIds)
-        .neq('owner_id', user.id)
-        .or(`title.ilike.%${query}%,author.ilike.%${query}%`)
-        .limit(20)
-
-      if (circleBooksError) {
-        console.error('Circle books search error:', circleBooksError)
-      } else {
-        // Check visibility
-        const filteredBooks = []
-        for (const book of data || []) {
-          // Check if book is visible in this circle (opt-out model)
-          const { data: visibility } = await supabase
-            .from('book_circle_visibility')
-            .select('is_visible')
-            .eq('book_id', book.id)
-            .eq('circle_id', book.circle_id)
-            .single()
-
-          // If no visibility record or is_visible = true, include it
-          if (!visibility || visibility.is_visible !== false) {
-            filteredBooks.push({
-              ...book,
-              owner_name: (book.profiles as any)?.full_name || 'Someone',
-              circle_name: (book.circles as any)?.name || 'Unknown'
-            })
-          }
-        }
-        circleBooks = filteredBooks
-      }
+    if (circleBooksError) {
+      console.error('search_circle_books error:', circleBooksError)
     }
 
-    const myLibraryResults = myBooks || []
-    const myCirclesResults = circleBooks
-    const totalInternal = myLibraryResults.length + myCirclesResults.length
-
-    console.log('Direct query search results:', {
+    console.log('Search results:', {
       query,
       userId: user.id,
-      myBooksCount: myLibraryResults.length,
-      circleBooksCount: myCirclesResults.length,
-      circleIds
+      myBooksCount: myBooks?.length || 0,
+      circleBooksCount: circleBooks?.length || 0,
+      myBooksError: myBooksError?.message,
+      circleBooksError: circleBooksError?.message
     })
 
-    // External search if needed
+    const myLibraryResults = myBooks || []
+    const myCirclesResults = circleBooks || []
+    const totalInternal = myLibraryResults.length + myCirclesResults.length
+
+    // If low internal results and external search requested, search external APIs
     let externalResults: any[] = []
     if (includeExternal && totalInternal < 5) {
+      // Try Google Books first
       const googleResults = await searchGoogleBooks(query)
       externalResults = googleResults
 
+      // If Google returns fewer than 3, try Open Library too
       if (googleResults.length < 3) {
         const openLibResults = await searchOpenLibrary(query)
         externalResults = [...googleResults, ...openLibResults].slice(0, 10)
