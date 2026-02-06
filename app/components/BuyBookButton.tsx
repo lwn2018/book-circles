@@ -11,9 +11,10 @@ type Props = {
 }
 
 type AffiliateSettings = {
-  bookshopId: string
+  indigoId: string
   amazonTag: string
-  priority: 'bookshop' | 'amazon'
+  amazonCaTag: string
+  priority: 'indigo' | 'amazon-ca' | 'amazon'
   adsEnabled: boolean
 }
 
@@ -41,24 +42,37 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
     return null
   }
 
-  const generateBookshopLink = () => {
-    if (!settings.bookshopId) return null
+  const generateIndigoLink = () => {
+    if (!settings.indigoId) return null
     
     if (isbn) {
-      // Direct ISBN link
-      return `https://bookshop.org/a/${settings.bookshopId}/${isbn}`
+      // Indigo ISBN link format
+      return `https://www.chapters.indigo.ca/en-ca/books/?isbn=${isbn}&ikwid=${isbn}&ikwsec=Home#algoliaQueryId=&affiliate=${settings.indigoId}`
     }
     
     // Search link fallback
     const query = encodeURIComponent(`${title} ${author || ''}`.trim())
-    return `https://bookshop.org/search?keywords=${query}&affiliate=${settings.bookshopId}`
+    return `https://www.chapters.indigo.ca/en-ca/books/search/?keywords=${query}&affiliate=${settings.indigoId}`
+  }
+
+  const generateAmazonCaLink = () => {
+    if (!settings.amazonCaTag) return null
+    
+    if (isbn) {
+      // Direct ISBN link for Amazon.ca
+      return `https://www.amazon.ca/dp/${isbn}?tag=${settings.amazonCaTag}`
+    }
+    
+    // Search link fallback
+    const query = encodeURIComponent(`${title} ${author || ''}`.trim())
+    return `https://www.amazon.ca/s?k=${query}&tag=${settings.amazonCaTag}`
   }
 
   const generateAmazonLink = () => {
     if (!settings.amazonTag) return null
     
     if (isbn) {
-      // Direct ISBN link
+      // Direct ISBN link for Amazon.com
       return `https://www.amazon.com/dp/${isbn}?tag=${settings.amazonTag}`
     }
     
@@ -72,15 +86,37 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
     window.open(link, '_blank', 'noopener,noreferrer')
   }
 
-  const bookshopLink = generateBookshopLink()
+  const indigoLink = generateIndigoLink()
+  const amazonCaLink = generateAmazonCaLink()
   const amazonLink = generateAmazonLink()
 
-  const primaryLink = settings.priority === 'bookshop' ? bookshopLink : amazonLink
-  const primarySource = settings.priority
-  const secondaryLink = settings.priority === 'bookshop' ? amazonLink : bookshopLink
-  const secondarySource = settings.priority === 'bookshop' ? 'amazon' : 'bookshop'
+  // Determine primary and secondary links based on priority
+  let primaryLink = null
+  let primarySource = ''
+  let primaryLabel = ''
+  let secondaryLinks: Array<{ link: string; source: string; label: string }> = []
 
-  if (!primaryLink && !secondaryLink) {
+  if (settings.priority === 'indigo') {
+    primaryLink = indigoLink
+    primarySource = 'indigo'
+    primaryLabel = '🇨🇦 Indigo'
+    if (amazonCaLink) secondaryLinks.push({ link: amazonCaLink, source: 'amazon-ca', label: '📦 Amazon.ca' })
+    if (amazonLink) secondaryLinks.push({ link: amazonLink, source: 'amazon', label: '📦 Amazon.com' })
+  } else if (settings.priority === 'amazon-ca') {
+    primaryLink = amazonCaLink
+    primarySource = 'amazon-ca'
+    primaryLabel = '📦 Amazon.ca'
+    if (indigoLink) secondaryLinks.push({ link: indigoLink, source: 'indigo', label: '🇨🇦 Indigo' })
+    if (amazonLink) secondaryLinks.push({ link: amazonLink, source: 'amazon', label: '📦 Amazon.com' })
+  } else { // amazon
+    primaryLink = amazonLink
+    primarySource = 'amazon'
+    primaryLabel = '📦 Amazon.com'
+    if (amazonCaLink) secondaryLinks.push({ link: amazonCaLink, source: 'amazon-ca', label: '📦 Amazon.ca' })
+    if (indigoLink) secondaryLinks.push({ link: indigoLink, source: 'indigo', label: '🇨🇦 Indigo' })
+  }
+
+  if (!primaryLink && secondaryLinks.length === 0) {
     return null // No links available
   }
 
@@ -90,20 +126,21 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
       <div className="flex flex-wrap gap-2">
         {primaryLink && (
           <button
-            onClick={() => handleClick(primarySource, primaryLink)}
+            onClick={() => handleClick(primarySource as 'bookshop' | 'amazon', primaryLink)}
             className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
           >
-            {primarySource === 'bookshop' ? '🏪 Bookshop.org' : '📦 Amazon'}
+            {primaryLabel}
           </button>
         )}
-        {secondaryLink && (
+        {secondaryLinks.map((secondary, idx) => (
           <button
-            onClick={() => handleClick(secondarySource as 'bookshop' | 'amazon', secondaryLink)}
+            key={idx}
+            onClick={() => handleClick(secondary.source as 'bookshop' | 'amazon', secondary.link)}
             className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition"
           >
-            {secondarySource === 'bookshop' ? '🏪 Bookshop.org' : '📦 Amazon'}
+            {secondary.label}
           </button>
-        )}
+        ))}
       </div>
       {!isbn && (
         <p className="text-xs text-gray-400 mt-1">

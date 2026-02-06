@@ -2,13 +2,14 @@
 
 ## ✅ What's Built
 
-The complete affiliate system is now live! Here's what you can do:
+The complete affiliate system is now live with **Canadian support**! Here's what you can do:
 
 ### 1. Admin Configuration
 - Navigate to **Admin Dashboard** → **Configure Affiliate IDs**
 - Or go directly to `/admin/affiliate`
-- Add your Bookshop.org shop name
-- Add your Amazon Associates tag
+- Add your Indigo/Chapters affiliate ID (Canada)
+- Add your Amazon.ca Associates tag (Canada)
+- Add your Amazon.com Associates tag (US/International)
 - Choose which service to prioritize
 
 ### 2. "Buy This Book" Buttons
@@ -31,17 +32,23 @@ Automatically appear on:
 
 ### Step 1: Sign Up for Affiliate Programs
 
-**Bookshop.org (Recommended):**
-1. Visit https://bookshop.org/pages/affiliates
+**Indigo/Chapters (Recommended for Canada):**
+1. Visit https://www.chapters.indigo.ca/en-ca/affiliate-program/
 2. Complete the affiliate application
-3. Get your Shop Name from your dashboard
-4. Higher commissions (10%) + supports indie bookstores
+3. Get your Affiliate ID from your dashboard
+4. Supports Canadian bookstores, competitive commissions
 
-**Amazon Associates:**
+**Amazon.ca Associates (Canada):**
+1. Visit https://associates.amazon.ca/
+2. Complete the associate application
+3. Get your .ca Associate Tag (usually ends in `-20`)
+4. Wider selection, serves Canadian customers
+
+**Amazon.com Associates (US/International):**
 1. Visit https://affiliate-program.amazon.com/
 2. Complete the associate application
-3. Get your Associate Tag (usually ends in `-20`)
-4. Wider selection, lower commissions (~4.5%)
+3. Get your .com Associate Tag (usually ends in `-20`)
+4. For US and international customers
 
 ### Step 2: Configure in Book Circles
 
@@ -49,9 +56,10 @@ Automatically appear on:
 2. Go to Admin Dashboard
 3. Click "Configure Affiliate IDs"
 4. Enter your affiliate credentials:
-   - Bookshop.org: `your-shop-name`
-   - Amazon: `yoursite-20`
-5. Choose priority (Bookshop recommended)
+   - Indigo: `12345` (your numeric affiliate ID)
+   - Amazon.ca: `yoursite-20`
+   - Amazon.com: `yoursite-20` (optional, for US users)
+5. Choose priority (Indigo recommended for Canadian audience)
 6. Save settings
 
 ### Step 3: Enable Ads
@@ -89,8 +97,9 @@ Automatically appear on:
 │ Available               │
 │ ─────────────────       │
 │ 📚 Buy this book:       │
-│ [🏪 Bookshop.org]       │
-│ [📦 Amazon]             │
+│ [🇨🇦 Indigo]            │
+│ [📦 Amazon.ca]          │
+│ [📦 Amazon.com]         │
 └─────────────────────────┘
 ```
 
@@ -104,10 +113,11 @@ Automatically appear on:
 
 ## 💰 Revenue Optimization Tips
 
-### 1. Use Bookshop.org as Primary
-- 10% commission vs Amazon's ~4.5%
-- Users appreciate supporting indie bookstores
-- Better brand alignment for book lovers
+### 1. Use Indigo as Primary (for Canadian users)
+- Competitive commissions
+- Users appreciate supporting Canadian bookstores
+- Better brand alignment for Canadian book lovers
+- Faster shipping for Canadian customers
 
 ### 2. Track Performance
 - Check affiliate clicks weekly
@@ -131,9 +141,10 @@ Automatically appear on:
 ### Database Schema
 ```sql
 admin_settings table:
-- bookshop_affiliate_id (string)
+- indigo_affiliate_id (string)
+- amazon_ca_associate_tag (string)
 - amazon_associate_tag (string)
-- affiliate_priority ('bookshop' | 'amazon')
+- affiliate_priority ('indigo' | 'amazon-ca' | 'amazon')
 - ads_enabled (boolean)
 ```
 
@@ -149,11 +160,15 @@ admin_settings table:
 
 ### Link Formats
 
-**Bookshop.org:**
-- With ISBN: `https://bookshop.org/a/{shop_name}/{isbn}`
-- Without: `https://bookshop.org/search?keywords={query}&affiliate={shop_name}`
+**Indigo/Chapters:**
+- With ISBN: `https://www.chapters.indigo.ca/en-ca/books/?isbn={isbn}&affiliate={affiliate_id}`
+- Without: `https://www.chapters.indigo.ca/en-ca/books/search/?keywords={query}&affiliate={affiliate_id}`
 
-**Amazon:**
+**Amazon.ca:**
+- With ISBN: `https://www.amazon.ca/dp/{isbn}?tag={associate_tag}`
+- Without: `https://www.amazon.ca/s?k={query}&tag={associate_tag}`
+
+**Amazon.com:**
 - With ISBN: `https://www.amazon.com/dp/{isbn}?tag={associate_tag}`
 - Without: `https://www.amazon.com/s?k={query}&tag={associate_tag}`
 

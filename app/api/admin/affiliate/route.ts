@@ -21,22 +21,34 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { bookshopId, amazonTag, priority } = body
+  const { indigoId, amazonTag, amazonCaTag, priority } = body
 
   try {
-    // Update or insert Bookshop.org ID
-    if (bookshopId) {
+    // Update or insert Indigo ID
+    if (indigoId) {
       await supabase
         .from('admin_settings')
         .upsert({
-          key: 'bookshop_affiliate_id',
-          value: bookshopId,
+          key: 'indigo_affiliate_id',
+          value: indigoId,
           updated_by: user.id,
           updated_at: new Date().toISOString()
         })
     }
 
-    // Update or insert Amazon tag
+    // Update or insert Amazon.ca tag
+    if (amazonCaTag) {
+      await supabase
+        .from('admin_settings')
+        .upsert({
+          key: 'amazon_ca_associate_tag',
+          value: amazonCaTag,
+          updated_by: user.id,
+          updated_at: new Date().toISOString()
+        })
+    }
+
+    // Update or insert Amazon.com tag
     if (amazonTag) {
       await supabase
         .from('admin_settings')

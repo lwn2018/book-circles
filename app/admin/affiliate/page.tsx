@@ -23,10 +23,10 @@ export default async function AffiliateSettings() {
   }
 
   // Get current affiliate settings
-  const { data: bookshopSetting } = await supabase
+  const { data: indigoSetting } = await supabase
     .from('admin_settings')
     .select('value')
-    .eq('key', 'bookshop_affiliate_id')
+    .eq('key', 'indigo_affiliate_id')
     .single()
 
   const { data: amazonSetting } = await supabase
@@ -35,15 +35,22 @@ export default async function AffiliateSettings() {
     .eq('key', 'amazon_associate_tag')
     .single()
 
+  const { data: amazonCaSetting } = await supabase
+    .from('admin_settings')
+    .select('value')
+    .eq('key', 'amazon_ca_associate_tag')
+    .single()
+
   const { data: prioritySetting } = await supabase
     .from('admin_settings')
     .select('value')
     .eq('key', 'affiliate_priority')
     .single()
 
-  const bookshopId = bookshopSetting?.value as string || ''
+  const indigoId = indigoSetting?.value as string || ''
   const amazonTag = amazonSetting?.value as string || ''
-  const priority = prioritySetting?.value as string || 'bookshop'
+  const amazonCaTag = amazonCaSetting?.value as string || ''
+  const priority = prioritySetting?.value as string || 'indigo'
 
   return (
     <div className="min-h-screen p-8 bg-gray-50">
@@ -61,8 +68,9 @@ export default async function AffiliateSettings() {
           </p>
 
           <AffiliateSettingsForm
-            initialBookshopId={bookshopId}
+            initialIndigoId={indigoId}
             initialAmazonTag={amazonTag}
+            initialAmazonCaTag={amazonCaTag}
             initialPriority={priority}
           />
 
@@ -70,20 +78,29 @@ export default async function AffiliateSettings() {
             <h3 className="font-semibold text-blue-900 mb-2">📚 How to Get Your Affiliate IDs</h3>
             <div className="space-y-3 text-sm text-blue-800">
               <div>
-                <strong>Bookshop.org:</strong>
+                <strong>Indigo/Chapters (Canada):</strong>
                 <ol className="list-decimal ml-5 mt-1 space-y-1">
-                  <li>Sign up at <a href="https://bookshop.org/pages/affiliates" target="_blank" className="underline">bookshop.org/pages/affiliates</a></li>
+                  <li>Sign up at <a href="https://www.chapters.indigo.ca/en-ca/affiliate-program/" target="_blank" className="underline">Indigo Affiliate Program</a></li>
                   <li>Complete the affiliate application</li>
-                  <li>Find your Shop Name in your affiliate dashboard</li>
-                  <li>Enter it above (e.g., "your-shop-name")</li>
+                  <li>Get your Affiliate ID from your dashboard</li>
+                  <li>Enter it above (typically a numeric ID)</li>
                 </ol>
               </div>
               <div>
-                <strong>Amazon Associates:</strong>
+                <strong>Amazon.ca Associates (Canada):</strong>
+                <ol className="list-decimal ml-5 mt-1 space-y-1">
+                  <li>Sign up at <a href="https://associates.amazon.ca/" target="_blank" className="underline">associates.amazon.ca</a></li>
+                  <li>Complete the associate application</li>
+                  <li>Get your .ca Associate Tag from your dashboard</li>
+                  <li>Enter it above (e.g., "yoursite-20")</li>
+                </ol>
+              </div>
+              <div>
+                <strong>Amazon.com Associates (US/International):</strong>
                 <ol className="list-decimal ml-5 mt-1 space-y-1">
                   <li>Sign up at <a href="https://affiliate-program.amazon.com/" target="_blank" className="underline">affiliate-program.amazon.com</a></li>
                   <li>Complete the associate application</li>
-                  <li>Get your Associate Tag from your dashboard</li>
+                  <li>Get your .com Associate Tag from your dashboard</li>
                   <li>Enter it above (e.g., "yoursite-20")</li>
                 </ol>
               </div>
@@ -96,7 +113,8 @@ export default async function AffiliateSettings() {
               <li>Affiliate links only appear when Ads are enabled in Admin Dashboard</li>
               <li>Links are generated from book ISBNs when available</li>
               <li>All clicks are tracked in your analytics dashboard</li>
-              <li>Bookshop.org generally pays higher commissions and supports indie bookstores</li>
+              <li>Indigo supports Canadian bookstores and typically has competitive commissions</li>
+              <li>You can configure multiple services - users will see your priority first</li>
             </ul>
           </div>
         </div>

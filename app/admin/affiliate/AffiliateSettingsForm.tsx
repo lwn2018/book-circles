@@ -4,18 +4,21 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 type Props = {
-  initialBookshopId: string
+  initialIndigoId: string
   initialAmazonTag: string
+  initialAmazonCaTag: string
   initialPriority: string
 }
 
 export default function AffiliateSettingsForm({ 
-  initialBookshopId, 
+  initialIndigoId, 
   initialAmazonTag,
+  initialAmazonCaTag,
   initialPriority 
 }: Props) {
-  const [bookshopId, setBookshopId] = useState(initialBookshopId)
+  const [indigoId, setIndigoId] = useState(initialIndigoId)
   const [amazonTag, setAmazonTag] = useState(initialAmazonTag)
+  const [amazonCaTag, setAmazonCaTag] = useState(initialAmazonCaTag)
   const [priority, setPriority] = useState(initialPriority)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -33,8 +36,9 @@ export default function AffiliateSettingsForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bookshopId: bookshopId.trim(),
+          indigoId: indigoId.trim(),
           amazonTag: amazonTag.trim(),
+          amazonCaTag: amazonCaTag.trim(),
           priority
         })
       })
@@ -70,23 +74,39 @@ export default function AffiliateSettingsForm({
 
       <div>
         <label className="block text-sm font-semibold mb-2">
-          Bookshop.org Shop Name
+          Indigo/Chapters Affiliate ID (Canada)
         </label>
         <input
           type="text"
-          value={bookshopId}
-          onChange={(e) => setBookshopId(e.target.value)}
-          placeholder="your-shop-name"
+          value={indigoId}
+          onChange={(e) => setIndigoId(e.target.value)}
+          placeholder="12345"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <p className="text-xs text-gray-500 mt-1">
-          Your Bookshop.org shop name (appears in your affiliate dashboard)
+          Your Indigo affiliate ID (numeric, from your affiliate dashboard)
         </p>
       </div>
 
       <div>
         <label className="block text-sm font-semibold mb-2">
-          Amazon Associate Tag
+          Amazon.ca Associate Tag (Canada)
+        </label>
+        <input
+          type="text"
+          value={amazonCaTag}
+          onChange={(e) => setAmazonCaTag(e.target.value)}
+          placeholder="yoursite-20"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Your Amazon.ca Associates tracking ID (usually ends in -20)
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold mb-2">
+          Amazon.com Associate Tag (US/International)
         </label>
         <input
           type="text"
@@ -96,7 +116,7 @@ export default function AffiliateSettingsForm({
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
         <p className="text-xs text-gray-500 mt-1">
-          Your Amazon Associates tracking ID (usually ends in -20)
+          Your Amazon.com Associates tracking ID (optional - for US users)
         </p>
       </div>
 
@@ -109,11 +129,12 @@ export default function AffiliateSettingsForm({
           onChange={(e) => setPriority(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
-          <option value="bookshop">Bookshop.org (Supports indie bookstores)</option>
-          <option value="amazon">Amazon (Wider selection)</option>
+          <option value="indigo">Indigo/Chapters (Canadian, supports local)</option>
+          <option value="amazon-ca">Amazon.ca (Canadian, wider selection)</option>
+          <option value="amazon">Amazon.com (US/International)</option>
         </select>
         <p className="text-xs text-gray-500 mt-1">
-          Which service to show first when both are available
+          Which service to show first when multiple are available
         </p>
       </div>
 
