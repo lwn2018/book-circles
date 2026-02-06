@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { joinQueue, leaveQueue } from '@/lib/queue-actions'
+import BuyBookButton from '@/app/components/BuyBookButton'
 
 type QueueEntry = {
   id: string
@@ -276,6 +277,14 @@ export default function BooksList({ books, userId, circleId }: { books: Book[]; 
                 </>
               )}
             </div>
+
+            {/* Buy This Book Button */}
+            <BuyBookButton 
+              bookId={book.id}
+              isbn={book.isbn}
+              title={book.title}
+              author={book.author}
+            />
           </div>
         </div>
       ))}

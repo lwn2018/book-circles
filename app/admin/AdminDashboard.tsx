@@ -71,7 +71,15 @@ export default function AdminDashboard({ adsEnabled }: Props) {
 
       {/* Ad Controls */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Ad Controls</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Ad & Affiliate Controls</h2>
+          <a 
+            href="/admin/affiliate"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Configure Affiliate IDs →
+          </a>
+        </div>
         <AdToggle initialEnabled={adsEnabled} />
       </div>
 
