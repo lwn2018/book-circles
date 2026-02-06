@@ -70,7 +70,14 @@ export default function SignIn() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
+        
+        <div className="mt-4 text-center text-sm text-gray-600">
+          <Link href="/auth/reset-password" className="text-blue-600 hover:underline">
+            Forgot password?
+          </Link>
+        </div>
+        
+        <p className="mt-2 text-center text-sm text-gray-600">
           Don't have an account?{' '}
           <Link href="/auth/signup" className="text-blue-600 hover:underline">
             Sign up
