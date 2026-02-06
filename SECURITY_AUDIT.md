@@ -250,7 +250,21 @@ ORDER BY table_name, grantee;
 ---
 
 ## Fixed Issues
-*Will be updated as issues are resolved*
+
+### ✅ F1: Added Next.js Middleware
+**Issue:** M1 - Missing middleware protection  
+**Fix:** Created `middleware.ts` with:
+- Protection for `/dashboard`, `/circles`, `/library`, `/notifications`, `/settings`, `/admin`, `/invite`
+- Redirects unauthenticated users to `/auth/signin` with return URL
+- Redirects authenticated users away from `/auth/*` pages to `/dashboard`
+- Uses @supabase/ssr for auth checks
+
+### ✅ F2: Added auth check to /api/invite/use
+**Issue:** M2 - Unauthenticated invite code usage  
+**Fix:** Added authentication requirement to `/api/invite/use` route
+- Now requires valid user session
+- Added check for expired invite codes (uses_remaining <= 0)
+- Returns 401 Unauthorized if not logged in
 
 ---
 

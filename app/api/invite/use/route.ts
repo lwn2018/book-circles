@@ -3,6 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const { code } = await request.json()
 
   if (!code) {
@@ -19,6 +25,11 @@ export async function POST(request: NextRequest) {
 
     if (fetchError || !invite) {
       return NextResponse.json({ error: 'Invite not found' }, { status: 404 })
+    }
+
+    // Check if uses remaining (if not unlimited)
+    if (invite.uses_remaining !== -1 && invite.uses_remaining <= 0) {
+      return NextResponse.json({ error: 'Invite code has no uses remaining' }, { status: 400 })
     }
 
     // Only decrement if uses_remaining is not -1 (unlimited)
