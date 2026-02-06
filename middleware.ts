@@ -64,6 +64,7 @@ export async function middleware(req: NextRequest) {
     '/dashboard',
     '/circles',
     '/library',
+    '/shelf',
     '/notifications',
     '/settings',
     '/admin',
