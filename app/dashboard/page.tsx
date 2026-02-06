@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import UserMenu from '../components/UserMenu'
+import NotificationBell from '../components/NotificationBell'
 import AddBookButton from '../library/AddBookButton'
 
 export default async function Dashboard() {
@@ -53,6 +54,7 @@ export default async function Dashboard() {
           </div>
           <div className="flex items-center gap-3">
             <AddBookButton userId={user.id} userCircles={circles as any} />
+            <NotificationBell />
             <UserMenu user={{
               id: user.id,
               email: user.email || '',
