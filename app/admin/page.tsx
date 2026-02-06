@@ -23,19 +23,19 @@ export default async function AdminPage() {
   }
 
   // Get analytics stats
-  const { data: totalUsers } = await supabase
+  const { count: totalUsers } = await supabase
     .from('profiles')
     .select('id', { count: 'exact', head: true })
 
-  const { data: totalBooks } = await supabase
+  const { count: totalBooks } = await supabase
     .from('books')
     .select('id', { count: 'exact', head: true })
 
-  const { data: totalCircles } = await supabase
+  const { count: totalCircles } = await supabase
     .from('circles')
     .select('id', { count: 'exact', head: true })
 
-  const { data: booksOnLoan } = await supabase
+  const { count: booksOnLoan } = await supabase
     .from('books')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'borrowed')
@@ -54,7 +54,7 @@ export default async function AdminPage() {
   const oneWeekAgo = new Date()
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
 
-  const { data: booksAddedWeek } = await supabase
+  const { count: booksAddedWeek } = await supabase
     .from('books')
     .select('id', { count: 'exact', head: true })
     .gte('created_at', oneWeekAgo.toISOString())
@@ -63,13 +63,13 @@ export default async function AdminPage() {
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const { data: activeCircles } = await supabase
+  const { count: activeCircles } = await supabase
     .from('books')
     .select('circle_id', { count: 'exact', head: true })
     .gte('created_at', thirtyDaysAgo.toISOString())
 
   // Affiliate link clicks (last 30 days)
-  const { data: affiliateClicks } = await supabase
+  const { count: affiliateClicks } = await supabase
     .from('analytics_events')
     .select('id', { count: 'exact', head: true })
     .eq('event_type', 'affiliate_link_clicked')
@@ -104,7 +104,7 @@ export default async function AdminPage() {
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Total Users</h3>
-            <p className="text-3xl font-bold">{totalUsers?.count || 0}</p>
+            <p className="text-3xl font-bold">{totalUsers || 0}</p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">DAU</h3>
@@ -129,11 +129,11 @@ export default async function AdminPage() {
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Books Added (7d)</h3>
-            <p className="text-3xl font-bold">{booksAddedWeek?.count || 0}</p>
+            <p className="text-3xl font-bold">{booksAddedWeek || 0}</p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Active Circles (30d)</h3>
-            <p className="text-3xl font-bold">{activeCircles?.count || 0}</p>
+            <p className="text-3xl font-bold">{activeCircles || 0}</p>
           </div>
         </div>
 
@@ -143,16 +143,16 @@ export default async function AdminPage() {
           <div className="grid md:grid-cols-3 gap-6">
             <div>
               <p className="text-sm text-gray-600">Total Books</p>
-              <p className="text-2xl font-bold">{totalBooks?.count || 0}</p>
+              <p className="text-2xl font-bold">{totalBooks || 0}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Currently Borrowed</p>
-              <p className="text-2xl font-bold">{booksOnLoan?.count || 0}</p>
+              <p className="text-2xl font-bold">{booksOnLoan || 0}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Available</p>
               <p className="text-2xl font-bold">
-                {(totalBooks?.count || 0) - (booksOnLoan?.count || 0)}
+                {(totalBooks || 0) - (booksOnLoan || 0)}
               </p>
             </div>
           </div>
@@ -164,11 +164,11 @@ export default async function AdminPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <p className="text-sm text-gray-600">Total Circles</p>
-              <p className="text-2xl font-bold">{totalCircles?.count || 0}</p>
+              <p className="text-2xl font-bold">{totalCircles || 0}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Active (30d)</p>
-              <p className="text-2xl font-bold">{activeCircles?.count || 0}</p>
+              <p className="text-2xl font-bold">{activeCircles || 0}</p>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default async function AdminPage() {
           <h2 className="text-xl font-semibold mb-4">Revenue Signals</h2>
           <div>
             <p className="text-sm text-gray-600">Affiliate Clicks (30d)</p>
-            <p className="text-2xl font-bold">{affiliateClicks?.count || 0}</p>
+            <p className="text-2xl font-bold">{affiliateClicks || 0}</p>
           </div>
         </div>
       </div>
