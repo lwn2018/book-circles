@@ -219,7 +219,7 @@ ORDER BY table_name, grantee;
 **Location:** `profiles` table RLS policy  
 **Policy:** "Public profiles are viewable by everyone" with `WHERE true`  
 **Fix:** See RLS_ANALYSIS.md - SQL provided  
-**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+**Status:** ✅ FIXED - Verified in console (unauthenticated user sees 0 profiles)
 
 #### C2: 🚨 Circles Table - ALL CIRCLES EXPOSED
 **Severity:** CRITICAL  
@@ -227,7 +227,7 @@ ORDER BY table_name, grantee;
 **Location:** `circles` table RLS policy  
 **Policy:** "Authenticated users can view circles" with `WHERE auth.uid() IS NOT NULL`  
 **Fix:** See RLS_ANALYSIS.md - SQL provided  
-**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+**Status:** ✅ APPEARS FIXED (empty result in testing) - Verify intended
 
 #### C3: 🚨 Admin Settings - Anyone Can Insert
 **Severity:** CRITICAL  
@@ -235,7 +235,7 @@ ORDER BY table_name, grantee;
 **Location:** `admin_settings` table INSERT policy  
 **Policy:** "Admins can insert settings" with no WITH CHECK  
 **Fix:** See RLS_ANALYSIS.md - SQL provided  
-**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+**Status:** ✅ FIXED
 
 ### Medium Issues
 
@@ -258,7 +258,7 @@ ORDER BY table_name, grantee;
 **Impact:** Users could insert analytics events for other users  
 **Location:** `analytics_events` table INSERT policy  
 **Fix:** See RLS_ANALYSIS.md - SQL provided  
-**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+**Status:** ✅ FIXED
 
 #### M4: Books - Overly Broad UPDATE Policy
 **Severity:** Medium  
@@ -286,7 +286,7 @@ ORDER BY table_name, grantee;
 **Impact:** Confusing, but no security impact  
 **Location:** `notifications` table  
 **Fix:** See RLS_ANALYSIS.md - SQL provided  
-**Status:** ❌ NOT FIXED - CLEANUP NEEDED
+**Status:** ✅ FIXED - Duplicates removed
 
 ### Low Issues
 
