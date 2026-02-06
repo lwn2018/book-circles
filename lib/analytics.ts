@@ -100,7 +100,7 @@ export const trackEvent = {
     analytics.track('handoff_confirmed', { bookId, fromUserId, toUserId })
   },
 
-  affiliateLinkClicked: (bookId: string, source: 'bookshop' | 'amazon', placement: string) => {
+  affiliateLinkClicked: (bookId: string, source: 'bookshop' | 'amazon' | 'indigo' | 'amazon-ca', placement: string) => {
     analytics.track('affiliate_link_clicked', { bookId, source, placement })
   },
 

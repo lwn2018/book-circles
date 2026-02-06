@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { analytics } from '@/lib/analytics'
+import { trackEvent } from '@/lib/analytics'
 
 type Props = {
   bookId: string
@@ -81,8 +81,8 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
     return `https://www.amazon.com/s?k=${query}&tag=${settings.amazonTag}`
   }
 
-  const handleClick = (source: 'bookshop' | 'amazon', link: string) => {
-    analytics.affiliateLinkClicked(bookId, source, 'book_card')
+  const handleClick = (source: 'bookshop' | 'amazon' | 'indigo' | 'amazon-ca', link: string) => {
+    trackEvent.affiliateLinkClicked(bookId, source, 'book_card')
     window.open(link, '_blank', 'noopener,noreferrer')
   }
 
@@ -91,10 +91,11 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
   const amazonLink = generateAmazonLink()
 
   // Determine primary and secondary links based on priority
-  let primaryLink = null
-  let primarySource = ''
+  type AffiliateSource = 'bookshop' | 'amazon' | 'indigo' | 'amazon-ca'
+  let primaryLink: string | null = null
+  let primarySource: AffiliateSource = 'amazon'
   let primaryLabel = ''
-  let secondaryLinks: Array<{ link: string; source: string; label: string }> = []
+  let secondaryLinks: Array<{ link: string; source: AffiliateSource; label: string }> = []
 
   if (settings.priority === 'indigo') {
     primaryLink = indigoLink
@@ -126,7 +127,7 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
       <div className="flex flex-wrap gap-2">
         {primaryLink && (
           <button
-            onClick={() => handleClick(primarySource as 'bookshop' | 'amazon', primaryLink)}
+            onClick={() => handleClick(primarySource, primaryLink)}
             className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
           >
             {primaryLabel}
@@ -135,7 +136,7 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
         {secondaryLinks.map((secondary, idx) => (
           <button
             key={idx}
-            onClick={() => handleClick(secondary.source as 'bookshop' | 'amazon', secondary.link)}
+            onClick={() => handleClick(secondary.source, secondary.link)}
             className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition"
           >
             {secondary.label}
