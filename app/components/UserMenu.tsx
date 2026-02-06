@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
+import { signOut } from '@/app/actions/auth'
 
 type User = {
   id: string
@@ -14,17 +13,9 @@ type User = {
 
 export default function UserMenu({ user }: { user: User }) {
   const [showMenu, setShowMenu] = useState(false)
-  const router = useRouter()
-  
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
+    await signOut()
   }
 
   const initials = user.full_name
