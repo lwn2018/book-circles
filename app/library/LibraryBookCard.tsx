@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toggleBookVisibility } from '@/lib/library-actions'
-import BuyBookButton from '@/app/components/BuyBookButton'
 
 type Book = {
   id: string
@@ -134,14 +133,6 @@ export default function LibraryBookCard({
           })}
         </div>
       )}
-
-      {/* Buy This Book Button */}
-      <BuyBookButton 
-        bookId={book.id} 
-        isbn={book.isbn}
-        title={book.title}
-        author={book.author}
-      />
     </div>
   )
 }
