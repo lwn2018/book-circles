@@ -63,6 +63,14 @@ export default async function Dashboard() {
         </div>
 
         <div className="mb-6 flex gap-4 flex-wrap">
+          {profile?.is_admin && (
+            <Link
+              href="/admin"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+            >
+              📊 Admin Dashboard
+            </Link>
+          )}
           <Link
             href="/library"
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
