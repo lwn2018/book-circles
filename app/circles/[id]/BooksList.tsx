@@ -296,12 +296,11 @@ export default function BooksList({
               )}
             </div>
 
-            {/* Buy Option for Unavailable Books */}
-            {book.status === 'borrowed' && 
-             book.owner_id !== userId && 
-             book.current_borrower_id !== userId && (
+            {/* Buy Option for All Books (except your own) */}
+            {book.owner_id !== userId && (
               <div className="mt-3 pt-3 border-t">
-                {book.book_queue && book.book_queue.length > 0 && (
+                {/* Show queue info if book is borrowed */}
+                {book.status === 'borrowed' && book.book_queue && book.book_queue.length > 0 && (
                   <>
                     {/* Show estimated wait for current queue position */}
                     {book.book_queue.some(q => q.user_id === userId) ? (
@@ -336,17 +335,21 @@ export default function BooksList({
                     author: book.author,
                     isbn: book.isbn
                   }}
-                  context="unavailable_to_borrow"
+                  context={
+                    book.status === 'borrowed' && book.book_queue && book.book_queue.length > 0
+                      ? 'unavailable_to_borrow'
+                      : 'browsing_recommendation'
+                  }
                   circleId={circleId}
                   variant={
-                    book.book_queue && book.book_queue.length >= 3 
+                    book.status === 'borrowed' && book.book_queue && book.book_queue.length >= 3 
                       ? 'primary' 
                       : 'link'
                   }
                 >
-                  {book.book_queue && book.book_queue.length >= 3 
+                  {book.status === 'borrowed' && book.book_queue && book.book_queue.length >= 3 
                     ? '🛒 Buy on Amazon' 
-                    : 'Or buy on Amazon'}
+                    : 'Buy on Amazon'}
                 </BuyAmazonButton>
               </div>
             )}

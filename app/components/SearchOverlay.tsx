@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import RequestConfirmationDialog from './RequestConfirmationDialog'
+import BuyAmazonButton from './BuyAmazonButton'
 
 type SearchResult = {
   id: string
@@ -334,14 +335,19 @@ export default function SearchOverlay({ userId }: { userId: string }) {
                             >
                               {addingBook === book.id ? 'Adding...' : 'Add to My Library'}
                             </button>
-                            <a
-                              href={getBuyAmazonLink(book)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-3 py-1.5 border border-gray-300 text-sm rounded hover:bg-gray-100"
+                            <BuyAmazonButton
+                              book={{
+                                id: book.id,
+                                title: book.title,
+                                author: book.author,
+                                isbn: book.isbn
+                              }}
+                              context="browsing_recommendation"
+                              searchQuery={query}
+                              variant="secondary"
                             >
                               Buy on Amazon
-                            </a>
+                            </BuyAmazonButton>
                           </div>
                         </div>
                       </div>
