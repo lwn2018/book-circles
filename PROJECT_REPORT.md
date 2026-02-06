@@ -225,7 +225,7 @@ Book Circles is a web application that enables communities to share physical boo
 - **Phase 1 (Launch):** Affiliate-only (free for users)
 - **Phase 2 (Month 4-5):** Freemium model
   - Free tier: 2 circles, 25 books
-  - Premium: Unlimited circles/books ($5-10/month)
+  - Premium: Unlimited circles/books ($2.99/month)
 - **Phase 3:** Potential B2B (libraries, schools, bookstores)
 
 ### Click-to-Purchase Optimization
