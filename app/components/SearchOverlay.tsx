@@ -121,7 +121,8 @@ export default function SearchOverlay({ userId }: { userId: string }) {
   const handleAddToLibrary = async (book: SearchResult) => {
     setAddingBook(book.id)
     try {
-      const { error } = await supabase
+      // Insert the book and get the ID back
+      const { data: insertedBook, error } = await supabase
         .from('books')
         .insert({
           title: book.title,
@@ -139,8 +140,28 @@ export default function SearchOverlay({ userId }: { userId: string }) {
           language: book.language || 'en',
           google_books_id: book.google_books_id || null
         })
+        .select()
+        .single()
 
       if (error) throw error
+
+      // Auto-create visibility in all user's circles (opt-out model)
+      const { data: userCircles } = await supabase
+        .from('circle_members')
+        .select('circle_id')
+        .eq('user_id', userId)
+
+      if (userCircles && userCircles.length > 0 && insertedBook) {
+        const visibilityEntries = userCircles.map(cm => ({
+          book_id: insertedBook.id,
+          circle_id: cm.circle_id,
+          is_visible: true // Default: visible in all circles
+        }))
+
+        await supabase
+          .from('book_circle_visibility')
+          .insert(visibilityEntries)
+      }
 
       alert(`Added "${book.title}" to your library!`)
       router.refresh()
