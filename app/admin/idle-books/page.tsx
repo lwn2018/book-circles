@@ -33,14 +33,38 @@ export default async function IdleBooksPage() {
       author,
       isbn,
       created_at,
-      owner:owner_id(full_name, email),
-      circles:circle_id(name)
+      owner_id,
+      circle_id
     `)
     .eq('status', 'available')
     .lt('created_at', thirtyDaysAgo.toISOString())
     .order('created_at', { ascending: true })
 
-  if (!availableBooks || availableBooks.length === 0) {
+  // Get owner and circle details separately
+  const ownerIds = availableBooks?.map(b => b.owner_id).filter(Boolean) || []
+  const circleIds = availableBooks?.map(b => b.circle_id).filter(Boolean) || []
+
+  const { data: owners } = await supabase
+    .from('profiles')
+    .select('id, full_name, email')
+    .in('id', ownerIds)
+
+  const { data: circles } = await supabase
+    .from('circles')
+    .select('id, name')
+    .in('id', circleIds)
+
+  // Map owners and circles back to books
+  const ownersMap = new Map(owners?.map(o => [o.id, o]) || [])
+  const circlesMap = new Map(circles?.map(c => [c.id, c]) || [])
+
+  const booksWithDetails = availableBooks?.map(book => ({
+    ...book,
+    owner: ownersMap.get(book.owner_id) || null,
+    circle: circlesMap.get(book.circle_id) || null
+  }))
+
+  if (!booksWithDetails || booksWithDetails.length === 0) {
     return (
       <div className="min-h-screen p-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
@@ -62,7 +86,7 @@ export default async function IdleBooksPage() {
   }
 
   // Check which books have never been borrowed via analytics
-  const bookIds = availableBooks.map(b => b.id)
+  const bookIds = booksWithDetails.map(b => b.id)
   
   const { data: borrowEvents } = await supabase
     .from('analytics_events')
@@ -74,7 +98,7 @@ export default async function IdleBooksPage() {
   )
 
   // Filter to books that have never been borrowed
-  const neverBorrowedBooks = availableBooks.filter(book => !borrowedBookIds.has(book.id))
+  const neverBorrowedBooks = booksWithDetails.filter(book => !borrowedBookIds.has(book.id))
 
   // Calculate idle days
   const booksWithIdleDays = neverBorrowedBooks.map(book => ({
@@ -154,7 +178,7 @@ export default async function IdleBooksPage() {
                       <p className="text-gray-900">{book.owner?.full_name}</p>
                       <p className="text-gray-500 text-xs">{book.owner?.email}</p>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{book.circles?.name || '-'}</td>
+                    <td className="px-6 py-4 text-gray-600">{book.circle?.name || '-'}</td>
                     <td className="px-6 py-4 text-gray-600">
                       {new Date(book.created_at).toLocaleDateString()}
                     </td>
