@@ -30,7 +30,17 @@ type Book = {
   book_queue?: QueueEntry[]
 }
 
-export default function BooksList({ books, userId, circleId }: { books: Book[]; userId: string; circleId: string }) {
+export default function BooksList({ 
+  books, 
+  userId, 
+  circleId,
+  circleMemberIds 
+}: { 
+  books: Book[]
+  userId: string
+  circleId: string
+  circleMemberIds: string[]
+}) {
   const [loading, setLoading] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
@@ -197,16 +207,24 @@ export default function BooksList({ books, userId, circleId }: { books: Book[]; 
                   Queue ({book.book_queue.length} {book.book_queue.length === 1 ? 'person' : 'people'}):
                 </p>
                 <ol className="space-y-1 list-decimal list-inside">
-                  {book.book_queue.slice(0, 3).map((q) => (
-                    <li key={q.id} className="pl-2">
-                      {q.profiles?.full_name || 'Someone'}
-                      {q.pass_count && q.pass_count > 0 && (
-                        <span className="ml-2 text-orange-600">
-                          (passed {q.pass_count}×{q.last_pass_reason ? `: ${q.last_pass_reason}` : ''})
-                        </span>
-                      )}
-                    </li>
-                  ))}
+                  {book.book_queue.slice(0, 3).map((q) => {
+                    // Check if queued person is in this circle
+                    const isInCircle = circleMemberIds.includes(q.user_id)
+                    const displayName = isInCircle 
+                      ? (q.profiles?.full_name || 'Someone')
+                      : 'Someone from another circle'
+                    
+                    return (
+                      <li key={q.id} className="pl-2">
+                        {displayName}
+                        {isInCircle && q.pass_count && q.pass_count > 0 && (
+                          <span className="ml-2 text-orange-600">
+                            (passed {q.pass_count}×{q.last_pass_reason ? `: ${q.last_pass_reason}` : ''})
+                          </span>
+                        )}
+                      </li>
+                    )
+                  })}
                   {book.book_queue.length > 3 && (
                     <li className="pl-2 text-gray-500">
                       + {book.book_queue.length - 3} more

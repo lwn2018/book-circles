@@ -134,7 +134,12 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <h2 className="text-2xl font-bold mb-4">Books</h2>
-            <BooksList books={(books as any) || []} userId={user.id} circleId={id} />
+            <BooksList 
+              books={(books as any) || []} 
+              userId={user.id} 
+              circleId={id}
+              circleMemberIds={ownerIds}
+            />
           </div>
 
           <div>
