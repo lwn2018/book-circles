@@ -51,8 +51,16 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
     `)
     .eq('circle_id', id)
 
-  // Get all books
-  const { data: books } = await supabase
+  // Get all books owned by circle members
+  // Books are visible by default unless explicitly hidden in book_circle_visibility
+  const { data: memberIds } = await supabase
+    .from('circle_members')
+    .select('user_id')
+    .eq('circle_id', id)
+  
+  const ownerIds = memberIds?.map(m => m.user_id) || []
+
+  const { data: allBooks } = await supabase
     .from('books')
     .select(`
       id,
@@ -82,8 +90,20 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
         )
       )
     `)
-    .eq('circle_id', id)
+    .in('owner_id', ownerIds)
     .order('created_at', { ascending: false })
+
+  // Get hidden books for this circle (opt-out model)
+  const { data: hiddenBooks } = await supabase
+    .from('book_circle_visibility')
+    .select('book_id')
+    .eq('circle_id', id)
+    .eq('is_visible', false)
+
+  const hiddenBookIds = new Set(hiddenBooks?.map(h => h.book_id) || [])
+
+  // Filter out hidden books
+  const books = allBooks?.filter(book => !hiddenBookIds.has(book.id)) || []
 
   return (
     <div className="min-h-screen p-8">

@@ -99,7 +99,7 @@ export default function AddBookModal({
     }
 
     try {
-      // Create the book (without a specific circle_id, or use the first selected one)
+      // Create the book
       const { data: book, error: bookError } = await supabase
         .from('books')
         .insert({
@@ -109,25 +109,35 @@ export default function AddBookModal({
           cover_url: coverUrl.trim() || null,
           owner_id: userId,
           status: 'available',
-          circle_id: selectedCircles[0] // Use first selected circle as legacy field
+          circle_id: selectedCircles[0] || null // Legacy field, use first selected or null
         })
         .select()
         .single()
 
       if (bookError) throw bookError
 
-      // Create visibility entries for all selected circles
-      const visibilityEntries = selectedCircles.map(circleId => ({
-        book_id: book.id,
-        circle_id: circleId,
-        is_visible: true
-      }))
+      // OPT-OUT model: Create visibility entries ONLY for UNchecked circles (hidden)
+      // Books are visible by default in all circles unless explicitly hidden
+      const unselectedCircles = userCircles
+        .filter(circle => !selectedCircles.includes(circle.id))
+        .map(circle => circle.id)
 
-      const { error: visError } = await supabase
-        .from('book_circle_visibility')
-        .insert(visibilityEntries)
+      if (unselectedCircles.length > 0) {
+        const hiddenEntries = unselectedCircles.map(circleId => ({
+          book_id: book.id,
+          circle_id: circleId,
+          is_visible: false // Hide from these circles
+        }))
 
-      if (visError) throw visError
+        const { error: visError } = await supabase
+          .from('book_circle_visibility')
+          .insert(hiddenEntries)
+
+        if (visError) {
+          console.error('Failed to set visibility:', visError)
+          // Don't block book creation if visibility fails
+        }
+      }
 
       router.refresh()
       handleClose()
