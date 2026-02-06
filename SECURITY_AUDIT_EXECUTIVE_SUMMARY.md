@@ -243,4 +243,11 @@ All findings and fixes are documented in the repository:
 
 ---
 
-**Questions or concerns? All technical details and SQL fixes are available in the repository documentation.**
+## Additional Documentation
+
+For detailed technical information, see:
+- `SECURITY_AUDIT.md` - Complete audit with all findings
+- `RLS_ANALYSIS.md` - Detailed vulnerability analysis
+- `SECURITY_FIXES_SUMMARY.md` - Summary of fixes applied
+- `LAUNCH_CHECKLIST.md` - Final verification tasks
+- `final-security-fixes.sql` - SQL fixes that were applied
