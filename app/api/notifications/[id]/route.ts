@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from 'next/server'
 // Mark notification as read
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -22,7 +23,7 @@ export async function PATCH(
         read,
         read_at: read ? new Date().toISOString() : null
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
 
     if (error) throw error
@@ -40,8 +41,9 @@ export async function PATCH(
 // Delete notification
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -53,7 +55,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('notifications')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
 
     if (error) throw error

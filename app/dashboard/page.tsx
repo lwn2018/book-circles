@@ -1,8 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import UserMenu from '../components/UserMenu'
-import NotificationBell from '../components/NotificationBell'
+import AppHeader from '../components/AppHeader'
 import AddBookButton from '../library/AddBookButton'
 
 export default async function Dashboard() {
@@ -45,24 +44,23 @@ export default async function Dashboard() {
     .eq('status', 'ready_for_next')
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader 
+        user={{
+          id: user.id,
+          email: user.email || '',
+          full_name: profile?.full_name,
+          avatar_url: profile?.avatar_url
+        }}
+        actions={<AddBookButton userId={user.id} userCircles={circles as any} />}
+      />
+      
+      <div className="p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
             <h1 className="text-3xl font-bold">My Book Circles</h1>
             <p className="text-sm text-gray-500 mt-1">Welcome back, {profile?.full_name || user.email}!</p>
           </div>
-          <div className="flex items-center gap-3">
-            <AddBookButton userId={user.id} userCircles={circles as any} />
-            <NotificationBell />
-            <UserMenu user={{
-              id: user.id,
-              email: user.email || '',
-              full_name: profile?.full_name,
-              avatar_url: profile?.avatar_url
-            }} />
-          </div>
-        </div>
 
         <div className="mb-6 flex gap-4 flex-wrap">
           {profile?.is_admin && (
@@ -150,6 +148,7 @@ export default async function Dashboard() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   )
