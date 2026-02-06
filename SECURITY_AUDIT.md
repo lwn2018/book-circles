@@ -13,43 +13,42 @@ This report covers a comprehensive pre-launch security audit of the Book Circles
 ## 1. Row-Level Security (RLS) Audit
 
 ### 1a. RLS Enabled Check
-**Action Required:** Run this in Supabase SQL Editor:
-```sql
-SELECT schemaname, tablename, rowsecurity 
-FROM pg_tables 
-WHERE schemaname = 'public';
-```
+**Status:** ✅ COMPLETE
 
-**Paste results here:**
-```
-[PENDING - Run query and paste results]
-```
+**Result:** All tables have RLS enabled (rowsecurity = true)
+
+**Tables confirmed:**
+- admin_settings, analytics_events, book_circle_visibility, book_queue
+- books, borrow_history, circle_members, circles
+- invites, notification_preferences, notifications, profiles
 
 ---
 
 ### 1b. RLS Policies Check
-**Action Required:** Run this in Supabase SQL Editor:
-```sql
-SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual 
-FROM pg_policies 
-WHERE schemaname = 'public' 
-ORDER BY tablename;
-```
+**Status:** ✅ COMPLETE - 🚨 CRITICAL ISSUES FOUND
 
-**Paste results here:**
-```
-[PENDING - Run query and paste results]
-```
+**Result:** Received 40+ RLS policies. **Detailed analysis in `RLS_ANALYSIS.md`**
 
 ---
 
 ### 1c. Policy Review
-Will review after receiving policy list above.
+**Status:** ✅ COMPLETE - 3 CRITICAL + 5 MEDIUM ISSUES FOUND
+
+**Critical Issues:**
+1. **profiles table** - `SELECT ... WHERE true` allows ANYONE to see ALL profiles
+2. **circles table** - Any authenticated user can see ALL circles (including invite codes)
+3. **admin_settings table** - Anyone can INSERT settings (no admin check)
+
+**See RLS_ANALYSIS.md for full details and SQL fixes**
 
 ---
 
 ### 1d. Common RLS Mistakes
-Will check after receiving policy list.
+**Status:** ✅ FOUND MULTIPLE
+
+- ✅ Found `USING (true)` on profiles SELECT - **CRITICAL**
+- ✅ Found `WITH CHECK (null)` on multiple INSERT policies - **HIGH/MEDIUM**
+- ✅ Found overly broad policies (circles SELECT, books UPDATE)
 
 ---
 
@@ -213,7 +212,30 @@ ORDER BY table_name, grantee;
 ## Issues Found
 
 ### Critical Issues
-**None found** ✅
+
+#### C1: 🚨 Profiles Table - ALL USER DATA EXPOSED
+**Severity:** CRITICAL  
+**Impact:** ANY visitor can see ALL user profiles (emails, names, admin status)  
+**Location:** `profiles` table RLS policy  
+**Policy:** "Public profiles are viewable by everyone" with `WHERE true`  
+**Fix:** See RLS_ANALYSIS.md - SQL provided  
+**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+
+#### C2: 🚨 Circles Table - ALL CIRCLES EXPOSED
+**Severity:** CRITICAL  
+**Impact:** Any authenticated user can see ALL circles INCLUDING invite codes  
+**Location:** `circles` table RLS policy  
+**Policy:** "Authenticated users can view circles" with `WHERE auth.uid() IS NOT NULL`  
+**Fix:** See RLS_ANALYSIS.md - SQL provided  
+**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+
+#### C3: 🚨 Admin Settings - Anyone Can Insert
+**Severity:** CRITICAL  
+**Impact:** Non-admin users can insert admin settings  
+**Location:** `admin_settings` table INSERT policy  
+**Policy:** "Admins can insert settings" with no WITH CHECK  
+**Fix:** See RLS_ANALYSIS.md - SQL provided  
+**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
 
 ### Medium Issues
 
@@ -222,14 +244,49 @@ ORDER BY table_name, grantee;
 **Impact:** Unauthenticated users could access protected routes  
 **Location:** Root directory (middleware.ts missing)  
 **Recommendation:** Add middleware to protect authenticated routes  
-**Status:** TO FIX
+**Status:** ✅ FIXED
 
 #### M2: /api/invite/use has no auth check
 **Severity:** Medium  
 **Impact:** Unauthenticated users can "use" invite codes (decrement uses_remaining)  
 **Location:** `app/api/invite/use/route.ts`  
 **Recommendation:** Add auth check or determine if this is intentional (e.g., for signup flow)  
-**Status:** TO FIX OR EXPLAIN
+**Status:** ✅ FIXED
+
+#### M3: Analytics Events - No INSERT Check
+**Severity:** Medium  
+**Impact:** Users could insert analytics events for other users  
+**Location:** `analytics_events` table INSERT policy  
+**Fix:** See RLS_ANALYSIS.md - SQL provided  
+**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+
+#### M4: Books - Overly Broad UPDATE Policy
+**Severity:** Medium  
+**Impact:** ANY circle member can update ANY book (change ownership, etc.)  
+**Location:** `books` table "Circle members can update books" policy  
+**Recommendation:** Review and restrict to specific columns  
+**Status:** ❌ NOT FIXED - REQUIRES REVIEW
+
+#### M5: Book Queue - No INSERT Check
+**Severity:** Medium  
+**Impact:** Users could join queues for circles they're not in  
+**Location:** `book_queue` table INSERT policy  
+**Fix:** See RLS_ANALYSIS.md - SQL provided  
+**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+
+#### M6: Circle Members - No INSERT Check
+**Severity:** Medium  
+**Impact:** Users could add themselves to any circle without invite  
+**Location:** `circle_members` table INSERT policy  
+**Fix:** Add invite validation  
+**Status:** ❌ NOT FIXED - REQUIRES DATABASE CHANGE
+
+#### M7: Notifications - Duplicate Policies
+**Severity:** Low  
+**Impact:** Confusing, but no security impact  
+**Location:** `notifications` table  
+**Fix:** See RLS_ANALYSIS.md - SQL provided  
+**Status:** ❌ NOT FIXED - CLEANUP NEEDED
 
 ### Low Issues
 
@@ -270,21 +327,35 @@ ORDER BY table_name, grantee;
 
 ## Action Items
 
-### Immediate (Required for Launch)
-1. **Run RLS audit queries** in Supabase SQL Editor (Section 1a, 1b, 4c)
-2. **Fix /api/invite/use auth check** - Add authentication or document why it's intentionally public
-3. **Add Next.js middleware** to protect authenticated routes
-4. **Verify repository is private** on GitHub
+### 🚨 CRITICAL - DO NOT LAUNCH WITHOUT FIXING
 
-### High Priority (Recommended for Launch)
-5. **Verify Supabase auth settings** (email confirmation, enabled providers)
-6. **Check Supabase rate limiting** settings
-7. **Verify Vercel env vars** don't leak to preview deployments
+1. **Fix profiles RLS** - Run SQL in RLS_ANALYSIS.md section "CRITICAL FIX #1"
+2. **Fix circles RLS** - Run SQL in RLS_ANALYSIS.md section "CRITICAL FIX #2"
+3. **Fix admin_settings RLS** - Run SQL in RLS_ANALYSIS.md section "CRITICAL FIX #3"
 
-### Medium Priority (Post-Launch)
-8. Consider adding API route rate limiting (e.g., via Vercel Edge Config or Upstash)
-9. Review RLS policies in detail once query results are available
-10. Set up monitoring/alerting for failed auth attempts
+### High Priority (Required for Launch)
+
+4. **Fix analytics_events RLS** - Run SQL in RLS_ANALYSIS.md section "MEDIUM FIX #1"
+5. **Fix book_queue RLS** - Add proper INSERT check
+6. **Fix circle_members RLS** - Add invite validation
+7. **Review books UPDATE policy** - Decide if circle members should be able to update books
+8. **Clean up duplicate notifications policies** - Run cleanup SQL
+
+### Verification Tasks
+
+9. **Verify repository is private** on GitHub (https://github.com/lwn2018/book-circles)
+10. **Check Supabase auth settings:**
+    - Email confirmation (should be ON)
+    - Enabled providers (only what you use)
+    - Rate limits (review)
+11. **Check Vercel env vars** - Ensure preview ≠ production
+
+### Test After RLS Fixes
+
+12. Test: Non-circle-member CANNOT see other users' profiles
+13. Test: User CANNOT see circles they don't belong to
+14. Test: Non-admin CANNOT insert/update admin settings
+15. Test: User CANNOT join queue for books in circles they're not in
 
 ---
 
