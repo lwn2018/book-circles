@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import BookSearch from '@/app/components/BookSearch'
 
 export default async function CirclesTab() {
   const supabase = await createServerSupabaseClient()
@@ -48,6 +49,12 @@ export default async function CirclesTab() {
         <p className="text-gray-600 mt-1">
           Welcome back, {profile?.full_name || user.email}!
         </p>
+      </div>
+
+      {/* Search */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-3">🔍 Search Books</h2>
+        <BookSearch userId={user.id} />
       </div>
 
       {/* Books Offered Counter */}
