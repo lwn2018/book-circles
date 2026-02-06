@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     const averageWaitDays = waitCount > 0 ? Math.round(totalWaitDays / waitCount) : 0
 
     // Books passed on vs accepted (from passes table + successful loans)
-    const { data: loansInRange } = await supabase
+    const { count: loansInRange } = await supabase
       .from('analytics_events')
       .select('*', { count: 'exact', head: true })
       .eq('event_type', 'book_borrowed')
