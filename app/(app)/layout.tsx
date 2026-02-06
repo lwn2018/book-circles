@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import AppHeader from '../components/AppHeader'
 import BottomNav from '../components/BottomNav'
+import SearchOverlay from '../components/SearchOverlay'
 
 export default async function AppLayout({
   children,
@@ -47,6 +48,9 @@ export default async function AppLayout({
       </main>
 
       <BottomNav />
+      
+      {/* Global Search Overlay */}
+      <SearchOverlay userId={user.id} />
     </div>
   )
 }
