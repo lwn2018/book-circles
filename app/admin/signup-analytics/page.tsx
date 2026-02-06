@@ -33,23 +33,30 @@ export default async function SignupAnalytics() {
   }, {})
 
   // Get top referrers
-  const { data: referrers } = await supabase
+  const { data: referrals } = await supabase
     .from('profiles')
-    .select(`
-      invited_by,
-      inviter:invited_by(full_name, email)
-    `)
+    .select('invited_by')
     .not('invited_by', 'is', null)
 
-  const referrerCounts = referrers?.reduce((acc: Record<string, any>, p) => {
-    if (p.invited_by && p.inviter) {
-      if (!acc[p.invited_by]) {
-        acc[p.invited_by] = {
-          name: p.inviter.full_name || p.inviter.email,
-          count: 0
-        }
-      }
-      acc[p.invited_by].count++
+  // Count referrals per user
+  const referralCounts: Record<string, number> = {}
+  referrals?.forEach((r) => {
+    if (r.invited_by) {
+      referralCounts[r.invited_by] = (referralCounts[r.invited_by] || 0) + 1
+    }
+  })
+
+  // Get profile info for referrers
+  const referrerIds = Object.keys(referralCounts)
+  const { data: referrerProfiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, email')
+    .in('id', referrerIds)
+
+  const referrerCounts = referrerProfiles?.reduce((acc: Record<string, any>, profile) => {
+    acc[profile.id] = {
+      name: profile.full_name || profile.email,
+      count: referralCounts[profile.id] || 0
     }
     return acc
   }, {})
@@ -59,17 +66,25 @@ export default async function SignupAnalytics() {
     .slice(0, 10)
 
   // Get recent signups
-  const { data: recentSignups } = await supabase
+  const { data: recentSignupsRaw } = await supabase
     .from('profiles')
-    .select(`
-      full_name,
-      email,
-      created_at,
-      signup_source,
-      inviter:invited_by(full_name)
-    `)
+    .select('id, full_name, email, created_at, signup_source, invited_by')
     .order('created_at', { ascending: false })
     .limit(20)
+
+  // Get inviter details
+  const inviterIds = recentSignupsRaw?.map(s => s.invited_by).filter(Boolean) || []
+  const { data: inviters } = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .in('id', inviterIds)
+
+  const invitersMap = new Map(inviters?.map(i => [i.id, i]) || [])
+
+  const recentSignups = recentSignupsRaw?.map(signup => ({
+    ...signup,
+    inviter: signup.invited_by ? invitersMap.get(signup.invited_by) : null
+  }))
 
   return (
     <div className="min-h-screen p-8 bg-gray-50">
