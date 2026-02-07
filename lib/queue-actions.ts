@@ -2,6 +2,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { initiateHandoff } from './handoff-actions'
 
 async function getSupabase() {
   const cookieStore = await cookies()
@@ -80,25 +81,19 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
 
   // 2. Check for owner recall (takes priority)
   if (book.owner_recall_active) {
-    const { error: updateError } = await supabase
-      .from('books')
-      .update({
-        status: 'returning_to_owner',
-        next_recipient: book.owner_id,
-        ready_for_pass_on_date: new Date().toISOString()
-      })
-      .eq('id', bookId)
-
-    if (updateError) {
-      console.error('Failed to update book for owner recall:', updateError)
-      return { error: `Failed to update book: ${updateError.message}` }
+    // Initiate handoff back to owner
+    const handoffResult = await initiateHandoff(bookId, currentHolderId, book.owner_id)
+    
+    if (handoffResult.error) {
+      return { error: handoffResult.error }
     }
 
     return {
       success: true,
       nextRecipient: book.owner_id,
       isOwnerRecall: true,
-      queueExists: false
+      queueExists: false,
+      handoffId: handoffResult.handoff?.id
     }
   }
 
@@ -113,55 +108,36 @@ export async function markReadyToPassOn(bookId: string, currentHolderId: string)
     // Offer to first person in queue
     const nextPerson = queue[0]
     
-    const { data: updateData, error: updateError } = await supabase
-      .from('books')
-      .update({
-        status: 'ready_for_next',
-        next_recipient: nextPerson.user_id,
-        ready_for_pass_on_date: new Date().toISOString()
-      })
-      .eq('id', bookId)
-      .select()
-
-    if (updateError) {
-      console.error('Failed to update book:', updateError)
-      return { error: `Failed to update book: ${updateError.message}` }
+    // Initiate handoff to next person in queue
+    const handoffResult = await initiateHandoff(bookId, currentHolderId, nextPerson.user_id)
+    
+    if (handoffResult.error) {
+      return { error: handoffResult.error }
     }
-
-    console.log('Book updated successfully:', updateData)
-
-    // Send notification to next person
-    await sendNotification('book_offered', nextPerson.user_id, bookId, currentHolderId)
 
     return {
       success: true,
       nextRecipient: nextPerson.user_id,
       nextRecipientName: nextPerson.profiles?.full_name,
       isOwnerRecall: false,
-      queueExists: true
+      queueExists: true,
+      handoffId: handoffResult.handoff?.id
     }
   }
 
   // 4. No queue, return to owner
-  const { error: updateError } = await supabase
-    .from('books')
-    .update({
-      status: 'returning_to_owner',
-      next_recipient: book.owner_id,
-      ready_for_pass_on_date: new Date().toISOString()
-    })
-    .eq('id', bookId)
-
-  if (updateError) {
-    console.error('Failed to update book for return to owner:', updateError)
-    return { error: `Failed to update book: ${updateError.message}` }
+  const handoffResult = await initiateHandoff(bookId, currentHolderId, book.owner_id)
+  
+  if (handoffResult.error) {
+    return { error: handoffResult.error }
   }
 
   return {
     success: true,
     nextRecipient: book.owner_id,
     isOwnerRecall: false,
-    queueExists: false
+    queueExists: false,
+    handoffId: handoffResult.handoff?.id
   }
 }
 

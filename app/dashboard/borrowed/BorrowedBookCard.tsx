@@ -55,17 +55,10 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
         return
       }
 
-      if (result.success) {
-        console.log('✅ Success! Next recipient:', result.nextRecipientName)
-        alert(`✅ Book offered to ${result.nextRecipientName}! Waiting for them to accept...`)
-        setPassOnData(result)
-        setShowPassOnModal(true)
-        setLoading(false)
-        
-        // Force a page refresh to show updated status
-        setTimeout(() => {
-          router.refresh()
-        }, 1000)
+      if (result.success && result.handoffId) {
+        console.log('✅ Success! Handoff initiated:', result.handoffId)
+        // Redirect to handoff confirmation page
+        router.push(`/handoff/${result.handoffId}`)
       } else {
         console.error('🔴 Unexpected response:', result)
         alert('Unexpected response: ' + JSON.stringify(result))
