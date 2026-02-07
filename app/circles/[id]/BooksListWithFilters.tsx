@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import BooksList from './BooksList'
+import BooksListView from './BooksListView'
 import FilterBar from './FilterBar'
 
 type Book = {
@@ -38,6 +39,21 @@ export default function BooksListWithFilters({
   const [availableOnly, setAvailableOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [displayCount, setDisplayCount] = useState(20)
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
+
+  // Load view preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('books_view_mode')
+    if (saved === 'card' || saved === 'list') {
+      setViewMode(saved)
+    }
+  }, [])
+
+  // Save view preference
+  const handleViewModeChange = (mode: 'card' | 'list') => {
+    setViewMode(mode)
+    localStorage.setItem('books_view_mode', mode)
+  }
 
   // Filter and sort books
   const filteredAndSortedBooks = useMemo(() => {
@@ -125,8 +141,43 @@ export default function BooksListWithFilters({
     setDisplayCount(20)
   }, [searchQuery, availableOnly, sortBy])
 
+  // Get most recent books for "New in circle" section
+  const newBooks = useMemo(() => {
+    return [...books]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 5)
+  }, [books])
+
   return (
     <div>
+      {/* New in this circle */}
+      {newBooks.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-3">New in this circle</h3>
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {newBooks.map(book => (
+              <div key={book.id} className="flex-shrink-0 w-32">
+                {book.cover_url ? (
+                  <img 
+                    src={book.cover_url} 
+                    alt={book.title}
+                    className="w-32 h-44 object-cover rounded shadow-md"
+                  />
+                ) : (
+                  <div className="w-32 h-44 bg-gray-200 rounded flex items-center justify-center">
+                    <span className="text-4xl">📚</span>
+                  </div>
+                )}
+                <p className="text-xs font-medium mt-2 truncate">{book.title}</p>
+                {book.author && (
+                  <p className="text-xs text-gray-600 truncate">{book.author}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <FilterBar
         sortBy={sortBy}
         onSortChange={setSortBy}
@@ -138,13 +189,46 @@ export default function BooksListWithFilters({
         filteredCount={filteredAndSortedBooks.length}
       />
 
-      <div className="mt-4">
-        <BooksList 
-          books={displayedBooks}
-          userId={userId}
-          circleId={circleId}
-          circleMemberIds={circleMemberIds}
-        />
+      {/* View Toggle */}
+      <div className="flex justify-end gap-2 mt-4 mb-4">
+        <button
+          onClick={() => handleViewModeChange('card')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            viewMode === 'card'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          Card View
+        </button>
+        <button
+          onClick={() => handleViewModeChange('list')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            viewMode === 'list'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          List View
+        </button>
+      </div>
+
+      <div>
+        {viewMode === 'card' ? (
+          <BooksList 
+            books={displayedBooks}
+            userId={userId}
+            circleId={circleId}
+            circleMemberIds={circleMemberIds}
+          />
+        ) : (
+          <BooksListView 
+            books={displayedBooks}
+            userId={userId}
+            circleId={circleId}
+            circleMemberIds={circleMemberIds}
+          />
+        )}
       </div>
 
       {/* Loading indicator when more books are available */}
