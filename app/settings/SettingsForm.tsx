@@ -9,10 +9,14 @@ type User = {
   email: string
   full_name: string
   avatar_url: string
+  contact_preference_type: string | null
+  contact_preference_value: string
 }
 
 export default function SettingsForm({ user }: { user: User }) {
   const [fullName, setFullName] = useState(user.full_name || '')
+  const [contactPrefType, setContactPrefType] = useState(user.contact_preference_type || 'none')
+  const [contactPrefValue, setContactPrefValue] = useState(user.contact_preference_value || '')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -31,10 +35,21 @@ export default function SettingsForm({ user }: { user: User }) {
     setMessage('')
 
     try {
+      // Validate contact preference
+      if (contactPrefType !== 'none' && !contactPrefValue.trim()) {
+        setMessage('❌ Please enter your contact information or select "Don\'t share"')
+        setLoading(false)
+        return
+      }
+
       // Update profile in profiles table
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName })
+        .update({ 
+          full_name: fullName,
+          contact_preference_type: contactPrefType,
+          contact_preference_value: contactPrefType === 'none' ? null : contactPrefValue
+        })
         .eq('id', user.id)
 
       if (error) throw error
@@ -127,6 +142,71 @@ export default function SettingsForm({ user }: { user: User }) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Your name"
             />
+          </div>
+
+          {/* Contact Preference */}
+          <div className="border-t pt-4 mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              How should circle members reach you for book pickups?
+            </label>
+            <p className="text-xs text-gray-500 mb-3">
+              This is only shown to people during an active handoff. Not visible on your profile.
+            </p>
+            
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="phone"
+                  checked={contactPrefType === 'phone'}
+                  onChange={(e) => setContactPrefType(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">Phone number</span>
+              </label>
+
+              {contactPrefType === 'phone' && (
+                <input
+                  type="tel"
+                  value={contactPrefValue}
+                  onChange={(e) => setContactPrefValue(e.target.value)}
+                  className="ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="(555) 123-4567"
+                />
+              )}
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="email"
+                  checked={contactPrefType === 'email'}
+                  onChange={(e) => setContactPrefType(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">Email</span>
+              </label>
+
+              {contactPrefType === 'email' && (
+                <input
+                  type="email"
+                  value={contactPrefValue}
+                  onChange={(e) => setContactPrefValue(e.target.value)}
+                  className="ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="you@example.com"
+                />
+              )}
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="none"
+                  checked={contactPrefType === 'none'}
+                  onChange={(e) => setContactPrefType(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">Don't share contact info</span>
+              </label>
+            </div>
           </div>
 
           <div>

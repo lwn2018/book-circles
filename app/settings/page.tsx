@@ -32,7 +32,9 @@ export default async function Settings() {
             id: user.id,
             email: user.email || '',
             full_name: profile?.full_name || '',
-            avatar_url: profile?.avatar_url || ''
+            avatar_url: profile?.avatar_url || '',
+            contact_preference_type: profile?.contact_preference_type || null,
+            contact_preference_value: profile?.contact_preference_value || ''
           }}
         />
       </div>
