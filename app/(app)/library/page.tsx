@@ -47,56 +47,6 @@ export default async function MyLibraryTab() {
     })
   )
 
-  return (
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/auth/signin')
-  }
-
-  // Get all books owned by this user
-  const { data: books } = await supabase
-    .from('books')
-    .select(`
-      *,
-      current_holder:current_borrower_id (
-        id,
-        full_name
-      )
-    `)
-    .eq('owner_id', user.id)
-    .order('title', { ascending: true })
-
-  // Get user's circles for visibility toggles
-  const { data: userCircles } = await supabase
-    .from('circle_members')
-    .select('circle_id, circles(id, name)')
-    .eq('user_id', user.id)
-
-  const circles = userCircles?.map(m => m.circles) || []
-
-  // For each book, get visibility settings
-  const booksWithVisibility = await Promise.all(
-    (books || []).map(async (book) => {
-      const { data: visibility } = await supabase
-        .from('book_circle_visibility')
-        .select('circle_id, is_visible')
-        .eq('book_id', book.id)
-
-      return {
-        ...book,
-        visibility: visibility || []
-      }
-    })
-  )
-
-  // Categorize books by status
-  const onShelf = booksWithVisibility.filter(b => b.status === 'available')
-  const offShelf = booksWithVisibility.filter(b => b.status === 'off_shelf')
-  const lentOut = booksWithVisibility.filter(b => b.status === 'borrowed')
-  const inTransit = booksWithVisibility.filter(b => b.status === 'ready_for_next')
-
   // Categorize books by status
   const onShelf = booksWithVisibility.filter(b => b.status === 'available')
   const offShelf = booksWithVisibility.filter(b => b.status === 'off_shelf')

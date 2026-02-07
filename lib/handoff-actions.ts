@@ -1,3 +1,5 @@
+'use server'
+
 import { createServerSupabaseClient } from './supabase-server'
 import { createNotification } from './notifications'
 
