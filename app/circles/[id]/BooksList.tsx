@@ -46,28 +46,45 @@ export default function BooksList({
   const supabase = createClient()
 
   const handleBorrow = async (bookId: string) => {
+    console.log('🔵 BORROW CLICKED', { bookId, userId, circleId })
     setLoading(bookId)
     
     const dueDate = new Date()
     dueDate.setDate(dueDate.getDate() + 14) // 2 weeks from now
 
-    const { error } = await supabase
+    const updateData = {
+      status: 'borrowed',
+      current_borrower_id: userId,
+      borrowed_at: new Date().toISOString(),
+      due_date: dueDate.toISOString(),
+      borrowed_in_circle_id: circleId
+    }
+    
+    console.log('🔵 Updating book with:', updateData)
+
+    const { data, error } = await supabase
       .from('books')
-      .update({
-        status: 'borrowed',
-        current_borrower_id: userId,
-        borrowed_at: new Date().toISOString(),
-        due_date: dueDate.toISOString(),
-        borrowed_in_circle_id: circleId
-      })
+      .update(updateData)
       .eq('id', bookId)
+      .select()
+
+    console.log('🔵 Update result:', { data, error })
 
     if (error) {
-      console.error('Borrow error:', error)
-      alert(`Failed to borrow: ${error.message}`)
+      console.error('❌ Borrow error:', error)
+      alert(`Failed to borrow: ${error.message}\n\nDetails: ${error.details}\nHint: ${error.hint}`)
       setLoading(null)
       return
     }
+
+    if (!data || data.length === 0) {
+      console.error('❌ No rows updated - possible RLS issue')
+      alert('Failed to borrow: No rows updated. This is likely an RLS policy issue preventing the update.')
+      setLoading(null)
+      return
+    }
+
+    console.log('✅ Book borrowed successfully')
 
     // Create borrow history entry
     const { error: historyError } = await supabase
