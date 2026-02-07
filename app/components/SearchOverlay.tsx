@@ -292,6 +292,7 @@ export default function SearchOverlay({ userId }: { userId: string }) {
                         key={book.id} 
                         book={book} 
                         type="circle"
+                        userId={userId}
                         onRequest={() => handleRequestBook(book.id)}
                       />
                     ))}
@@ -376,16 +377,61 @@ export default function SearchOverlay({ userId }: { userId: string }) {
 function BookCard({ 
   book, 
   type,
+  userId,
   onRequest
 }: { 
   book: SearchResult
   type: 'own' | 'circle'
+  userId?: string
   onRequest: () => void
 }) {
+  const [borrowing, setBorrowing] = useState(false)
+  const router = useRouter()
+  const supabase = createClient()
+  
   const isAvailable = book.status === 'available'
   const statusText = book.status === 'available' ? 'On shelf' :
                     book.status === 'borrowed' ? `Lent out` :
                     book.status
+
+  const handleBorrowDirect = async () => {
+    if (!userId) return
+    
+    setBorrowing(true)
+    
+    const dueDate = new Date()
+    dueDate.setDate(dueDate.getDate() + 14) // 2 weeks
+
+    const { error } = await supabase
+      .from('books')
+      .update({
+        status: 'borrowed',
+        current_borrower_id: userId,
+        borrowed_at: new Date().toISOString(),
+        due_date: dueDate.toISOString()
+      })
+      .eq('id', book.id)
+
+    if (error) {
+      console.error('Borrow error:', error)
+      alert(`Failed to borrow: ${error.message}`)
+      setBorrowing(false)
+      return
+    }
+
+    // Create borrow history entry
+    await supabase
+      .from('borrow_history')
+      .insert({
+        book_id: book.id,
+        borrower_id: userId,
+        due_date: dueDate.toISOString()
+      })
+
+    alert(`You borrowed "${book.title}"!`)
+    setBorrowing(false)
+    router.refresh()
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 flex gap-4">
@@ -425,12 +471,20 @@ function BookCard({
                 {isAvailable ? '✅ Available' : '📖 Borrowed'}
               </p>
               
-              {isAvailable && (
+              {isAvailable ? (
+                <button
+                  onClick={handleBorrowDirect}
+                  disabled={borrowing}
+                  className="mt-2 px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
+                >
+                  {borrowing ? 'Borrowing...' : 'Borrow Now'}
+                </button>
+              ) : (
                 <button
                   onClick={onRequest}
-                  className="mt-2 px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                  className="mt-2 px-3 py-1.5 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
                 >
-                  Request
+                  Join Queue
                 </button>
               )}
             </>

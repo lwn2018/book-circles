@@ -103,6 +103,13 @@ export default function BooksList({
         .update({ returned_at: new Date().toISOString() })
         .eq('book_id', bookId)
         .is('returned_at', null)
+      
+      // Remove user from queue if they're in it (shouldn't be, but cleanup just in case)
+      await supabase
+        .from('book_queue')
+        .delete()
+        .eq('book_id', bookId)
+        .eq('user_id', userId)
     }
 
     setLoading(null)
