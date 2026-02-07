@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { completeGiftTransfer } from '@/lib/gift-actions'
 import RequestConfirmationDialog from './RequestConfirmationDialog'
 import BuyAmazonButton from './BuyAmazonButton'
 
@@ -13,6 +14,7 @@ type SearchResult = {
   isbn: string | null
   cover_url: string | null
   status?: string
+  gift_on_borrow?: boolean
   owner_id?: string
   owner_name?: string
   circle_name?: string
@@ -399,6 +401,45 @@ function BookCard({
   const handleBorrowDirect = async () => {
     if (!userId) return
     
+    // Check if this is a gift
+    if (book.gift_on_borrow) {
+      if (!confirm(`${book.owner_name} is gifting you "${book.title}". This book will become yours permanently. Accept this gift?`)) {
+        return
+      }
+      
+      setBorrowing(true)
+      
+      // Need circle_id - try to extract from book data or use first circle
+      const { data: userCircles } = await supabase
+        .from('circle_members')
+        .select('circle_id')
+        .eq('user_id', userId)
+        .limit(1)
+      
+      const circleId = userCircles?.[0]?.circle_id
+      
+      if (!circleId) {
+        alert('Error: Could not determine circle for gift transfer')
+        setBorrowing(false)
+        return
+      }
+      
+      const result = await completeGiftTransfer(book.id, userId, circleId)
+      
+      if (result.error) {
+        console.error('Gift transfer error:', result.error)
+        alert(`Failed to accept gift: ${result.error}`)
+        setBorrowing(false)
+        return
+      }
+      
+      alert(`You've received "${book.title}" as a gift! It's now in your library.`)
+      setBorrowing(false)
+      router.refresh()
+      return
+    }
+    
+    // Normal borrow flow
     setBorrowing(true)
     
     const dueDate = new Date()
@@ -469,23 +510,44 @@ function BookCard({
               {book.circle_name && (
                 <p className="text-xs text-gray-600">Circle: {book.circle_name}</p>
               )}
-              <p className="text-xs text-gray-600">
-                {isOffShelf ? '📦 Off Shelf (Unavailable)' :
-                 isAvailable ? '✅ Available' : '📖 Borrowed'}
-              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-xs text-gray-600">
+                  {isOffShelf ? '📦 Off Shelf (Unavailable)' :
+                   isAvailable ? '✅ Available' : '📖 Borrowed'}
+                </p>
+                {book.gift_on_borrow && (
+                  <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded font-medium">
+                    🎁 Gift
+                  </span>
+                )}
+              </div>
               
               {isOffShelf ? (
                 <p className="mt-2 text-xs text-gray-500 italic">
                   Temporarily unavailable
                 </p>
               ) : isAvailable ? (
-                <button
-                  onClick={handleBorrowDirect}
-                  disabled={borrowing}
-                  className="mt-2 px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
-                >
-                  {borrowing ? 'Borrowing...' : 'Borrow Now'}
-                </button>
+                <div className="mt-2">
+                  <button
+                    onClick={handleBorrowDirect}
+                    disabled={borrowing}
+                    className={`px-3 py-1.5 text-white text-sm rounded disabled:opacity-50 ${
+                      book.gift_on_borrow 
+                        ? 'bg-pink-600 hover:bg-pink-700' 
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                  >
+                    {borrowing ? 
+                      (book.gift_on_borrow ? 'Accepting...' : 'Borrowing...') : 
+                      (book.gift_on_borrow ? '🎁 Accept Gift' : 'Borrow Now')
+                    }
+                  </button>
+                  {book.gift_on_borrow && (
+                    <p className="text-xs text-pink-600 mt-1">
+                      You'll own this permanently
+                    </p>
+                  )}
+                </div>
               ) : (
                 <button
                   onClick={onRequest}
