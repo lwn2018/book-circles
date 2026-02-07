@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     // Search user's own books (direct query with ILIKE)
     const { data: myBooks, error: myBooksError } = await supabase
       .from('books')
-      .select('id, title, author, isbn, cover_url, status, current_borrower_id')
+      .select('id, title, author, isbn, cover_url, status, gift_on_borrow, current_borrower_id')
       .eq('owner_id', user.id)
       .or(`title.ilike.%${query}%,author.ilike.%${query}%`)
       .limit(20)
@@ -112,6 +112,7 @@ export async function GET(request: NextRequest) {
           isbn,
           cover_url,
           status,
+          gift_on_borrow,
           owner_id,
           circle_id,
           profiles!books_owner_id_fkey (

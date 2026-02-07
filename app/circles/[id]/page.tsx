@@ -69,6 +69,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
       isbn,
       cover_url,
       status,
+      gift_on_borrow,
       owner_id,
       current_borrower_id,
       due_date,
