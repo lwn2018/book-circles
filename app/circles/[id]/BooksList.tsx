@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { joinQueue, leaveQueue } from '@/lib/queue-actions'
+import { completeGiftTransfer } from '@/lib/gift-actions'
 import BuyAmazonButton from '@/app/components/BuyAmazonButton'
 
 type QueueEntry = {
@@ -22,6 +23,7 @@ type Book = {
   isbn: string | null
   cover_url: string | null
   status: string
+  gift_on_borrow?: boolean
   owner: { full_name: string } | null
   current_borrower: { full_name: string } | null
   owner_id: string
@@ -48,6 +50,27 @@ export default function BooksList({
   const handleBorrow = async (bookId: string) => {
     setLoading(bookId)
     
+    // Check if this is a gift
+    const book = books.find(b => b.id === bookId)
+    
+    if (book?.gift_on_borrow) {
+      // Handle as gift transfer (immediate for MVP - in production would need handoff confirmation)
+      const result = await completeGiftTransfer(bookId, userId, circleId)
+      
+      if (result.error) {
+        console.error('Gift transfer error:', result.error)
+        alert(`Failed to accept gift: ${result.error}`)
+        setLoading(null)
+        return
+      }
+      
+      alert(`You've received "${book.title}" as a gift! It's now in your library.`)
+      setLoading(null)
+      router.refresh()
+      return
+    }
+    
+    // Normal borrow flow
     const dueDate = new Date()
     dueDate.setDate(dueDate.getDate() + 14) // 2 weeks from now
 
@@ -203,7 +226,7 @@ export default function BooksList({
                   <p className="text-gray-500 text-xs mt-1">ISBN: {book.isbn}</p>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {book.status === 'off_shelf' ? (
                   <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                     Off Shelf
@@ -215,6 +238,13 @@ export default function BooksList({
                 ) : (
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">
                     Borrowed
+                  </span>
+                )}
+                
+                {/* Gift Badge */}
+                {book.gift_on_borrow && (
+                  <span className="px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded font-medium">
+                    🎁 Gift
                   </span>
                 )}
               </div>
@@ -271,15 +301,36 @@ export default function BooksList({
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {book.status === 'available' && book.owner_id !== userId && (
-                <button
-                  onClick={() => handleBorrow(book.id)}
-                  disabled={loading === book.id}
-                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {loading === book.id ? 'Borrowing...' : 'Borrow'}
-                </button>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => {
+                      if (book.gift_on_borrow) {
+                        if (!confirm(`${book.owner?.full_name} is gifting you "${book.title}". This book will become yours permanently. Accept this gift?`)) {
+                          return
+                        }
+                      }
+                      handleBorrow(book.id)
+                    }}
+                    disabled={loading === book.id}
+                    className={`px-3 py-1 text-white text-sm rounded disabled:opacity-50 ${
+                      book.gift_on_borrow 
+                        ? 'bg-pink-600 hover:bg-pink-700' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    {loading === book.id ? 
+                      (book.gift_on_borrow ? 'Accepting...' : 'Borrowing...') : 
+                      (book.gift_on_borrow ? '🎁 Accept Gift' : 'Borrow')
+                    }
+                  </button>
+                  {book.gift_on_borrow && (
+                    <p className="text-xs text-pink-600">
+                      You'll own this permanently
+                    </p>
+                  )}
+                </div>
               )}
               {book.status === 'off_shelf' && book.owner_id !== userId && (
                 <div className="text-sm text-gray-500 italic">

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toggleBookVisibility } from '@/lib/library-actions'
 import { toggleBookShelfStatus } from '@/lib/shelf-actions'
+import { toggleGiftStatus } from '@/lib/gift-actions'
 
 type Book = {
   id: string
@@ -12,6 +13,7 @@ type Book = {
   cover_url: string | null
   isbn: string | null
   status: string
+  gift_on_borrow?: boolean
   current_holder?: { id: string; full_name: string }
   visibility: Array<{ circle_id: string; is_visible: boolean }>
 }
@@ -33,6 +35,7 @@ export default function LibraryBookCard({
   const [showVisibility, setShowVisibility] = useState(false)
   const [loading, setLoading] = useState(false)
   const [togglingShelf, setTogglingShelf] = useState(false)
+  const [togglingGift, setTogglingGift] = useState(false)
   const router = useRouter()
 
   const handleToggleShelf = async () => {
@@ -47,6 +50,20 @@ export default function LibraryBookCard({
     }
     
     setTogglingShelf(false)
+    router.refresh()
+  }
+
+  const handleToggleGift = async () => {
+    setTogglingGift(true)
+    
+    const newGiftStatus = !book.gift_on_borrow
+    const result = await toggleGiftStatus(book.id, newGiftStatus)
+    
+    if (result.error) {
+      alert(`Error: ${result.error}`)
+    }
+    
+    setTogglingGift(false)
     router.refresh()
   }
 
@@ -98,34 +115,61 @@ export default function LibraryBookCard({
       </div>
 
       {/* Status */}
-      <div className="mb-3 flex items-center gap-2">
-        {book.status === 'off_shelf' ? (
-          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-            📦 Off Shelf
-          </span>
-        ) : book.status === 'borrowed' && book.current_holder ? (
-          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-            📖 With {book.current_holder.full_name}
-          </span>
-        ) : book.status === 'available' ? (
-          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-            ✅ On Shelf
-          </span>
-        ) : (
-          <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-            {book.status}
-          </span>
-        )}
+      <div className="mb-3 space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {book.status === 'off_shelf' ? (
+            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+              📦 Off Shelf
+            </span>
+          ) : book.status === 'borrowed' && book.current_holder ? (
+            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+              📖 With {book.current_holder.full_name}
+            </span>
+          ) : book.status === 'available' ? (
+            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+              ✅ On Shelf
+            </span>
+          ) : (
+            <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+              {book.status}
+            </span>
+          )}
 
-        {/* Shelf Toggle Button */}
-        <button
-          onClick={handleToggleShelf}
-          disabled={togglingShelf || book.status === 'in_transit'}
-          className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
-          title={book.status === 'off_shelf' ? 'Return to shelf' : 'Take off shelf'}
-        >
-          {togglingShelf ? '...' : book.status === 'off_shelf' ? '↩️ Return' : '📦 Off Shelf'}
-        </button>
+          {/* Gift Badge */}
+          {book.gift_on_borrow && (
+            <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded font-medium">
+              🎁 Gift
+            </span>
+          )}
+
+          {/* Shelf Toggle Button */}
+          <button
+            onClick={handleToggleShelf}
+            disabled={togglingShelf || book.status === 'in_transit'}
+            className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={book.status === 'off_shelf' ? 'Return to shelf' : 'Take off shelf'}
+          >
+            {togglingShelf ? '...' : book.status === 'off_shelf' ? '↩️ Return' : '📦 Off Shelf'}
+          </button>
+        </div>
+
+        {/* Gift Toggle - only for on shelf or off shelf books */}
+        {(book.status === 'available' || book.status === 'off_shelf') && (
+          <div>
+            <button
+              onClick={handleToggleGift}
+              disabled={togglingGift}
+              className="text-xs text-pink-600 hover:text-pink-800 disabled:opacity-50"
+            >
+              {togglingGift ? 'Updating...' : book.gift_on_borrow ? '✕ Remove gift offer' : '🎁 Offer as gift'}
+            </button>
+            {book.gift_on_borrow && (
+              <p className="text-xs text-gray-500 mt-1">
+                Next person to borrow will own this book permanently
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Visibility Summary */}
