@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import AddBookForm from './AddBookForm'
-import BooksList from './BooksList'
+import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
 import LeaveCircleButton from './LeaveCircleButton'
 
@@ -135,7 +135,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <h2 className="text-2xl font-bold mb-4">Books</h2>
-            <BooksList 
+            <BooksListWithFilters 
               books={(books as any) || []} 
               userId={user.id} 
               circleId={id}
