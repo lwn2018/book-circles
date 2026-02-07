@@ -145,7 +145,7 @@ export default function BooksListWithFilters({
   const newBooks = useMemo(() => {
     return [...books]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 5)
+      .slice(0, 3)
   }, [books])
 
   return (
@@ -155,25 +155,73 @@ export default function BooksListWithFilters({
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">New in this circle</h3>
           <div className="flex gap-4 overflow-x-auto pb-4">
-            {newBooks.map(book => (
-              <div key={book.id} className="flex-shrink-0 w-32">
-                {book.cover_url ? (
-                  <img 
-                    src={book.cover_url} 
-                    alt={book.title}
-                    className="w-32 h-44 object-cover rounded shadow-md"
-                  />
-                ) : (
-                  <div className="w-32 h-44 bg-gray-200 rounded flex items-center justify-center">
-                    <span className="text-4xl">📚</span>
+            {newBooks.map(book => {
+              const inQueue = book.book_queue?.some(q => q.user_id === userId)
+              const isOwner = book.owner_id === userId
+              const isBorrower = book.current_borrower_id === userId
+              
+              return (
+                <div key={book.id} className="flex-shrink-0 w-40 bg-white rounded-lg shadow-sm p-3 border border-gray-200">
+                  {book.cover_url ? (
+                    <img 
+                      src={book.cover_url} 
+                      alt={book.title}
+                      className="w-full h-48 object-cover rounded shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-200 rounded flex items-center justify-center">
+                      <span className="text-4xl">📚</span>
+                    </div>
+                  )}
+                  <p className="text-xs font-medium mt-2 truncate">{book.title}</p>
+                  {book.author && (
+                    <p className="text-xs text-gray-600 truncate mb-2">{book.author}</p>
+                  )}
+                  
+                  {/* Status badge */}
+                  <div className="mb-2">
+                    {book.status === 'available' ? (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
+                    ) : book.status === 'borrowed' ? (
+                      <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Borrowed</span>
+                    ) : (
+                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Off Shelf</span>
+                    )}
                   </div>
-                )}
-                <p className="text-xs font-medium mt-2 truncate">{book.title}</p>
-                {book.author && (
-                  <p className="text-xs text-gray-600 truncate">{book.author}</p>
-                )}
-              </div>
-            ))}
+                  
+                  {/* Action button */}
+                  {!isOwner && book.status === 'available' && (
+                    <button
+                      onClick={() => {
+                        // Find the book in the main list to use the full handler
+                        const fullBook = books.find(b => b.id === book.id)
+                        if (fullBook) {
+                          window.location.href = `#book-${book.id}` // Scroll to book in main list
+                        }
+                      }}
+                      className="w-full text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      Borrow
+                    </button>
+                  )}
+                  {!isOwner && book.status === 'borrowed' && !isBorrower && !inQueue && (
+                    <button
+                      onClick={() => {
+                        window.location.href = `#book-${book.id}`
+                      }}
+                      className="w-full text-xs px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+                    >
+                      Join Queue
+                    </button>
+                  )}
+                  {inQueue && (
+                    <span className="w-full text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded block text-center">
+                      In Queue
+                    </span>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
