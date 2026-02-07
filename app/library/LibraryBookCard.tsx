@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toggleBookVisibility } from '@/lib/library-actions'
+import { toggleBookShelfStatus } from '@/lib/shelf-actions'
 
 type Book = {
   id: string
@@ -31,7 +32,23 @@ export default function LibraryBookCard({
 }) {
   const [showVisibility, setShowVisibility] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [togglingShelf, setTogglingShelf] = useState(false)
   const router = useRouter()
+
+  const handleToggleShelf = async () => {
+    setTogglingShelf(true)
+    
+    const result = await toggleBookShelfStatus(book.id)
+    
+    if (result.error) {
+      alert(`Error: ${result.error}`)
+    } else if (result.requiresRecall) {
+      alert('Recall initiated. The book will go off shelf when returned.')
+    }
+    
+    setTogglingShelf(false)
+    router.refresh()
+  }
 
   const handleToggleVisibility = async (circleId: string) => {
     setLoading(true)
@@ -81,20 +98,34 @@ export default function LibraryBookCard({
       </div>
 
       {/* Status */}
-      <div className="mb-3">
-        {book.status === 'borrowed' && book.current_holder ? (
+      <div className="mb-3 flex items-center gap-2">
+        {book.status === 'off_shelf' ? (
+          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+            📦 Off Shelf
+          </span>
+        ) : book.status === 'borrowed' && book.current_holder ? (
           <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
             📖 With {book.current_holder.full_name}
           </span>
         ) : book.status === 'available' ? (
           <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-            ✅ Available
+            ✅ On Shelf
           </span>
         ) : (
           <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
             {book.status}
           </span>
         )}
+
+        {/* Shelf Toggle Button */}
+        <button
+          onClick={handleToggleShelf}
+          disabled={togglingShelf || book.status === 'in_transit'}
+          className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={book.status === 'off_shelf' ? 'Return to shelf' : 'Take off shelf'}
+        >
+          {togglingShelf ? '...' : book.status === 'off_shelf' ? '↩️ Return' : '📦 Off Shelf'}
+        </button>
       </div>
 
       {/* Visibility Summary */}

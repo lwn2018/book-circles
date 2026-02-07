@@ -390,8 +390,10 @@ function BookCard({
   const supabase = createClient()
   
   const isAvailable = book.status === 'available'
+  const isOffShelf = book.status === 'off_shelf'
   const statusText = book.status === 'available' ? 'On shelf' :
                     book.status === 'borrowed' ? `Lent out` :
+                    book.status === 'off_shelf' ? 'Off shelf' :
                     book.status
 
   const handleBorrowDirect = async () => {
@@ -468,10 +470,15 @@ function BookCard({
                 <p className="text-xs text-gray-600">Circle: {book.circle_name}</p>
               )}
               <p className="text-xs text-gray-600">
-                {isAvailable ? '✅ Available' : '📖 Borrowed'}
+                {isOffShelf ? '📦 Off Shelf (Unavailable)' :
+                 isAvailable ? '✅ Available' : '📖 Borrowed'}
               </p>
               
-              {isAvailable ? (
+              {isOffShelf ? (
+                <p className="mt-2 text-xs text-gray-500 italic">
+                  Temporarily unavailable
+                </p>
+              ) : isAvailable ? (
                 <button
                   onClick={handleBorrowDirect}
                   disabled={borrowing}

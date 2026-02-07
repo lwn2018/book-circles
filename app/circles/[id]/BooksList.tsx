@@ -85,14 +85,24 @@ export default function BooksList({
   const handleReturn = async (bookId: string) => {
     setLoading(bookId)
 
+    // Check if owner wanted this off shelf after return
+    const { data: book } = await supabase
+      .from('books')
+      .select('off_shelf_return_status')
+      .eq('id', bookId)
+      .single()
+
+    const returnToStatus = book?.off_shelf_return_status === 'off_shelf' ? 'off_shelf' : 'available'
+
     // Update book status
     const { error } = await supabase
       .from('books')
       .update({
-        status: 'available',
+        status: returnToStatus,
         current_borrower_id: null,
         borrowed_at: null,
-        due_date: null
+        due_date: null,
+        off_shelf_return_status: null // Clear the flag
       })
       .eq('id', bookId)
 
@@ -110,6 +120,9 @@ export default function BooksList({
         .delete()
         .eq('book_id', bookId)
         .eq('user_id', userId)
+
+      // If returning to off_shelf, don't notify queue
+      // If returning to available, existing flow handles queue notifications
     }
 
     setLoading(null)
@@ -191,7 +204,11 @@ export default function BooksList({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                {book.status === 'available' ? (
+                {book.status === 'off_shelf' ? (
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                    Off Shelf
+                  </span>
+                ) : book.status === 'available' ? (
                   <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
                     Available
                   </span>
@@ -263,6 +280,14 @@ export default function BooksList({
                 >
                   {loading === book.id ? 'Borrowing...' : 'Borrow'}
                 </button>
+              )}
+              {book.status === 'off_shelf' && book.owner_id !== userId && (
+                <div className="text-sm text-gray-500 italic">
+                  Temporarily unavailable
+                  {book.book_queue && book.book_queue.some(q => q.user_id === userId) && (
+                    <span className="ml-2">(You're in the queue)</span>
+                  )}
+                </div>
               )}
               {book.current_borrower_id === userId && (
                 <button
