@@ -49,6 +49,7 @@ export default async function MyLibraryTab() {
 
   // Categorize books by status
   const onShelf = booksWithVisibility.filter(b => b.status === 'available')
+  const offShelf = booksWithVisibility.filter(b => b.status === 'off_shelf')
   const lentOut = booksWithVisibility.filter(b => b.status === 'borrowed')
   const inTransit = booksWithVisibility.filter(b => b.status === 'ready_for_next')
 
@@ -86,6 +87,26 @@ export default async function MyLibraryTab() {
               <h2 className="text-xl font-bold mb-4">📚 On My Shelf ({onShelf.length})</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {onShelf.map((book) => (
+                  <LibraryBookCard
+                    key={book.id}
+                    book={book as any}
+                    userCircles={circles as any}
+                    userId={user.id}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Off Shelf */}
+          {offShelf.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold mb-4">📦 Off Shelf ({offShelf.length})</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Books temporarily removed from lending
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {offShelf.map((book) => (
                   <LibraryBookCard
                     key={book.id}
                     book={book as any}
