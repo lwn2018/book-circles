@@ -51,7 +51,26 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
     setLoading(false)
 
     if (result.bothConfirmed) {
-      // Both confirmed - show success and redirect
+      // Both confirmed - check if this was a gift
+      const isGift = (handoff.book as any).gift_on_borrow
+      
+      // If receiver and it's a gift, offer thank you prompt
+      if (role === 'receiver' && isGift) {
+        const sendThankYou = confirm(`Send ${otherPerson.full_name} a quick thanks?`)
+        if (sendThankYou) {
+          // Send thank you notification (fire and forget)
+          fetch('/api/notifications/send-thanks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipientId: otherPerson.id,
+              bookTitle: handoff.book.title
+            })
+          })
+        }
+      }
+      
+      // Show success and redirect
       setTimeout(() => {
         router.push(role === 'giver' ? '/library' : '/dashboard/borrowed')
         router.refresh()

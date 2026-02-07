@@ -41,10 +41,12 @@ export async function GET(request: NextRequest) {
         author,
         current_borrower_id,
         borrowed_at,
-        last_soft_reminder_at
+        last_soft_reminder_at,
+        gift_on_borrow
       `)
       .eq('status', 'borrowed')
       .not('current_borrower_id', 'is', null)
+      .or('gift_on_borrow.is.null,gift_on_borrow.eq.false') // Skip gift books
       .or(`last_soft_reminder_at.is.null,last_soft_reminder_at.lte.${twoWeeksAgo.toISOString()}`)
 
     if (queryError) {

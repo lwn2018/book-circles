@@ -27,7 +27,7 @@ export async function toggleBookShelfStatus(
     // Get book with current state
     const { data: book, error: bookError } = await supabase
       .from('books')
-      .select('id, title, status, owner_id, current_borrower_id')
+      .select('id, title, status, owner_id, current_borrower_id, gift_on_borrow')
       .eq('id', bookId)
       .single()
 
@@ -38,6 +38,13 @@ export async function toggleBookShelfStatus(
     // Verify ownership
     if (book.owner_id !== user.id) {
       return { error: 'Only the owner can change shelf status' }
+    }
+
+    // Prevent recall for gift books
+    if (book.status === 'borrowed' && book.gift_on_borrow) {
+      return { 
+        error: 'Gift books cannot be recalled. Once gifted, the book belongs to the borrower.' 
+      }
     }
 
     // Get queue count for notifications

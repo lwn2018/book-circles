@@ -153,23 +153,31 @@ export default function LibraryBookCard({
           </button>
         </div>
 
-        {/* Gift Toggle - only for on shelf or off shelf books */}
-        {(book.status === 'available' || book.status === 'off_shelf') && (
-          <div>
-            <button
-              onClick={handleToggleGift}
-              disabled={togglingGift}
-              className="text-xs text-pink-600 hover:text-pink-800 disabled:opacity-50"
-            >
-              {togglingGift ? 'Updating...' : book.gift_on_borrow ? '✕ Remove gift offer' : '🎁 Offer as gift'}
-            </button>
-            {book.gift_on_borrow && (
-              <p className="text-xs text-gray-500 mt-1">
-                Next person to borrow will own this book permanently
-              </p>
-            )}
-          </div>
-        )}
+        {/* Gift Toggle */}
+        <div>
+          <button
+            onClick={handleToggleGift}
+            disabled={togglingGift || book.status === 'borrowed' || book.status === 'in_transit'}
+            className="text-xs text-pink-600 hover:text-pink-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={
+              (book.status === 'borrowed' || book.status === 'in_transit')
+                ? 'Gift status is locked while book is with someone'
+                : ''
+            }
+          >
+            {togglingGift ? 'Updating...' : book.gift_on_borrow ? '✕ Remove gift offer' : '🎁 Offer as gift'}
+          </button>
+          {book.gift_on_borrow && (book.status === 'available' || book.status === 'off_shelf') && (
+            <p className="text-xs text-gray-500 mt-1">
+              Next person to borrow will own this book permanently
+            </p>
+          )}
+          {(book.status === 'borrowed' || book.status === 'in_transit') && (
+            <p className="text-xs text-gray-400 mt-1">
+              🔒 Gift terms locked while book is with someone
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Visibility Summary */}

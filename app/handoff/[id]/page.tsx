@@ -16,7 +16,7 @@ export default async function HandoffPage({ params }: { params: Promise<{ id: st
     .from('handoff_confirmations')
     .select(`
       *,
-      book:books(id, title, cover_url),
+      book:books(id, title, cover_url, gift_on_borrow),
       giver:giver_id(
         id, 
         full_name, 
