@@ -57,19 +57,29 @@ export default function BooksList({
         status: 'borrowed',
         current_borrower_id: userId,
         borrowed_at: new Date().toISOString(),
-        due_date: dueDate.toISOString()
+        due_date: dueDate.toISOString(),
+        borrowed_in_circle_id: circleId
       })
       .eq('id', bookId)
 
-    if (!error) {
-      // Also create borrow history entry
-      await supabase
-        .from('borrow_history')
-        .insert({
-          book_id: bookId,
-          borrower_id: userId,
-          due_date: dueDate.toISOString()
-        })
+    if (error) {
+      console.error('Borrow error:', error)
+      alert(`Failed to borrow: ${error.message}`)
+      setLoading(null)
+      return
+    }
+
+    // Create borrow history entry
+    const { error: historyError } = await supabase
+      .from('borrow_history')
+      .insert({
+        book_id: bookId,
+        borrower_id: userId,
+        due_date: dueDate.toISOString()
+      })
+    
+    if (historyError) {
+      console.error('History error:', historyError)
     }
 
     setLoading(null)
