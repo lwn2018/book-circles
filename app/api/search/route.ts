@@ -19,7 +19,7 @@ async function searchGoogleBooks(query: string) {
       isbn: item.volumeInfo.industryIdentifiers?.find((id: any) => 
         id.type === 'ISBN_13' || id.type === 'ISBN_10'
       )?.identifier || null,
-      cover_url: item.volumeInfo.imageLinks?.thumbnail || null,
+      cover_url: item.volumeInfo.imageLinks?.thumbnail?.replace('http:', 'https:') || null,
       // NEW: Rich metadata for database
       genres: item.volumeInfo.categories || [],
       description: item.volumeInfo.description || null,
