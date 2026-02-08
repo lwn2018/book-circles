@@ -24,7 +24,7 @@ export default function FilterBar({
   filteredCount
 }: FilterBarProps) {
   return (
-    <div className="sticky top-0 z-30 bg-white border-b border-gray-200 p-3 sm:p-4 shadow-sm">
+    <div className="sticky top-16 z-30 bg-white border-b border-gray-200 p-3 sm:p-4 shadow-sm">
       <div className="flex flex-col gap-3">
         {/* Search */}
         <div className="w-full">
