@@ -34,7 +34,8 @@ export default async function Settings() {
             full_name: profile?.full_name || '',
             avatar_url: profile?.avatar_url || '',
             contact_preference_type: profile?.contact_preference_type || null,
-            contact_preference_value: profile?.contact_preference_value || ''
+            contact_preference_value: profile?.contact_preference_value || '',
+            default_browse_view: profile?.default_browse_view || 'card'
           }}
         />
       </div>

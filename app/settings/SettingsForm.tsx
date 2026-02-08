@@ -11,12 +11,14 @@ type User = {
   avatar_url: string
   contact_preference_type: string | null
   contact_preference_value: string
+  default_browse_view: string
 }
 
 export default function SettingsForm({ user }: { user: User }) {
   const [fullName, setFullName] = useState(user.full_name || '')
   const [contactPrefType, setContactPrefType] = useState(user.contact_preference_type || 'none')
   const [contactPrefValue, setContactPrefValue] = useState(user.contact_preference_value || '')
+  const [defaultBrowseView, setDefaultBrowseView] = useState(user.default_browse_view || 'card')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -48,7 +50,8 @@ export default function SettingsForm({ user }: { user: User }) {
         .update({ 
           full_name: fullName,
           contact_preference_type: contactPrefType,
-          contact_preference_value: contactPrefType === 'none' ? null : contactPrefValue
+          contact_preference_value: contactPrefType === 'none' ? null : contactPrefValue,
+          default_browse_view: defaultBrowseView
         })
         .eq('id', user.id)
 
@@ -205,6 +208,56 @@ export default function SettingsForm({ user }: { user: User }) {
                   className="w-4 h-4"
                 />
                 <span className="text-sm">Don't share contact info</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Default Browse View */}
+          <div className="border-t pt-4 mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Default Browse View
+            </label>
+            <p className="text-xs text-gray-500 mb-3">
+              Choose how you prefer to view book lists in circles and your library.
+            </p>
+            
+            <div className="flex gap-3">
+              <label className={`flex-1 px-4 py-3 border-2 rounded-lg cursor-pointer transition ${
+                defaultBrowseView === 'card' 
+                  ? 'border-blue-600 bg-blue-50' 
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}>
+                <input
+                  type="radio"
+                  value="card"
+                  checked={defaultBrowseView === 'card'}
+                  onChange={(e) => setDefaultBrowseView(e.target.value)}
+                  className="sr-only"
+                />
+                <div className="text-center">
+                  <div className="text-2xl mb-1">🎴</div>
+                  <div className="font-medium text-sm">Card View</div>
+                  <div className="text-xs text-gray-500">Large covers</div>
+                </div>
+              </label>
+
+              <label className={`flex-1 px-4 py-3 border-2 rounded-lg cursor-pointer transition ${
+                defaultBrowseView === 'list' 
+                  ? 'border-blue-600 bg-blue-50' 
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}>
+                <input
+                  type="radio"
+                  value="list"
+                  checked={defaultBrowseView === 'list'}
+                  onChange={(e) => setDefaultBrowseView(e.target.value)}
+                  className="sr-only"
+                />
+                <div className="text-center">
+                  <div className="text-2xl mb-1">📝</div>
+                  <div className="font-medium text-sm">List View</div>
+                  <div className="text-xs text-gray-500">Compact rows</div>
+                </div>
               </label>
             </div>
           </div>

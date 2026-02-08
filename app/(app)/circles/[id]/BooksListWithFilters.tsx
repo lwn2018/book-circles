@@ -37,13 +37,15 @@ type BooksListWithFiltersProps = {
   userId: string
   circleId: string
   circleMemberIds: string[]
+  defaultBrowseView?: string
 }
 
 export default function BooksListWithFilters({
   books,
   userId,
   circleId,
-  circleMemberIds
+  circleMemberIds,
+  defaultBrowseView = 'card'
 }: BooksListWithFiltersProps) {
   const [sortBy, setSortBy] = useState('recently_added')
   const [availableOnly, setAvailableOnly] = useState(false)
@@ -58,13 +60,16 @@ export default function BooksListWithFilters({
     setUseFixedPosition(isIOSSafari())
   }, [])
 
-  // Load view preference from localStorage
+  // Load view preference: localStorage overrides default for current session
   useEffect(() => {
     const saved = localStorage.getItem('books_view_mode')
     if (saved === 'card' || saved === 'list') {
       setViewMode(saved)
+    } else {
+      // Use user's default preference from settings
+      setViewMode(defaultBrowseView as 'card' | 'list')
     }
-  }, [])
+  }, [defaultBrowseView])
 
   // Save view preference
   const handleViewModeChange = (mode: 'card' | 'list') => {

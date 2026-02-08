@@ -15,6 +15,13 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
     redirect('/auth/signin')
   }
 
+  // Get user profile for preferences
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('default_browse_view')
+    .eq('id', user.id)
+    .single()
+
   // Get circle details
   const { data: circle } = await supabase
     .from('circles')
@@ -140,6 +147,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
               userId={user.id} 
               circleId={id}
               circleMemberIds={ownerIds}
+              defaultBrowseView={profile?.default_browse_view || 'card'}
             />
           </div>
 
