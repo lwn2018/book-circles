@@ -194,9 +194,9 @@ export default function BooksListWithFilters({
     <div>
       {/* New in this circle */}
       {newBooks.length > 0 && (
-        <div className="mb-4 sm:mb-6">
-          <h3 className="text-base sm:text-lg font-semibold mb-3">New in this circle</h3>
-          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-1 px-1">
+        <div className="mb-3">
+          <h3 className="text-base sm:text-lg font-semibold mb-2">New in this circle</h3>
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-1 px-1">
             {newBooks.map(book => {
               const inQueue = book.book_queue?.some(q => q.user_id === userId)
               const isOwner = book.owner_id === userId
@@ -294,7 +294,7 @@ export default function BooksListWithFilters({
       <div className={useFixedPosition ? 'pt-32' : ''}>
         {/* Search filter indicator (from URL parameter) */}
         {searchFilter && (
-          <div className="mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+          <div className="mb-2 mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -313,7 +313,7 @@ export default function BooksListWithFilters({
         )}
 
         {/* View Toggle - Mobile Optimized */}
-        <div className="flex justify-end gap-2 mb-3 sm:mb-4">
+        <div className="flex justify-end gap-2 mb-2 mt-3">
           <button
             onClick={() => handleViewModeChange('card')}
             className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
