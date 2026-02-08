@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 type Circle = {
@@ -37,10 +37,7 @@ export default function AddBookModal({
   const quaggaRef = useRef<any>(null)
   const router = useRouter()
   
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = createClient()
 
   const lookupISBN = async (isbnValue: string) => {
     if (!isbnValue || isbnValue.length < 10) return
