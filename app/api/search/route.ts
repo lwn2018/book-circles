@@ -92,6 +92,26 @@ export async function GET(request: NextRequest) {
       console.error('My books search error:', myBooksError)
     }
 
+    // Get circles for user's books
+    const myBooksWithCircles = await Promise.all(
+      (myBooks || []).map(async (book) => {
+        const { data: visibilityData } = await supabase
+          .from('book_circle_visibility')
+          .select('circle_id, is_visible, circles(id, name)')
+          .eq('book_id', book.id)
+          .eq('is_visible', true)
+
+        const circles = (visibilityData || [])
+          .filter(v => v.circles)
+          .map(v => ({
+            id: (v.circles as any).id,
+            name: (v.circles as any).name
+          }))
+
+        return { ...book, circles }
+      })
+    )
+
     // Search books in user's circles (not owned by them)
     // First get user's circles
     const { data: userCircles } = await supabase
@@ -145,10 +165,26 @@ export async function GET(request: NextRequest) {
 
           // If no visibility record or is_visible = true, include it
           if (!visibility || visibility.is_visible !== false) {
+            // Get all circles this book is visible in
+            const { data: allCircles } = await supabase
+              .from('book_circle_visibility')
+              .select('circle_id, is_visible, circles(id, name)')
+              .eq('book_id', book.id)
+              .eq('is_visible', true)
+              .in('circle_id', circleIds) // Only user's circles
+
+            const circles = (allCircles || [])
+              .filter(v => v.circles)
+              .map(v => ({
+                id: (v.circles as any).id,
+                name: (v.circles as any).name
+              }))
+
             filteredBooks.push({
               ...book,
               owner_name: (book.profiles as any)?.full_name || 'Someone',
-              circle_name: (book.circles as any)?.name || 'Unknown'
+              circle_name: (book.circles as any)?.name || 'Unknown',
+              circles
             })
           }
         }
@@ -156,7 +192,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const myLibraryResults = myBooks || []
+    const myLibraryResults = myBooksWithCircles || []
     const myCirclesResults = circleBooks
     const totalInternal = myLibraryResults.length + myCirclesResults.length
 

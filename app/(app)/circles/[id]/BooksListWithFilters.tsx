@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import BooksList from './BooksList'
 import BooksListView from './BooksListView'
 import FilterBar from './FilterBar'
@@ -54,6 +55,16 @@ export default function BooksListWithFilters({
   const [useFixedPosition, setUseFixedPosition] = useState(false)
   const [filterBarHeight, setFilterBarHeight] = useState(0)
   const filterBarRef = useRef<HTMLDivElement | null>(null)
+  const searchParams = useSearchParams()
+  const [searchFilter, setSearchFilter] = useState('')
+
+  // Read URL search parameter on mount (from SearchOverlay circle tags)
+  useEffect(() => {
+    const q = searchParams.get('q')
+    if (q) {
+      setSearchFilter(q)
+    }
+  }, [searchParams])
 
   // Detect iOS Safari for fixed positioning workaround
   useEffect(() => {
@@ -81,6 +92,15 @@ export default function BooksListWithFilters({
   // Filter and sort books
   const filteredAndSortedBooks = useMemo(() => {
     let result = [...books]
+
+    // Apply search filter from URL parameter
+    if (searchFilter.trim()) {
+      const query = searchFilter.toLowerCase()
+      result = result.filter(book => 
+        book.title.toLowerCase().includes(query) ||
+        (book.author?.toLowerCase() || '').includes(query)
+      )
+    }
 
     // Apply available only filter
     if (availableOnly) {
@@ -135,7 +155,7 @@ export default function BooksListWithFilters({
     }
 
     return result
-  }, [books, availableOnly, sortBy, userId])
+  }, [books, searchFilter, availableOnly, sortBy, userId])
 
   // Paginated books (for infinite scroll)
   const displayedBooks = useMemo(() => {
@@ -161,7 +181,7 @@ export default function BooksListWithFilters({
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(20)
-  }, [availableOnly, sortBy])
+  }, [searchFilter, availableOnly, sortBy])
 
   // Get most recent books for "New in circle" section
   const newBooks = useMemo(() => {
@@ -272,6 +292,26 @@ export default function BooksListWithFilters({
 
       {/* Content below filter bar - add padding-top only on iOS Safari (fixed positioning) */}
       <div className={useFixedPosition ? 'pt-32' : ''}>
+        {/* Search filter indicator (from URL parameter) */}
+        {searchFilter && (
+          <div className="mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span className="text-sm text-blue-700">
+                Searching for: <strong>"{searchFilter}"</strong>
+              </span>
+            </div>
+            <button
+              onClick={() => setSearchFilter('')}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
         {/* View Toggle - Mobile Optimized */}
         <div className="flex justify-end gap-2 mb-3 sm:mb-4">
           <button

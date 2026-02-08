@@ -18,6 +18,7 @@ type SearchResult = {
   owner_id?: string
   owner_name?: string
   circle_name?: string
+  circles?: Array<{ id: string; name: string }> // All circles this book is in
   source?: 'google' | 'openlibrary'
   // Rich metadata from Google Books
   genres?: string[]
@@ -267,27 +268,10 @@ export default function SearchOverlay({ userId }: { userId: string }) {
             )}
 
             <div className="space-y-6">
-              {/* Section 1: In Your Library */}
-              {myLibrary.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold mb-3">In Your Library</h3>
-                  <div className="space-y-3">
-                    {myLibrary.map((book) => (
-                      <BookCard 
-                        key={book.id} 
-                        book={book} 
-                        type="own" 
-                        onRequest={() => {}}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Section 2: In Your Circles */}
+              {/* Section 1: In Your Circles (books you don't own) */}
               {myCircles.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-bold mb-3">In Your Circles</h3>
+                  <h3 className="text-lg font-bold mb-3 text-blue-700">In Your Circles</h3>
                   <div className="space-y-3">
                     {myCircles.map((book) => (
                       <BookCard 
@@ -295,6 +279,7 @@ export default function SearchOverlay({ userId }: { userId: string }) {
                         book={book} 
                         type="circle"
                         userId={userId}
+                        searchQuery={query}
                         onRequest={() => handleRequestBook(book.id)}
                       />
                     ))}
@@ -302,10 +287,28 @@ export default function SearchOverlay({ userId }: { userId: string }) {
                 </div>
               )}
 
-              {/* Section 3: Not in Your Circles */}
+              {/* Section 2: Your Books */}
+              {myLibrary.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-3 text-gray-700">Your Books</h3>
+                  <div className="space-y-3">
+                    {myLibrary.map((book) => (
+                      <BookCard 
+                        key={book.id} 
+                        book={book} 
+                        type="own"
+                        searchQuery={query}
+                        onRequest={() => {}}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Section 3: More Books (external results) */}
               {external.length > 0 && (
                 <div>
-                  <h3 className="text-base font-semibold mb-3 text-gray-700">Not in Your Circles</h3>
+                  <h3 className="text-base font-semibold mb-3 text-gray-500">More Books</h3>
                   <div className="space-y-3">
                     {external.map((book) => (
                       <div key={book.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex gap-4">
@@ -380,16 +383,23 @@ function BookCard({
   book, 
   type,
   userId,
+  searchQuery,
   onRequest
 }: { 
   book: SearchResult
   type: 'own' | 'circle'
   userId?: string
+  searchQuery?: string
   onRequest: () => void
 }) {
   const [borrowing, setBorrowing] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  
+  const handleCircleTagClick = (circleId: string) => {
+    const encodedQuery = searchQuery ? encodeURIComponent(searchQuery) : ''
+    router.push(`/circles/${circleId}${encodedQuery ? `?q=${encodedQuery}` : ''}`)
+  }
   
   const isAvailable = book.status === 'available'
   const isOffShelf = book.status === 'off_shelf'
@@ -500,16 +510,48 @@ function BookCard({
         
         <div className="mt-2 space-y-1">
           {type === 'own' && (
-            <p className="text-xs text-gray-600">{statusText}</p>
+            <>
+              <p className="text-xs text-gray-600">{statusText}</p>
+              
+              {/* Circle tags for own books */}
+              {book.circles && book.circles.length > 0 && (
+                <div className="flex items-center gap-1 flex-wrap mt-1">
+                  <span className="text-xs text-gray-500">In:</span>
+                  {book.circles.map((circle) => (
+                    <button
+                      key={circle.id}
+                      onClick={() => handleCircleTagClick(circle.id)}
+                      className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full hover:bg-gray-200 transition"
+                    >
+                      {circle.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
           {type === 'circle' && (
             <>
               {book.owner_name && (
                 <p className="text-xs text-gray-600">Owner: {book.owner_name}</p>
               )}
-              {book.circle_name && (
-                <p className="text-xs text-gray-600">Circle: {book.circle_name}</p>
+              
+              {/* Circle tags */}
+              {book.circles && book.circles.length > 0 && (
+                <div className="flex items-center gap-1 flex-wrap mt-1">
+                  <span className="text-xs text-gray-500">In:</span>
+                  {book.circles.map((circle) => (
+                    <button
+                      key={circle.id}
+                      onClick={() => handleCircleTagClick(circle.id)}
+                      className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full hover:bg-blue-200 transition"
+                    >
+                      {circle.name}
+                    </button>
+                  ))}
+                </div>
               )}
+              
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-xs text-gray-600">
                   {isOffShelf ? '📦 Off Shelf (Unavailable)' :
