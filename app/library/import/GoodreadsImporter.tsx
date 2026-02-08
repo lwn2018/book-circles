@@ -243,7 +243,7 @@ export default function GoodreadsImporter({
             </p>
           </div>
 
-          <div className="max-h-[60vh] overflow-y-auto border rounded-lg">
+          <div className="max-h-96 overflow-y-auto border rounded-lg">
             {books.map((book, index) => (
               <div key={index} className="p-4 border-b last:border-b-0 hover:bg-gray-50">
                 <div className="flex justify-between items-start mb-2">
