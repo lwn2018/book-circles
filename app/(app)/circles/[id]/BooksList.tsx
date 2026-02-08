@@ -246,7 +246,7 @@ export default function BooksList({
             </div>
 
             <p className="text-sm text-gray-600 mb-2">
-              Owner: {book.owner?.full_name || 'Unknown'}
+              {book.owner_id === userId ? 'Your book' : `Owner: ${book.owner?.full_name || 'Unknown'}`}
               {book.current_borrower && (
                 <> • Currently with: {book.current_borrower.full_name}</>
               )}
