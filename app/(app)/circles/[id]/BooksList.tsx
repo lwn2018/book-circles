@@ -132,19 +132,12 @@ export default function BooksList({
 
     // Update local state instead of refreshing
     if (onBookUpdate) {
-      // Get user's full name for display
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', userId)
-        .single()
-      
       onBookUpdate(
         bookId,
         {
           status: 'in_transit',
           current_borrower_id: userId,
-          current_borrower: { full_name: profile?.full_name || 'You' },
+          current_borrower: { full_name: 'You' },
           due_date: dueDate.toISOString()
         },
         `You're borrowing "${book.title}"! ${ownerName} has been notified.`
