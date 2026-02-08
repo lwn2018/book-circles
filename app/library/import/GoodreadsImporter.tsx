@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 type Circle = {
@@ -33,10 +33,7 @@ export default function GoodreadsImporter({
   const [success, setSuccess] = useState('')
   const router = useRouter()
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = createClient()
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -246,7 +243,7 @@ export default function GoodreadsImporter({
             </p>
           </div>
 
-          <div className="max-h-96 overflow-y-auto border rounded-lg">
+          <div className="max-h-[60vh] overflow-y-auto border rounded-lg">
             {books.map((book, index) => (
               <div key={index} className="p-4 border-b last:border-b-0 hover:bg-gray-50">
                 <div className="flex justify-between items-start mb-2">

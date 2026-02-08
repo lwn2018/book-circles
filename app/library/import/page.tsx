@@ -20,8 +20,8 @@ export default async function ImportBooks() {
   const circles = userCircles?.map(m => m.circles) || []
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
-      <div className="max-w-4xl mx-auto">
+    <div className="p-4 sm:p-8 bg-gray-50">
+      <div className="max-w-4xl mx-auto pb-8">
         <Link href="/library" className="text-blue-600 hover:underline mb-4 inline-block">
           ← Back to Library
         </Link>
