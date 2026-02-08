@@ -5,6 +5,16 @@ import BooksList from './BooksList'
 import BooksListView from './BooksListView'
 import FilterBar from './FilterBar'
 
+// Detect iOS Safari
+const isIOSSafari = () => {
+  if (typeof window === 'undefined') return false
+  const ua = window.navigator.userAgent
+  const iOS = /iPad|iPhone|iPod/.test(ua)
+  const webkit = /WebKit/.test(ua)
+  const noChrome = !/CriOS|Chrome/.test(ua)
+  return iOS && webkit && noChrome
+}
+
 type Book = {
   id: string
   title: string
@@ -41,6 +51,12 @@ export default function BooksListWithFilters({
   const [searchQuery, setSearchQuery] = useState('')
   const [displayCount, setDisplayCount] = useState(20)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
+  const [useFixedPosition, setUseFixedPosition] = useState(false)
+
+  // Detect iOS Safari for fixed positioning workaround
+  useEffect(() => {
+    setUseFixedPosition(isIOSSafari())
+  }, [])
 
   // Load view preference from localStorage
   useEffect(() => {
@@ -261,8 +277,8 @@ export default function BooksListWithFilters({
         filteredCount={filteredAndSortedBooks.length}
       />
 
-      {/* Content below fixed filter bar - add padding-top to account for filter bar height */}
-      <div className="pt-32">
+      {/* Content below filter bar - add padding-top only on iOS Safari (fixed positioning) */}
+      <div className={useFixedPosition ? 'pt-32' : ''}>
         {/* View Toggle - Mobile Optimized */}
         <div className="flex justify-end gap-2 mb-3 sm:mb-4">
           <button

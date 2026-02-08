@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 type FilterBarProps = {
   sortBy: string
   onSortChange: (value: string) => void
@@ -20,6 +22,16 @@ const sortLabels: Record<string, string> = {
   most_requested: 'Popular'
 }
 
+// Detect iOS Safari
+const isIOSSafari = () => {
+  if (typeof window === 'undefined') return false
+  const ua = window.navigator.userAgent
+  const iOS = /iPad|iPhone|iPod/.test(ua)
+  const webkit = /WebKit/.test(ua)
+  const noChrome = !/CriOS|Chrome/.test(ua)
+  return iOS && webkit && noChrome
+}
+
 export default function FilterBar({
   sortBy,
   onSortChange,
@@ -34,9 +46,15 @@ export default function FilterBar({
 }: FilterBarProps) {
   const hasActiveFilter = searchQuery.trim() || availableOnly || hideMyBooks
   const isSearching = searchQuery.trim().length > 0
+  
+  const [useFixed, setUseFixed] = useState(false)
+  
+  useEffect(() => {
+    setUseFixed(isIOSSafari())
+  }, [])
 
   return (
-    <div className="fixed top-16 left-0 right-0 z-30 bg-white border-b border-gray-200 px-3 sm:px-4 py-3 shadow-sm">
+    <div className={`${useFixed ? 'fixed left-0 right-0' : 'sticky'} top-16 z-30 bg-white border-b border-gray-200 px-3 sm:px-4 py-3 shadow-sm`}>
       <div className="flex flex-col gap-2">
         {/* Row 1: Search field - full width */}
         <div className="relative w-full">
