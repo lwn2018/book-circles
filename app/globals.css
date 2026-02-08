@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* CSS Reset - removes default browser margins/padding */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

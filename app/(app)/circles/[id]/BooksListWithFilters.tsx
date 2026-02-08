@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import BooksList from './BooksList'
 import BooksListView from './BooksListView'
 import FilterBar from './FilterBar'
@@ -49,16 +49,24 @@ export default function BooksListWithFilters({
 }: BooksListWithFiltersProps) {
   const [sortBy, setSortBy] = useState('recently_added')
   const [availableOnly, setAvailableOnly] = useState(false)
-  const [hideMyBooks, setHideMyBooks] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [displayCount, setDisplayCount] = useState(20)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
   const [useFixedPosition, setUseFixedPosition] = useState(false)
+  const [filterBarHeight, setFilterBarHeight] = useState(0)
+  const filterBarRef = useRef<HTMLDivElement | null>(null)
 
   // Detect iOS Safari for fixed positioning workaround
   useEffect(() => {
     setUseFixedPosition(isIOSSafari())
   }, [])
+
+  // Measure filter bar height for wrapper min-height (prevents content jump)
+  useEffect(() => {
+    if (filterBarRef.current) {
+      const height = filterBarRef.current.offsetHeight
+      setFilterBarHeight(height)
+    }
+  }, [sortBy, availableOnly]) // Re-measure if bar size changes
 
   // Load view preference from user settings
   useEffect(() => {
@@ -74,23 +82,9 @@ export default function BooksListWithFilters({
   const filteredAndSortedBooks = useMemo(() => {
     let result = [...books]
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      result = result.filter(book => 
-        book.title.toLowerCase().includes(query) ||
-        (book.author?.toLowerCase() || '').includes(query)
-      )
-    }
-
     // Apply available only filter
     if (availableOnly) {
       result = result.filter(book => book.status === 'available')
-    }
-
-    // Apply hide my books filter
-    if (hideMyBooks) {
-      result = result.filter(book => book.owner_id !== userId)
     }
 
     // Sort
@@ -141,7 +135,7 @@ export default function BooksListWithFilters({
     }
 
     return result
-  }, [books, searchQuery, availableOnly, hideMyBooks, sortBy, userId])
+  }, [books, availableOnly, sortBy, userId])
 
   // Paginated books (for infinite scroll)
   const displayedBooks = useMemo(() => {
@@ -167,7 +161,7 @@ export default function BooksListWithFilters({
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(20)
-  }, [searchQuery, availableOnly, sortBy])
+  }, [availableOnly, sortBy])
 
   // Get most recent books for "New in circle" section
   const newBooks = useMemo(() => {
@@ -262,18 +256,19 @@ export default function BooksListWithFilters({
         </div>
       )}
 
-      <FilterBar
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        availableOnly={availableOnly}
-        onAvailableOnlyChange={setAvailableOnly}
-        hideMyBooks={hideMyBooks}
-        onHideMyBooksChange={setHideMyBooks}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        totalBooks={books.length}
-        filteredCount={filteredAndSortedBooks.length}
-      />
+      {/* FilterBar wrapper - preserves height when sticky to prevent content jump */}
+      <div style={{ minHeight: filterBarHeight > 0 ? `${filterBarHeight}px` : 'auto' }}>
+        <div ref={filterBarRef}>
+          <FilterBar
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            availableOnly={availableOnly}
+            onAvailableOnlyChange={setAvailableOnly}
+            totalBooks={books.length}
+            filteredCount={filteredAndSortedBooks.length}
+          />
+        </div>
+      </div>
 
       {/* Content below filter bar - add padding-top only on iOS Safari (fixed positioning) */}
       <div className={useFixedPosition ? 'pt-32' : ''}>
