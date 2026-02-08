@@ -40,17 +40,23 @@ export default function BooksListView({
 
   const handleBorrow = async (bookId: string) => {
     const book = books.find(b => b.id === bookId)
+    if (!book) return
     
-    if (book?.gift_on_borrow) {
-      if (!confirm(`${book.owner?.full_name} is gifting you "${book.title}". Accept this gift?`)) {
-        return
-      }
+    // Show confirmation dialog
+    const ownerName = book.owner?.full_name || 'the owner'
+    let confirmMessage = book.gift_on_borrow
+      ? `${ownerName} is offering this book — yours to keep, no return needed.`
+      : `This book is available — ${ownerName} will be notified about the handoff.`
+    
+    if (!confirm(confirmMessage)) return
+    
+    if (book.gift_on_borrow) {
       const result = await completeGiftTransfer(bookId, userId, circleId)
       if (result.error) {
         alert(`Failed: ${result.error}`)
         return
       }
-      alert(`You've received "${book.title}" as a gift!`)
+      alert(`You've received "${book.title}" as a gift! It's now in your library.`)
       router.refresh()
       return
     }
@@ -70,14 +76,18 @@ export default function BooksListView({
       })
       .eq('id', bookId)
 
-    if (!error) {
-      await supabase.from('borrow_history').insert({
-        book_id: bookId,
-        borrower_id: userId,
-        due_date: dueDate.toISOString()
-      })
+    if (error) {
+      alert(`Failed to borrow: ${error.message}`)
+      return
     }
 
+    await supabase.from('borrow_history').insert({
+      book_id: bookId,
+      borrower_id: userId,
+      due_date: dueDate.toISOString()
+    })
+
+    alert(`You borrowed "${book.title}"! You'll both receive handoff instructions shortly.`)
     router.refresh()
   }
 

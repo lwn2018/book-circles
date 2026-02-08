@@ -48,12 +48,23 @@ export default function BooksList({
   const supabase = createClient()
 
   const handleBorrow = async (bookId: string) => {
+    const book = books.find(b => b.id === bookId)
+    if (!book) return
+    
+    // Show confirmation dialog
+    const ownerName = book.owner?.full_name || 'the owner'
+    let confirmMessage = book.gift_on_borrow
+      ? `${ownerName} is offering this book — yours to keep, no return needed.`
+      : `This book is available — ${ownerName} will be notified about the handoff.`
+    
+    const confirmed = confirm(confirmMessage)
+    
+    if (!confirmed) return
+    
     setLoading(bookId)
     
     // Check if this is a gift
-    const book = books.find(b => b.id === bookId)
-    
-    if (book?.gift_on_borrow) {
+    if (book.gift_on_borrow) {
       // Handle as gift transfer (immediate for MVP - in production would need handoff confirmation)
       const result = await completeGiftTransfer(bookId, userId, circleId)
       
@@ -100,6 +111,9 @@ export default function BooksList({
         borrower_id: userId,
         due_date: dueDate.toISOString()
       })
+
+    // Show success message
+    alert(`You borrowed "${book.title}"! You'll both receive handoff instructions shortly.`)
 
     setLoading(null)
     router.refresh()
@@ -300,14 +314,7 @@ export default function BooksList({
               {book.status === 'available' && book.owner_id !== userId && (
                 <div className="flex flex-col gap-1">
                   <button
-                    onClick={() => {
-                      if (book.gift_on_borrow) {
-                        if (!confirm(`${book.owner?.full_name} is gifting you "${book.title}". This book will become yours permanently. Accept this gift?`)) {
-                          return
-                        }
-                      }
-                      handleBorrow(book.id)
-                    }}
+                    onClick={() => handleBorrow(book.id)}
                     disabled={loading === book.id}
                     className={`px-3 py-1 text-white text-sm rounded disabled:opacity-50 ${
                       book.gift_on_borrow 
