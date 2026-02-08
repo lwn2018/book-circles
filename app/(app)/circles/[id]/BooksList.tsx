@@ -83,14 +83,15 @@ export default function BooksList({
       return
     }
     
-    // Normal borrow flow
+    // Normal borrow flow - initiate handoff
     const dueDate = new Date()
     dueDate.setDate(dueDate.getDate() + 14) // 2 weeks from now
 
+    // Set status to 'in_transit' and create handoff confirmation
     const { error } = await supabase
       .from('books')
       .update({
-        status: 'borrowed',
+        status: 'in_transit',
         current_borrower_id: userId,
         borrowed_at: new Date().toISOString(),
         due_date: dueDate.toISOString(),
@@ -103,6 +104,19 @@ export default function BooksList({
       alert(`Failed to borrow: ${error.message}`)
       setLoading(null)
       return
+    }
+
+    // Create handoff confirmation record
+    const { error: handoffError } = await supabase
+      .from('handoff_confirmations')
+      .insert({
+        book_id: bookId,
+        giver_id: book.owner_id,
+        receiver_id: userId
+      })
+
+    if (handoffError) {
+      console.error('Handoff creation error:', handoffError)
     }
 
     // Create borrow history entry
@@ -128,7 +142,7 @@ export default function BooksList({
       onBookUpdate(
         bookId,
         {
-          status: 'borrowed',
+          status: 'in_transit',
           current_borrower_id: userId,
           current_borrower: { full_name: profile?.full_name || 'You' },
           due_date: dueDate.toISOString()
@@ -266,9 +280,13 @@ export default function BooksList({
                   <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
                     Available
                   </span>
+                ) : book.status === 'in_transit' ? (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                    In Transit
+                  </span>
                 ) : (
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">
-                    Borrowed
+                    With {book.current_borrower?.full_name || 'Someone'}
                   </span>
                 )}
                 
