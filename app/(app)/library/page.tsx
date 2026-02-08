@@ -11,6 +11,13 @@ export default async function MyLibraryTab() {
     redirect('/auth/signin')
   }
 
+  // Get user profile for preferences
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('default_browse_view')
+    .eq('id', user.id)
+    .single()
+
   // Get all books owned by this user
   const { data: books } = await supabase
     .from('books')
@@ -87,6 +94,7 @@ export default async function MyLibraryTab() {
           inTransit={inTransit as any}
           circles={circles as any}
           userId={user.id}
+          defaultBrowseView={profile?.default_browse_view || 'card'}
         />
       )}
     </div>

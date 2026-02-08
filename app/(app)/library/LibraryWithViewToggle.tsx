@@ -12,7 +12,8 @@ export default function LibraryWithViewToggle({
   lentOut,
   inTransit,
   circles,
-  userId
+  userId,
+  defaultBrowseView = 'card'
 }: {
   onShelf: Book[]
   offShelf: Book[]
@@ -20,19 +21,18 @@ export default function LibraryWithViewToggle({
   inTransit: Book[]
   circles: any[]
   userId: string
+  defaultBrowseView?: string
 }) {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
 
+  // Load view preference from user settings
   useEffect(() => {
-    const saved = localStorage.getItem('books_view_mode')
-    if (saved === 'card' || saved === 'list') {
-      setViewMode(saved)
-    }
-  }, [])
+    setViewMode(defaultBrowseView as 'card' | 'list')
+  }, [defaultBrowseView])
 
+  // Change view mode (temporarily for this session, doesn't persist)
   const handleViewModeChange = (mode: 'card' | 'list') => {
     setViewMode(mode)
-    localStorage.setItem('books_view_mode', mode)
   }
 
   const totalBooks = onShelf.length + offShelf.length + lentOut.length + inTransit.length

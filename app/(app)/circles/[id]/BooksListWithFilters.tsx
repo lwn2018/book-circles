@@ -60,21 +60,14 @@ export default function BooksListWithFilters({
     setUseFixedPosition(isIOSSafari())
   }, [])
 
-  // Load view preference: localStorage overrides default for current session
+  // Load view preference from user settings
   useEffect(() => {
-    const saved = localStorage.getItem('books_view_mode')
-    if (saved === 'card' || saved === 'list') {
-      setViewMode(saved)
-    } else {
-      // Use user's default preference from settings
-      setViewMode(defaultBrowseView as 'card' | 'list')
-    }
+    setViewMode(defaultBrowseView as 'card' | 'list')
   }, [defaultBrowseView])
 
-  // Save view preference
+  // Change view mode (temporarily for this session, doesn't persist)
   const handleViewModeChange = (mode: 'card' | 'list') => {
     setViewMode(mode)
-    localStorage.setItem('books_view_mode', mode)
   }
 
   // Filter and sort books
