@@ -108,8 +108,8 @@ export default function AddBookModal({
           isbn: isbn.trim() || null,
           cover_url: coverUrl.trim() || null,
           owner_id: userId,
-          status: 'available',
-          circle_id: selectedCircles[0] || null // Legacy field, use first selected or null
+          status: 'available'
+          // Don't set circle_id - we use book_circle_visibility instead
         })
         .select()
         .single()

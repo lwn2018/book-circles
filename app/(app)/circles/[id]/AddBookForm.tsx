@@ -129,10 +129,9 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
     setError('')
     setLoading(true)
 
-    const { error: insertError } = await supabase
+    const { data: newBook, error: insertError } = await supabase
       .from('books')
       .insert({
-        circle_id: circleId,
         title,
         author: author || null,
         isbn: isbn || null,
@@ -141,12 +140,23 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
         owner_id: userId,
         status: 'available'
       })
+      .select()
+      .single()
 
     if (insertError) {
       setError(insertError.message)
       setLoading(false)
       return
     }
+
+    // Make visible in this circle
+    await supabase
+      .from('book_circle_visibility')
+      .insert({
+        book_id: newBook.id,
+        circle_id: circleId,
+        is_visible: true
+      })
 
     // Reset form
     setTitle('')
