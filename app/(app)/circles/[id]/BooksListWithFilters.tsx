@@ -37,6 +37,7 @@ export default function BooksListWithFilters({
 }: BooksListWithFiltersProps) {
   const [sortBy, setSortBy] = useState('recently_added')
   const [availableOnly, setAvailableOnly] = useState(false)
+  const [hideMyBooks, setHideMyBooks] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [displayCount, setDisplayCount] = useState(20)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
@@ -71,6 +72,11 @@ export default function BooksListWithFilters({
     // Apply available only filter
     if (availableOnly) {
       result = result.filter(book => book.status === 'available')
+    }
+
+    // Apply hide my books filter
+    if (hideMyBooks) {
+      result = result.filter(book => book.owner_id !== userId)
     }
 
     // Sort
@@ -121,7 +127,7 @@ export default function BooksListWithFilters({
     }
 
     return result
-  }, [books, searchQuery, availableOnly, sortBy])
+  }, [books, searchQuery, availableOnly, hideMyBooks, sortBy, userId])
 
   // Paginated books (for infinite scroll)
   const displayedBooks = useMemo(() => {
@@ -247,34 +253,49 @@ export default function BooksListWithFilters({
         onSortChange={setSortBy}
         availableOnly={availableOnly}
         onAvailableOnlyChange={setAvailableOnly}
+        hideMyBooks={hideMyBooks}
+        onHideMyBooksChange={setHideMyBooks}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         totalBooks={books.length}
         filteredCount={filteredAndSortedBooks.length}
       />
 
-      {/* View Toggle - Mobile Optimized */}
-      <div className="flex justify-end gap-2 mt-3 sm:mt-4 mb-3 sm:mb-4">
-        <button
-          onClick={() => handleViewModeChange('card')}
-          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
-            viewMode === 'card'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Card
-        </button>
-        <button
-          onClick={() => handleViewModeChange('list')}
-          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
-            viewMode === 'list'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          List
-        </button>
+      {/* Book count and View Toggle */}
+      <div className="flex justify-between items-center mt-3 sm:mt-4 mb-3 sm:mb-4">
+        <div className="text-xs sm:text-sm text-gray-600">
+          {filteredAndSortedBooks.length === books.length ? (
+            <span>{books.length} book{books.length !== 1 ? 's' : ''}</span>
+          ) : (
+            <span>
+              Showing {filteredAndSortedBooks.length} of {books.length} book{books.length !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+
+        {/* View Toggle - Mobile Optimized */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleViewModeChange('card')}
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
+              viewMode === 'card'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Card
+          </button>
+          <button
+            onClick={() => handleViewModeChange('list')}
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
+              viewMode === 'list'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            List
+          </button>
+        </div>
       </div>
 
       <div>
