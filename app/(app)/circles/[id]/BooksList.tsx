@@ -36,12 +36,14 @@ export default function BooksList({
   books, 
   userId, 
   circleId,
-  circleMemberIds 
+  circleMemberIds,
+  onBookUpdate
 }: { 
   books: Book[]
   userId: string
   circleId: string
   circleMemberIds: string[]
+  onBookUpdate?: (bookId: string, updates: Partial<Book>, toastMessage?: string) => void
 }) {
   const [loading, setLoading] = useState<string | null>(null)
   const router = useRouter()
@@ -112,11 +114,31 @@ export default function BooksList({
         due_date: dueDate.toISOString()
       })
 
-    // Show success message
-    alert(`You borrowed "${book.title}"! You'll both receive handoff instructions shortly.`)
-
     setLoading(null)
-    router.refresh()
+
+    // Update local state instead of refreshing
+    if (onBookUpdate) {
+      // Get user's full name for display
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', userId)
+        .single()
+      
+      onBookUpdate(
+        bookId,
+        {
+          status: 'borrowed',
+          current_borrower_id: userId,
+          current_borrower: { full_name: profile?.full_name || 'You' },
+          due_date: dueDate.toISOString()
+        },
+        `You're borrowing "${book.title}"! ${ownerName} has been notified.`
+      )
+    } else {
+      // Fallback to refresh if callback not provided
+      router.refresh()
+    }
   }
 
   const handleReturn = async (bookId: string) => {

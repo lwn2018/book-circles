@@ -42,12 +42,13 @@ type BooksListWithFiltersProps = {
 }
 
 export default function BooksListWithFilters({
-  books,
+  books: initialBooks,
   userId,
   circleId,
   circleMemberIds,
   defaultBrowseView = 'card'
 }: BooksListWithFiltersProps) {
+  const [books, setBooks] = useState(initialBooks)
   const [sortBy, setSortBy] = useState('recently_added')
   const [availableOnly, setAvailableOnly] = useState(false)
   const [displayCount, setDisplayCount] = useState(20)
@@ -57,6 +58,25 @@ export default function BooksListWithFilters({
   const filterBarRef = useRef<HTMLDivElement | null>(null)
   const searchParams = useSearchParams()
   const [searchFilter, setSearchFilter] = useState('')
+  const [toast, setToast] = useState<{message: string; type: 'success' | 'info'} | null>(null)
+  
+  // Update local state when server data changes (on navigation)
+  useEffect(() => {
+    setBooks(initialBooks)
+  }, [initialBooks])
+
+  // Handle book status updates without re-sorting
+  const updateBookStatus = (bookId: string, updates: Partial<Book>, toastMessage?: string) => {
+    setBooks(prevBooks => 
+      prevBooks.map(book => 
+        book.id === bookId ? { ...book, ...updates } : book
+      )
+    )
+    if (toastMessage) {
+      setToast({ message: toastMessage, type: 'success' })
+      setTimeout(() => setToast(null), 4000)
+    }
+  }
 
   // Read URL search parameter on mount (from SearchOverlay circle tags)
   useEffect(() => {
@@ -343,6 +363,7 @@ export default function BooksListWithFilters({
             userId={userId}
             circleId={circleId}
             circleMemberIds={circleMemberIds}
+            onBookUpdate={updateBookStatus}
           />
         ) : (
           <BooksListView 
@@ -350,6 +371,7 @@ export default function BooksListWithFilters({
             userId={userId}
             circleId={circleId}
             circleMemberIds={circleMemberIds}
+            onBookUpdate={updateBookStatus}
           />
         )}
 
@@ -377,6 +399,13 @@ export default function BooksListWithFilters({
         )}
       </div>
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg max-w-md text-center animate-fade-in">
+          {toast.message}
+        </div>
+      )}
     </div>
   )
 }
