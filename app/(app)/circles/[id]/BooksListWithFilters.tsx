@@ -261,31 +261,33 @@ export default function BooksListWithFilters({
         filteredCount={filteredAndSortedBooks.length}
       />
 
-      {/* View Toggle - Mobile Optimized */}
-      <div className="flex justify-end gap-2 mt-3 sm:mt-4 mb-3 sm:mb-4">
-        <button
-          onClick={() => handleViewModeChange('card')}
-          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
-            viewMode === 'card'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Card
-        </button>
-        <button
-          onClick={() => handleViewModeChange('list')}
-          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
-            viewMode === 'list'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          List
-        </button>
-      </div>
+      {/* Content below fixed filter bar - add padding-top to account for filter bar height */}
+      <div className="pt-32">
+        {/* View Toggle - Mobile Optimized */}
+        <div className="flex justify-end gap-2 mb-3 sm:mb-4">
+          <button
+            onClick={() => handleViewModeChange('card')}
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
+              viewMode === 'card'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Card
+          </button>
+          <button
+            onClick={() => handleViewModeChange('list')}
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
+              viewMode === 'list'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            List
+          </button>
+        </div>
 
-      <div className="min-h-screen">
+        <div className="min-h-screen">
         {viewMode === 'card' ? (
           <BooksList 
             books={displayedBooks}
@@ -301,30 +303,31 @@ export default function BooksListWithFilters({
             circleMemberIds={circleMemberIds}
           />
         )}
+
+        {/* Loading indicator when more books are available */}
+        {displayCount < filteredAndSortedBooks.length && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="text-sm text-gray-600 mt-2">Loading more books...</p>
+          </div>
+        )}
+
+        {/* No more books indicator */}
+        {displayCount >= filteredAndSortedBooks.length && filteredAndSortedBooks.length > 20 && (
+          <div className="text-center py-8 text-sm text-gray-500">
+            You've reached the end • {filteredAndSortedBooks.length} books shown
+          </div>
+        )}
+
+        {/* No results */}
+        {filteredAndSortedBooks.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-lg mb-2">No books found</p>
+            <p className="text-sm">Try adjusting your filters or search query</p>
+          </div>
+        )}
       </div>
-
-      {/* Loading indicator when more books are available */}
-      {displayCount < filteredAndSortedBooks.length && (
-        <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="text-sm text-gray-600 mt-2">Loading more books...</p>
-        </div>
-      )}
-
-      {/* No more books indicator */}
-      {displayCount >= filteredAndSortedBooks.length && filteredAndSortedBooks.length > 20 && (
-        <div className="text-center py-8 text-sm text-gray-500">
-          You've reached the end • {filteredAndSortedBooks.length} books shown
-        </div>
-      )}
-
-      {/* No results */}
-      {filteredAndSortedBooks.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <p className="text-lg mb-2">No books found</p>
-          <p className="text-sm">Try adjusting your filters or search query</p>
-        </div>
-      )}
+      </div>
     </div>
   )
 }

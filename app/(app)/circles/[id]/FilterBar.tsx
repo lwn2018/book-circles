@@ -36,7 +36,7 @@ export default function FilterBar({
   const isSearching = searchQuery.trim().length > 0
 
   return (
-    <div className="sticky top-16 z-30 bg-white border-b border-gray-200 px-3 sm:px-4 py-3 shadow-sm">
+    <div className="fixed top-16 left-0 right-0 z-30 bg-white border-b border-gray-200 px-3 sm:px-4 py-3 shadow-sm">
       <div className="flex flex-col gap-2">
         {/* Row 1: Search field - full width */}
         <div className="relative w-full">
