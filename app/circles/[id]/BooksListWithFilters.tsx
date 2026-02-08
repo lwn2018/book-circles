@@ -91,22 +91,30 @@ export default function BooksListWithFilters({
         break
       case 'recently_added':
       default:
-        // Default: Available > Borrowed > Off Shelf, then by created_at desc within each group
-        const statusOrder: Record<string, number> = {
-          'available': 1,
-          'borrowed': 2,
-          'in_transit': 2,
-          'off_shelf': 3
-        }
+        // Default: Other people's available > Own available > Borrowed > Off Shelf
         result.sort((a, b) => {
-          const aStatus = statusOrder[a.status] || 4
-          const bStatus = statusOrder[b.status] || 4
+          const aIsOwn = a.owner_id === userId
+          const bIsOwn = b.owner_id === userId
+          const aStatus = a.status
+          const bStatus = b.status
           
-          if (aStatus !== bStatus) {
-            return aStatus - bStatus
+          // Priority order (lower number = higher priority)
+          const getPriority = (book: typeof a) => {
+            if (book.status === 'available' && book.owner_id !== userId) return 1 // Others' available
+            if (book.status === 'available' && book.owner_id === userId) return 2 // Own available
+            if (book.status === 'borrowed' || book.status === 'in_transit') return 3 // Borrowed
+            if (book.status === 'off_shelf') return 4 // Off shelf
+            return 5 // Unknown
           }
           
-          // Same status, sort by created_at descending (newest first)
+          const aPriority = getPriority(a)
+          const bPriority = getPriority(b)
+          
+          if (aPriority !== bPriority) {
+            return aPriority - bPriority
+          }
+          
+          // Same priority group, sort by created_at descending (newest first)
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         })
         break
