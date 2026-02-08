@@ -152,25 +152,25 @@ export default function BooksListWithFilters({
     <div>
       {/* New in this circle */}
       {newBooks.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">New in this circle</h3>
-          <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-3">New in this circle</h3>
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-1 px-1">
             {newBooks.map(book => {
               const inQueue = book.book_queue?.some(q => q.user_id === userId)
               const isOwner = book.owner_id === userId
               const isBorrower = book.current_borrower_id === userId
               
               return (
-                <div key={book.id} className="flex-shrink-0 w-40 bg-white rounded-lg shadow-sm p-3 border border-gray-200">
+                <div key={book.id} className="flex-shrink-0 w-36 sm:w-40 bg-white rounded-lg shadow-sm p-2 sm:p-3 border border-gray-200">
                   {book.cover_url ? (
                     <img 
                       src={book.cover_url} 
                       alt={book.title}
-                      className="w-full h-48 object-cover rounded shadow-sm"
+                      className="w-full h-44 sm:h-48 object-cover rounded shadow-sm"
                     />
                   ) : (
-                    <div className="w-full h-48 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-4xl">📚</span>
+                    <div className="w-full h-44 sm:h-48 bg-gray-200 rounded flex items-center justify-center">
+                      <span className="text-3xl sm:text-4xl">📚</span>
                     </div>
                   )}
                   <p className="text-xs font-medium mt-2 truncate">{book.title}</p>
@@ -181,11 +181,11 @@ export default function BooksListWithFilters({
                   {/* Status badge */}
                   <div className="mb-2">
                     {book.status === 'available' ? (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
+                      <span className="text-xs bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded inline-block">Available</span>
                     ) : book.status === 'borrowed' ? (
-                      <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Borrowed</span>
+                      <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded inline-block">Borrowed</span>
                     ) : (
-                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Off Shelf</span>
+                      <span className="text-xs bg-gray-100 text-gray-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded inline-block">Off Shelf</span>
                     )}
                   </div>
                   
@@ -199,7 +199,7 @@ export default function BooksListWithFilters({
                           window.location.href = `#book-${book.id}` // Scroll to book in main list
                         }
                       }}
-                      className="w-full text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      className="w-full text-xs px-2 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 active:bg-blue-800"
                     >
                       Borrow
                     </button>
@@ -209,7 +209,7 @@ export default function BooksListWithFilters({
                       onClick={() => {
                         window.location.href = `#book-${book.id}`
                       }}
-                      className="w-full text-xs px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+                      className="w-full text-xs px-2 py-1.5 bg-purple-600 text-white rounded hover:bg-purple-700 active:bg-purple-800"
                     >
                       Join Queue
                     </button>
@@ -237,27 +237,27 @@ export default function BooksListWithFilters({
         filteredCount={filteredAndSortedBooks.length}
       />
 
-      {/* View Toggle */}
-      <div className="flex justify-end gap-2 mt-4 mb-4">
+      {/* View Toggle - Mobile Optimized */}
+      <div className="flex justify-end gap-2 mt-3 sm:mt-4 mb-3 sm:mb-4">
         <button
           onClick={() => handleViewModeChange('card')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
             viewMode === 'card'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
-          Card View
+          Card
         </button>
         <button
           onClick={() => handleViewModeChange('list')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
             viewMode === 'list'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
-          List View
+          List
         </button>
       </div>
 

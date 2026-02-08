@@ -107,15 +107,15 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
   const books = allBooks?.filter(book => !hiddenBookIds.has(book.id)) || []
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <Link href="/dashboard" className="text-blue-600 hover:underline mb-4 inline-block">
+        <Link href="/dashboard" className="text-blue-600 hover:underline mb-4 inline-block text-sm sm:text-base">
           ← Back to Dashboard
         </Link>
 
-        <div className="mb-8">
-          <div className="flex justify-between items-start mb-2">
-            <h1 className="text-3xl font-bold">{circle.name}</h1>
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
+            <h1 className="text-2xl sm:text-3xl font-bold">{circle.name}</h1>
             <LeaveCircleButton 
               circleId={id}
               circleName={circle.name}
@@ -124,7 +124,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
             />
           </div>
           {circle.description && (
-            <p className="text-gray-600 mb-2">{circle.description}</p>
+            <p className="text-gray-600 mb-2 text-sm sm:text-base">{circle.description}</p>
           )}
           <InviteLink inviteCode={circle.invite_code} />
           <p className="text-sm text-gray-500 mt-1">
@@ -132,9 +132,9 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <h2 className="text-2xl font-bold mb-4">Books</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">Books</h2>
             <BooksListWithFilters 
               books={(books as any) || []} 
               userId={user.id} 
@@ -143,17 +143,17 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
             />
           </div>
 
-          <div>
-            <h2 className="text-xl font-bold mb-4">Add a Book</h2>
+          <div className="order-1 lg:order-2">
+            <h2 className="text-lg sm:text-xl font-bold mb-4">Add a Book</h2>
             <AddBookForm circleId={id} userId={user.id} />
 
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold mb-3">Members</h3>
+            <div className="mt-6 sm:mt-8">
+              <h3 className="text-base sm:text-lg font-semibold mb-3">Members</h3>
               <div className="space-y-2">
                 {members?.map((member: any) => (
                   <div key={member.id} className="text-sm">
                     <p className="font-medium">{member.profiles.full_name}</p>
-                    <p className="text-gray-500 text-xs">{member.profiles.email}</p>
+                    <p className="text-gray-500 text-xs break-all">{member.profiles.email}</p>
                   </div>
                 ))}
               </div>
