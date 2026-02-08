@@ -116,15 +116,28 @@ export default function BooksListWithFilters({
 
   // Filter and sort books
   const filteredAndSortedBooks = useMemo(() => {
-    let result = [...books]
-
-    // Store original indices for session-modified books (don't re-sort them)
-    const originalIndices = new Map<string, number>()
-    result.forEach((book, index) => {
-      if (sessionModifiedBooks.has(book.id)) {
-        originalIndices.set(book.id, index)
+    // If we have session-modified books, don't re-sort at all - keep current order
+    if (sessionModifiedBooks.size > 0) {
+      let result = [...books]
+      
+      // Apply filters only
+      if (searchFilter.trim()) {
+        const query = searchFilter.toLowerCase()
+        result = result.filter(book => 
+          book.title.toLowerCase().includes(query) ||
+          (book.author?.toLowerCase() || '').includes(query)
+        )
       }
-    })
+
+      if (availableOnly) {
+        result = result.filter(book => book.status === 'available')
+      }
+      
+      return result
+    }
+    
+    // No session modifications - sort normally
+    let result = [...books]
 
     // Apply search filter from URL parameter
     if (searchFilter.trim()) {
@@ -140,25 +153,17 @@ export default function BooksListWithFilters({
       result = result.filter(book => book.status === 'available')
     }
 
-    // Sort (but preserve positions of session-modified books)
-    const modifiedBooksMap = new Map(
-      result
-        .filter(book => sessionModifiedBooks.has(book.id))
-        .map((book, i) => [book.id, { book, index: result.indexOf(book) }])
-    )
-    const otherBooks = result.filter(book => !sessionModifiedBooks.has(book.id))
-
-    // Sort only the non-modified books
+    // Sort
     switch (sortBy) {
       case 'title_asc':
-        otherBooks.sort((a, b) => a.title.localeCompare(b.title))
+        result.sort((a, b) => a.title.localeCompare(b.title))
         break
       case 'title_desc':
-        otherBooks.sort((a, b) => b.title.localeCompare(a.title))
+        result.sort((a, b) => b.title.localeCompare(a.title))
         break
       case 'most_requested':
         // Sort by queue length (most requested first)
-        otherBooks.sort((a, b) => {
+        result.sort((a, b) => {
           const aQueue = a.book_queue?.length || 0
           const bQueue = b.book_queue?.length || 0
           return bQueue - aQueue
@@ -167,7 +172,7 @@ export default function BooksListWithFilters({
       case 'recently_added':
       default:
         // Default: Other people's available > Own available > Borrowed > Off Shelf
-        otherBooks.sort((a, b) => {
+        result.sort((a, b) => {
           const aIsOwn = a.owner_id === userId
           const bIsOwn = b.owner_id === userId
           const aStatus = a.status
@@ -195,35 +200,7 @@ export default function BooksListWithFilters({
         break
     }
 
-    // Merge modified books back at their original positions
-    if (modifiedBooksMap.size === 0) {
-      return otherBooks
-    }
-
-    const merged: Book[] = []
-    let otherIndex = 0
-    
-    for (let i = 0; i < result.length; i++) {
-      const originalBook = result[i]
-      const modifiedEntry = modifiedBooksMap.get(originalBook.id)
-      
-      if (modifiedEntry) {
-        // Use the updated version from books state
-        const updatedBook = books.find(b => b.id === originalBook.id)
-        if (updatedBook) merged.push(updatedBook)
-      } else if (otherIndex < otherBooks.length) {
-        merged.push(otherBooks[otherIndex])
-        otherIndex++
-      }
-    }
-    
-    // Append any remaining books
-    while (otherIndex < otherBooks.length) {
-      merged.push(otherBooks[otherIndex])
-      otherIndex++
-    }
-
-    return merged
+    return result
   }, [books, searchFilter, availableOnly, sortBy, userId, sessionModifiedBooks])
 
   // Paginated books (for infinite scroll)

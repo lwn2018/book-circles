@@ -119,6 +119,20 @@ export default function BooksList({
       console.error('Handoff creation error:', handoffError)
     }
 
+    // Send notification to owner about handoff
+    await supabase
+      .from('notifications')
+      .insert({
+        user_id: book.owner_id,
+        type: 'handoff_initiated',
+        book_id: bookId,
+        sender_id: userId,
+        message: `Time to hand off "${book.title}"!`,
+        read: false
+      })
+
+    // TODO: Send email notification (implement via API route or trigger)
+
     // Create borrow history entry
     await supabase
       .from('borrow_history')
