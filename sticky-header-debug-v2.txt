@@ -1,0 +1,504 @@
+STICKY HEADER DEBUG - PagePass Book Circles App (WORKING VERSION)
+====================================================================
+
+ISSUE: Header has a small gap above it - not flush with top of viewport
+NOTE: Layout is fully functional, sidebar shows correctly, only cosmetic gap issue
+
+Live URL: https://book-circles.vercel.app
+Repo: https://github.com/lwn2018/book-circles
+Current Commit: 99a5594 (working version)
+
+LAYOUT HIERARCHY (Current Working Structure):
+==============================================
+
+Circle Detail Page (/circles/[id]):
+  └─ Root div (min-h-screen p-4 sm:p-6 md:p-8)
+      └─ Content wrapper (max-w-6xl mx-auto)
+          ├─ Back link
+          ├─ Circle info (name, description, members count)
+          └─ Grid (grid-cols-1 lg:grid-cols-3)
+              ├─ Left column (lg:col-span-2) - Books list
+              │   └─ BooksListWithFilters
+              │       └─ FilterBar (sticky top-16 z-30) ← STICKY ELEMENT
+              └─ Right column (lg:col-span-1) - Sidebar
+                  ├─ AddBookForm
+                  └─ Members list
+
+App Layout (wraps all pages):
+  └─ Root div (min-h-screen bg-gray-50 pb-20)
+      ├─ AppHeader (sticky top-0 z-40 h-16) ← STICKY HEADER
+      ├─ Main (max-w-7xl mx-auto px-4 py-6)
+      │   └─ {children} ← Circle page goes here
+      ├─ BottomNav
+      └─ SearchOverlay
+
+====================================================================
+FILE 1: app/globals.css
+====================================================================
+
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+====================================================================
+FILE 2: app/(app)/layout.tsx (App Layout Wrapper)
+====================================================================
+
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { redirect } from 'next/navigation'
+import AppHeader from '../components/AppHeader'
+import BottomNav from '../components/BottomNav'
+import SearchOverlay from '../components/SearchOverlay'
+
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/auth/signin')
+  }
+
+  // Get user profile for header
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  // Get user's circles for Add Book button
+  const { data: memberships } = await supabase
+    .from('circle_members')
+    .select('circle_id, circles(id, name)')
+    .eq('user_id', user.id)
+
+  const circles = memberships?.map(m => m.circles) || []
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-20">
+      <AppHeader 
+        user={{
+          id: user.id,
+          email: user.email || '',
+          full_name: profile?.full_name,
+          avatar_url: profile?.avatar_url
+        }}
+        userCircles={circles as any}
+      />
+      
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        {children}
+      </main>
+
+      <BottomNav />
+      
+      {/* Global Search Overlay */}
+      <SearchOverlay userId={user.id} />
+    </div>
+  )
+}
+
+====================================================================
+FILE 3: app/components/AppHeader.tsx (Sticky Header)
+====================================================================
+
+'use client'
+
+import Link from 'next/link'
+import NotificationBell from './NotificationBell'
+import UserMenu from './UserMenu'
+import AddBookButton from '../library/AddBookButton'
+
+type Circle = {
+  id: string
+  name: string
+}
+
+type AppHeaderProps = {
+  user: {
+    id: string
+    email: string
+    full_name?: string | null
+    avatar_url?: string | null
+  }
+  userCircles: Circle[]
+}
+
+// Convert null to undefined for UserMenu compatibility
+const normalizeUser = (user: AppHeaderProps['user']) => ({
+  id: user.id,
+  email: user.email,
+  full_name: user.full_name ?? undefined,
+  avatar_url: user.avatar_url ?? undefined,
+})
+
+export default function AppHeader({ user, userCircles }: AppHeaderProps) {
+  const normalizedUser = normalizeUser(user)
+  
+  return (
+    <div className="bg-white border-b sticky top-0 z-40 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Left: Logo */}
+          <Link href="/circles" className="flex items-center gap-2 hover:opacity-80 transition">
+            <span className="text-2xl">📚</span>
+            <span className="font-bold text-lg hidden sm:inline">PagePass</span>
+          </Link>
+
+          {/* Right: Search + Add Book + Bell + User Menu */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Search Icon */}
+            <button
+              onClick={() => {
+                // Trigger search overlay
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('openSearch'))
+                }
+              }}
+              className="p-2 rounded-lg hover:bg-gray-100 transition"
+              aria-label="Search"
+            >
+              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+            
+            <AddBookButton userId={user.id} userCircles={userCircles} />
+            <NotificationBell />
+            <UserMenu user={normalizedUser} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+====================================================================
+FILE 4: app/circles/[id]/FilterBar.tsx (Sticky Search/Filter Bar)
+====================================================================
+
+'use client'
+
+import { useState } from 'react'
+
+type FilterBarProps = {
+  sortBy: string
+  onSortChange: (value: string) => void
+  availableOnly: boolean
+  onAvailableOnlyChange: (value: boolean) => void
+  searchQuery: string
+  onSearchChange: (value: string) => void
+  totalBooks: number
+  filteredCount: number
+}
+
+export default function FilterBar({
+  sortBy,
+  onSortChange,
+  availableOnly,
+  onAvailableOnlyChange,
+  searchQuery,
+  onSearchChange,
+  totalBooks,
+  filteredCount
+}: FilterBarProps) {
+  return (
+    <div className="sticky top-16 z-30 bg-white border-b border-gray-200 p-3 sm:p-4 shadow-sm">
+      <div className="flex flex-col gap-3">
+        {/* Search */}
+        <div className="w-full">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search by title or author..."
+            className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+
+        {/* Sort and Filter - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          {/* Sort Dropdown */}
+          <select
+            value={sortBy}
+            onChange={(e) => onSortChange(e.target.value)}
+            className="flex-1 px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+          >
+            <option value="recently_added">Recently Added</option>
+            <option value="title_asc">Title A-Z</option>
+            <option value="title_desc">Title Z-A</option>
+            <option value="most_requested">Most Requested</option>
+          </select>
+
+          {/* Available Only Toggle */}
+          <label className="flex items-center justify-center gap-2 cursor-pointer px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={availableOnly}
+              onChange={(e) => onAvailableOnlyChange(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <span className="text-sm font-medium text-gray-700">Available only</span>
+          </label>
+        </div>
+
+        {/* Results Count */}
+        <div className="text-xs sm:text-sm text-gray-600">
+          {filteredCount === totalBooks ? (
+            <span>{totalBooks} book{totalBooks !== 1 ? 's' : ''}</span>
+          ) : (
+            <span>
+              Showing {filteredCount} of {totalBooks} book{totalBooks !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+====================================================================
+FILE 5: app/circles/[id]/page.tsx (Circle Detail Page - PARTIAL)
+====================================================================
+
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import AddBookForm from './AddBookForm'
+import BooksListWithFilters from './BooksListWithFilters'
+import InviteLink from './InviteLink'
+import LeaveCircleButton from './LeaveCircleButton'
+
+export default async function CirclePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/auth/signin')
+  }
+
+  // Get circle details
+  const { data: circle } = await supabase
+    .from('circles')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (!circle) {
+    redirect('/dashboard')
+  }
+
+  // Verify membership
+  const { data: membership } = await supabase
+    .from('circle_members')
+    .select('*')
+    .eq('circle_id', id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!membership) {
+    redirect('/dashboard')
+  }
+
+  // Get all members
+  const { data: members } = await supabase
+    .from('circle_members')
+    .select(`
+      *,
+      profiles (
+        id,
+        full_name,
+        email
+      )
+    `)
+    .eq('circle_id', id)
+
+  // ... (data fetching continues - see full file for complete code)
+
+  // Get hidden books for this circle (opt-out model)
+  const { data: hiddenBooks } = await supabase
+    .from('book_circle_visibility')
+    .select('book_id')
+    .eq('circle_id', id)
+    .eq('is_visible', false)
+
+  const hiddenBookIds = new Set(hiddenBooks?.map(h => h.book_id) || [])
+
+  // Filter out hidden books
+  const books = allBooks?.filter(book => !hiddenBookIds.has(book.id)) || []
+
+  return (
+    <div className="min-h-screen p-4 sm:p-6 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <Link href="/dashboard" className="text-blue-600 hover:underline mb-4 inline-block text-sm sm:text-base">
+          ← Back to Dashboard
+        </Link>
+
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
+            <h1 className="text-2xl sm:text-3xl font-bold">{circle.name}</h1>
+            <LeaveCircleButton 
+              circleId={id}
+              circleName={circle.name}
+              userId={user.id}
+              isOwner={circle.owner_id === user.id}
+            />
+          </div>
+          {circle.description && (
+            <p className="text-gray-600 mb-2 text-sm sm:text-base">{circle.description}</p>
+          )}
+          <InviteLink inviteCode={circle.invite_code} />
+          <p className="text-sm text-gray-500 mt-1">
+            {members?.length || 0} member{members?.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">Books</h2>
+            <BooksListWithFilters 
+              books={(books as any) || []} 
+              userId={user.id} 
+              circleId={id}
+              circleMemberIds={ownerIds}
+            />
+          </div>
+
+          <div className="order-1 lg:order-2">
+            <h2 className="text-lg sm:text-xl font-bold mb-4">Add a Book</h2>
+            <AddBookForm circleId={id} userId={user.id} />
+
+            <div className="mt-6 sm:mt-8">
+              <h3 className="text-base sm:text-lg font-semibold mb-3">Members</h3>
+              <div className="space-y-2">
+                {members?.map((member: any) => (
+                  <div key={member.id} className="text-sm">
+                    <p className="font-medium">{member.profiles.full_name}</p>
+                    <p className="text-gray-500 text-xs break-all">{member.profiles.email}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+====================================================================
+SUMMARY OF KEY CLASSES & STRUCTURE
+====================================================================
+
+AppHeader (Header Bar):
+- sticky top-0 z-40 shadow-sm
+- h-16 (height: 64px)
+- bg-white border-b
+- Contains: max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
+
+FilterBar (Search/Filter Bar):
+- sticky top-16 z-30
+- bg-white border-b border-gray-200
+- p-3 sm:p-4 shadow-sm
+- Should stick 64px from top (below header)
+- Currently nested inside BooksListWithFilters component
+- BooksListWithFilters is inside left grid column (lg:col-span-2)
+
+Circle Page Root:
+- min-h-screen p-4 sm:p-6 md:p-8
+- Contains: max-w-6xl mx-auto
+
+App Layout Main:
+- max-w-7xl mx-auto px-4 py-6
+- No overflow constraints
+- py-6 = 24px top/bottom padding
+
+====================================================================
+THE GAP ISSUE
+====================================================================
+
+OBSERVED: Small gap above header (not flush with viewport top)
+
+CURRENT HYPOTHESIS:
+1. No CSS reset on html/body - browser default margins may be present
+2. Circle page has its own padding wrapper (p-4 sm:p-6 md:p-8) which could be 
+   creating visual confusion about where the "top" should be
+3. FilterBar is nested deep inside grid → when it goes sticky, content above 
+   it scrolls through the gap between header and filter bar
+
+WHAT'S WORKING:
+- Layout is fully functional
+- Sidebar (Add Book, Members) displays correctly
+- Grid system works properly
+- FilterBar sticks below header when scrolling
+
+WHAT NEEDS FIXING:
+- Small cosmetic gap above header
+- Possibly: FilterBar structure for better sticky behavior
+
+====================================================================
+PREVIOUS FAILED ATTEMPTS (DO NOT REPEAT)
+====================================================================
+
+❌ Changing header from sticky to fixed positioning
+   → Broke layout, removed sidebar, required complex padding adjustments
+   
+❌ Universal CSS reset (* { margin: 0; padding: 0; })
+   → Broke all Tailwind spacing utilities
+   
+❌ Extracting FilterBar to page level with negative margins
+   → Broke grid layout, lost sidebar
+
+====================================================================
+POTENTIAL SOLUTIONS TO EXPLORE
+====================================================================
+
+Option 1: CSS-only fix (minimal risk)
+- Add explicit margin: 0 to html, body in globals.css
+- Ensure no default browser margins
+- Keep existing structure intact
+
+Option 2: Inspect computed styles
+- Check for unexpected margins/padding on html, body, or root divs
+- Look for overflow: hidden on any parent containers
+- Verify top: 0 actually means viewport top, not container top
+
+Option 3: Structural (higher risk)
+- Consider if circle page wrapper padding is necessary
+- Evaluate if FilterBar positioning can be improved without breaking grid
+
+====================================================================
+RECOMMENDATION
+====================================================================
+
+Start with Option 1 (CSS-only). The layout works perfectly - only fix the gap.
+Avoid structural changes that broke things in previous attempts.
+
+====================================================================

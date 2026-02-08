@@ -32,7 +32,7 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
   const normalizedUser = normalizeUser(user)
   
   return (
-    <div className="bg-white border-b sticky top-0 z-40 shadow-sm">
+    <div className="bg-white border-b z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left: Logo */}
