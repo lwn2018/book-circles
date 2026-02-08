@@ -112,24 +112,32 @@ export default function BooksListView({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="border-t border-gray-200">
       {books.map((book) => {
         const inQueue = book.book_queue?.some(q => q.user_id === userId)
         
         return (
           <div 
             key={book.id} 
-            className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 px-2 py-2 border-b border-gray-200 hover:bg-gray-50 transition-colors"
           >
             {/* Compact Cover */}
             {book.cover_url ? (
               <img 
                 src={book.cover_url} 
                 alt={book.title}
-                className="w-10 h-14 object-cover rounded shadow-sm flex-shrink-0"
+                className={`w-10 h-14 object-cover rounded shadow-sm flex-shrink-0 transition-opacity ${
+                  book.status === 'available' ? 'opacity-100' : 
+                  book.status === 'off_shelf' ? 'opacity-50' : 
+                  'opacity-70'
+                }`}
               />
             ) : (
-              <div className="w-10 h-14 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+              <div className={`w-10 h-14 bg-gray-200 rounded flex items-center justify-center flex-shrink-0 transition-opacity ${
+                book.status === 'available' ? 'opacity-100' : 
+                book.status === 'off_shelf' ? 'opacity-50' : 
+                'opacity-70'
+              }`}>
                 <span className="text-xl">📚</span>
               </div>
             )}

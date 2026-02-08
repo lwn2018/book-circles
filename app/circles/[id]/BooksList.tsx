@@ -152,19 +152,6 @@ export default function BooksList({
     router.refresh()
   }
 
-  const handleDelete = async (bookId: string) => {
-    if (!confirm('Are you sure you want to delete this book?')) return
-    
-    setLoading(bookId)
-    await supabase
-      .from('books')
-      .delete()
-      .eq('id', bookId)
-
-    setLoading(null)
-    router.refresh()
-  }
-
   const handleJoinQueue = async (bookId: string) => {
     setLoading(bookId)
     const result = await joinQueue(bookId, userId)
@@ -206,10 +193,18 @@ export default function BooksList({
             <img 
               src={book.cover_url} 
               alt={book.title}
-              className="w-20 h-28 object-cover rounded shadow-sm flex-shrink-0"
+              className={`w-20 h-28 object-cover rounded shadow-sm flex-shrink-0 transition-opacity ${
+                book.status === 'available' ? 'opacity-100' : 
+                book.status === 'off_shelf' ? 'opacity-50' : 
+                'opacity-70'
+              }`}
             />
           ) : (
-            <div className="w-20 h-28 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+            <div className={`w-20 h-28 bg-gray-200 rounded flex items-center justify-center flex-shrink-0 transition-opacity ${
+              book.status === 'available' ? 'opacity-100' : 
+              book.status === 'off_shelf' ? 'opacity-50' : 
+              'opacity-70'
+            }`}>
               <span className="text-3xl">📚</span>
             </div>
           )}
@@ -347,15 +342,6 @@ export default function BooksList({
                   className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
                 >
                   {loading === book.id ? 'Returning...' : 'Return'}
-                </button>
-              )}
-              {book.owner_id === userId && (
-                <button
-                  onClick={() => handleDelete(book.id)}
-                  disabled={loading === book.id}
-                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50"
-                >
-                  Delete
                 </button>
               )}
 

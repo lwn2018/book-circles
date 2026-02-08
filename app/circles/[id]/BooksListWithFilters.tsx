@@ -166,10 +166,18 @@ export default function BooksListWithFilters({
                     <img 
                       src={book.cover_url} 
                       alt={book.title}
-                      className="w-full h-44 sm:h-48 object-cover rounded shadow-sm"
+                      className={`w-full h-44 sm:h-48 object-cover rounded shadow-sm transition-opacity ${
+                        book.status === 'available' ? 'opacity-100' : 
+                        book.status === 'off_shelf' ? 'opacity-50' : 
+                        'opacity-70'
+                      }`}
                     />
                   ) : (
-                    <div className="w-full h-44 sm:h-48 bg-gray-200 rounded flex items-center justify-center">
+                    <div className={`w-full h-44 sm:h-48 bg-gray-200 rounded flex items-center justify-center transition-opacity ${
+                      book.status === 'available' ? 'opacity-100' : 
+                      book.status === 'off_shelf' ? 'opacity-50' : 
+                      'opacity-70'
+                    }`}>
                       <span className="text-3xl sm:text-4xl">📚</span>
                     </div>
                   )}
