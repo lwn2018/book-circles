@@ -1,0 +1,158 @@
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { NextRequest, NextResponse } from 'next/server'
+import { sendEmail, handoffInitiatedEmail } from '@/lib/send-email'
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id: bookId } = await params
+
+  try {
+    // Get book details
+    const { data: book, error: bookError } = await supabase
+      .from('books')
+      .select(`
+        id, 
+        title, 
+        owner_id, 
+        status,
+        profiles!books_owner_id_fkey (
+          id,
+          full_name,
+          email
+        )
+      `)
+      .eq('id', bookId)
+      .single()
+
+    if (bookError || !book) {
+      return NextResponse.json({ error: 'Book not found' }, { status: 404 })
+    }
+
+    // Check if book is available
+    if (book.status !== 'available') {
+      return NextResponse.json(
+        { error: 'Book is not available' },
+        { status: 400 }
+      )
+    }
+
+    // Check if user owns this book
+    if (book.owner_id === user.id) {
+      return NextResponse.json(
+        { error: 'You cannot borrow your own book' },
+        { status: 400 }
+      )
+    }
+
+    // Get borrower's name
+    const { data: borrower } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single()
+
+    const borrowerName = borrower?.full_name || 'Someone'
+    const ownerName = (book.profiles as any)?.full_name || 'Owner'
+    const ownerEmail = (book.profiles as any)?.email
+
+    // Calculate due date (30 days from now)
+    const dueDate = new Date()
+    dueDate.setDate(dueDate.getDate() + 30)
+
+    // Update book status
+    const { error: updateError } = await supabase
+      .from('books')
+      .update({
+        status: 'in_transit',
+        current_borrower_id: user.id,
+        due_date: dueDate.toISOString()
+      })
+      .eq('id', bookId)
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: updateError.message },
+        { status: 500 }
+      )
+    }
+
+    // Create handoff confirmation record and get the ID
+    const { data: handoffData, error: handoffError } = await supabase
+      .from('handoff_confirmations')
+      .insert({
+        book_id: bookId,
+        giver_id: book.owner_id,
+        receiver_id: user.id
+      })
+      .select('id')
+      .single()
+
+    if (handoffError || !handoffData) {
+      console.error('Handoff creation error:', handoffError)
+      return NextResponse.json(
+        { error: 'Failed to create handoff' },
+        { status: 500 }
+      )
+    }
+
+    const handoffId = handoffData.id
+    const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://book-circles.vercel.app'}/handoff/${handoffId}`
+
+    // Send notification to owner about handoff with action_url
+    await supabase
+      .from('notifications')
+      .insert({
+        user_id: book.owner_id,
+        type: 'handoff_initiated',
+        book_id: bookId,
+        sender_id: user.id,
+        message: `Time to hand off "${book.title}"!`,
+        action_url: `/handoff/${handoffId}`,
+        read: false
+      })
+
+    // Add to borrow history
+    await supabase.from('borrow_history').insert({
+      book_id: bookId,
+      borrower_id: user.id,
+      due_date: dueDate.toISOString()
+    })
+
+    // Send email to owner
+    if (ownerEmail) {
+      const emailTemplate = handoffInitiatedEmail(
+        ownerName,
+        borrowerName,
+        book.title,
+        handoffUrl
+      )
+
+      await sendEmail({
+        to: ownerEmail,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html
+      })
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `You're borrowing "${book.title}"! ${ownerName} has been notified.`,
+      handoffId
+    })
+  } catch (error: any) {
+    console.error('Failed to borrow book:', error)
+    return NextResponse.json(
+      { error: error.message || 'Failed to borrow book' },
+      { status: 500 }
+    )
+  }
+}

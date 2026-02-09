@@ -67,7 +67,13 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
     setError(null)
 
     try {
-      const response = await fetch(`/api/books/${bookId}/request`, {
+      // If book is available, call borrow API (creates handoff)
+      // Otherwise call request API (joins queue)
+      const endpoint = info.queue.isAvailable 
+        ? `/api/books/${bookId}/borrow`
+        : `/api/books/${bookId}/request`
+      
+      const response = await fetch(endpoint, {
         method: 'POST'
       })
 
