@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
-import { sendEmail, handoffInitiatedEmail } from '@/lib/send-email'
+import { sendEmail, handoffInitiatedEmailOwner, handoffInitiatedEmailBorrower } from '@/lib/send-email'
 
 export async function POST(
   request: NextRequest,
@@ -53,14 +53,15 @@ export async function POST(
       )
     }
 
-    // Get borrower's name
+    // Get borrower's name and email
     const { data: borrower } = await supabase
       .from('profiles')
-      .select('full_name')
+      .select('full_name, email')
       .eq('id', user.id)
       .single()
 
     const borrowerName = borrower?.full_name || 'Someone'
+    const borrowerEmail = borrower?.email
     const ownerName = (book.profiles as any)?.full_name || 'Owner'
     const ownerEmail = (book.profiles as any)?.email
 
@@ -107,18 +108,29 @@ export async function POST(
     const handoffId = handoffData.id
     const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://book-circles.vercel.app'}/handoff/${handoffId}`
 
-    // Send notification to owner about handoff with action_url
+    // Send notifications to BOTH parties
     await supabase
       .from('notifications')
-      .insert({
-        user_id: book.owner_id,
-        type: 'handoff_initiated',
-        book_id: bookId,
-        sender_id: user.id,
-        message: `Time to hand off "${book.title}"!`,
-        action_url: `/handoff/${handoffId}`,
-        read: false
-      })
+      .insert([
+        {
+          user_id: book.owner_id,
+          type: 'handoff_initiated',
+          book_id: bookId,
+          sender_id: user.id,
+          message: `Time to hand off "${book.title}"!`,
+          action_url: `/handoff/${handoffId}`,
+          read: false
+        },
+        {
+          user_id: user.id,
+          type: 'handoff_initiated',
+          book_id: bookId,
+          sender_id: book.owner_id,
+          message: `Time to pick up "${book.title}" from ${ownerName}!`,
+          action_url: `/handoff/${handoffId}`,
+          read: false
+        }
+      ])
 
     // Add to borrow history
     await supabase.from('borrow_history').insert({
@@ -129,7 +141,7 @@ export async function POST(
 
     // Send email to owner
     if (ownerEmail) {
-      const emailTemplate = handoffInitiatedEmail(
+      const emailTemplate = handoffInitiatedEmailOwner(
         ownerName,
         borrowerName,
         book.title,
@@ -138,6 +150,22 @@ export async function POST(
 
       await sendEmail({
         to: ownerEmail,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html
+      })
+    }
+
+    // Send email to borrower
+    if (borrowerEmail) {
+      const emailTemplate = handoffInitiatedEmailBorrower(
+        ownerName,
+        borrowerName,
+        book.title,
+        handoffUrl
+      )
+
+      await sendEmail({
+        to: borrowerEmail,
         subject: emailTemplate.subject,
         html: emailTemplate.html
       })
