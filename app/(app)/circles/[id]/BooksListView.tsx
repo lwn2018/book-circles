@@ -8,6 +8,15 @@ import BuyAmazonButton from '@/app/components/BuyAmazonButton'
 import { createClient } from '@/lib/supabase'
 import BookCover from '@/app/components/BookCover'
 
+type QueueEntry = {
+  id: string
+  user_id: string
+  position: number
+  pass_count?: number
+  last_pass_reason?: string
+  profiles?: { full_name: string }
+}
+
 type Book = {
   id: string
   title: string
@@ -21,7 +30,7 @@ type Book = {
   owner_id: string
   current_borrower_id: string | null
   due_date: string | null
-  book_queue?: any[]
+  book_queue?: QueueEntry[]
 }
 
 export default function BooksListView({
