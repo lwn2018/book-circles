@@ -42,9 +42,10 @@ export async function fetchBookCover(
 
 async function tryGoogleBooks(isbn: string): Promise<string | null> {
   try {
-    const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`
-    )
+    const apiKey = process.env.GOOGLE_BOOKS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY
+    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}${apiKey ? `&key=${apiKey}` : ''}`
+    
+    const response = await fetch(url)
     
     if (!response.ok) return null
     
@@ -70,13 +71,14 @@ async function tryGoogleBooksSearch(
   author?: string | null
 ): Promise<string | null> {
   try {
+    const apiKey = process.env.GOOGLE_BOOKS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY
     const query = author 
       ? `intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}`
       : `intitle:${encodeURIComponent(title)}`
     
-    const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${query}`
-    )
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${query}${apiKey ? `&key=${apiKey}` : ''}`
+    
+    const response = await fetch(url)
     
     if (!response.ok) return null
     

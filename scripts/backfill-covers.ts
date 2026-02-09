@@ -69,9 +69,10 @@ async function backfillCovers() {
       if (result.coverUrl) {
         // Also try to get correct ISBN from Google Books
         try {
-          const response = await fetch(
-            `https://www.googleapis.com/books/v1/volumes?q=intitle:The+Nightingale+inauthor:Kristin+Hannah`
-          )
+          const apiKey = process.env.GOOGLE_BOOKS_API_KEY
+          const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:The+Nightingale+inauthor:Kristin+Hannah${apiKey ? `&key=${apiKey}` : ''}`
+          
+          const response = await fetch(url)
           const data = await response.json()
           if (data.items && data.items[0]) {
             const volume = data.items[0].volumeInfo
@@ -117,9 +118,10 @@ async function backfillCovers() {
       
       if (result.coverUrl) {
         try {
-          const response = await fetch(
-            `https://www.googleapis.com/books/v1/volumes?q=intitle:The+River+Is+Waiting+inauthor:Wally+Lamb`
-          )
+          const apiKey = process.env.GOOGLE_BOOKS_API_KEY
+          const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:The+River+Is+Waiting+inauthor:Wally+Lamb${apiKey ? `&key=${apiKey}` : ''}`
+          
+          const response = await fetch(url)
           const data = await response.json()
           if (data.items && data.items[0]) {
             const volume = data.items[0].volumeInfo
