@@ -34,8 +34,11 @@ export default function AddBookModal({
   const [loading, setLoading] = useState(false)
   const [lookupStatus, setLookupStatus] = useState('')
   const [scanning, setScanning] = useState(false)
+  const [titleSearchResults, setTitleSearchResults] = useState<any[]>([])
+  const [showTitleDropdown, setShowTitleDropdown] = useState(false)
   const scannerRef = useRef<HTMLDivElement>(null)
   const quaggaRef = useRef<any>(null)
+  const titleSearchTimer = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   
   const supabase = createClient()
@@ -69,6 +72,70 @@ export default function AddBookModal({
     if (value.length >= 10) {
       lookupISBN(value)
     }
+  }
+
+  const searchByTitle = async (query: string) => {
+    if (query.length < 3) {
+      setTitleSearchResults([])
+      setShowTitleDropdown(false)
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(query)}&maxResults=5`
+      )
+      const data = await response.json()
+
+      if (data.items) {
+        const results = data.items.map((item: any) => ({
+          id: item.id,
+          title: item.volumeInfo.title,
+          author: item.volumeInfo.authors?.join(', ') || null,
+          isbn: item.volumeInfo.industryIdentifiers?.find((id: any) => 
+            id.type === 'ISBN_13' || id.type === 'ISBN_10'
+          )?.identifier || null,
+          coverUrl: item.volumeInfo.imageLinks?.thumbnail?.replace('http://', 'https://') || null
+        }))
+        setTitleSearchResults(results)
+        setShowTitleDropdown(true)
+      } else {
+        setTitleSearchResults([])
+        setShowTitleDropdown(false)
+      }
+    } catch (err) {
+      console.error('Title search error:', err)
+      setTitleSearchResults([])
+      setShowTitleDropdown(false)
+    }
+  }
+
+  const handleTitleChange = (value: string) => {
+    setTitle(value)
+    
+    // Clear previous timer
+    if (titleSearchTimer.current) {
+      clearTimeout(titleSearchTimer.current)
+    }
+
+    // Debounce search by 300ms
+    if (value.length >= 3) {
+      titleSearchTimer.current = setTimeout(() => {
+        searchByTitle(value)
+      }, 300)
+    } else {
+      setTitleSearchResults([])
+      setShowTitleDropdown(false)
+    }
+  }
+
+  const selectSearchResult = (result: any) => {
+    setTitle(result.title)
+    setAuthor(result.author || '')
+    setIsbn(result.isbn || '')
+    setCoverUrl(result.coverUrl || '')
+    setTitleSearchResults([])
+    setShowTitleDropdown(false)
   }
 
   const toggleCircle = (circleId: string) => {
@@ -236,6 +303,14 @@ export default function AddBookModal({
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (titleSearchTimer.current) {
+        clearTimeout(titleSearchTimer.current)
+      }
+    }
+  }, [])
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
@@ -290,16 +365,59 @@ export default function AddBookModal({
             </div>
           )}
 
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium mb-1">Title *</label>
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              onFocus={() => {
+                if (titleSearchResults.length > 0) {
+                  setShowTitleDropdown(true)
+                }
+              }}
               className="w-full px-3 py-2 border rounded-lg"
-              placeholder="Book title"
+              placeholder="Start typing to search books..."
               required
             />
+            
+            {/* Title search dropdown */}
+            {showTitleDropdown && titleSearchResults.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                {titleSearchResults.map((result) => (
+                  <button
+                    key={result.id}
+                    type="button"
+                    onClick={() => selectSearchResult(result)}
+                    className="w-full flex gap-3 p-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 text-left"
+                  >
+                    {/* Cover thumbnail */}
+                    {result.coverUrl ? (
+                      <img 
+                        src={result.coverUrl} 
+                        alt={result.title}
+                        className="w-12 h-16 object-cover rounded shadow-sm flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+                        <span className="text-xl">📚</span>
+                      </div>
+                    )}
+                    
+                    {/* Book details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm line-clamp-2">{result.title}</div>
+                      {result.author && (
+                        <div className="text-xs text-gray-600 mt-1">{result.author}</div>
+                      )}
+                      {result.isbn && (
+                        <div className="text-xs text-gray-400 mt-1">ISBN: {result.isbn}</div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
