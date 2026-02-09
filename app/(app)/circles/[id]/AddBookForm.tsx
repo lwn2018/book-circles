@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { fetchBookCover } from '@/lib/fetch-book-cover'
 
 export default function AddBookForm({ circleId, userId }: { circleId: string; userId: string }) {
   const [title, setTitle] = useState('')
@@ -129,13 +130,31 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
     setError('')
     setLoading(true)
 
+    // Try to fetch cover if we don't have one yet
+    let finalCoverUrl = coverUrl || null
+    if (!finalCoverUrl) {
+      setLookupStatus('Checking for cover art...')
+      const coverResult = await fetchBookCover(
+        isbn || null,
+        title,
+        author || null
+      )
+      if (coverResult.coverUrl) {
+        finalCoverUrl = coverResult.coverUrl
+        setCoverUrl(coverResult.coverUrl)
+        setLookupStatus(`✓ Found cover via ${coverResult.source}`)
+      } else {
+        setLookupStatus('')
+      }
+    }
+
     const { data: newBook, error: insertError } = await supabase
       .from('books')
       .insert({
         title,
         author: author || null,
         isbn: isbn || null,
-        cover_url: coverUrl || null,
+        cover_url: finalCoverUrl,
         added_by: userId,
         owner_id: userId,
         status: 'available'

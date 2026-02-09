@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { fetchBookCover } from '@/lib/fetch-book-cover'
 
 type Circle = {
   id: string
@@ -96,6 +97,24 @@ export default function AddBookModal({
     }
 
     try {
+      // Try to fetch cover if we don't have one yet
+      let finalCoverUrl = coverUrl.trim() || null
+      if (!finalCoverUrl) {
+        setLookupStatus('Checking for cover art...')
+        const coverResult = await fetchBookCover(
+          isbn.trim() || null,
+          title.trim(),
+          author.trim() || null
+        )
+        if (coverResult.coverUrl) {
+          finalCoverUrl = coverResult.coverUrl
+          setCoverUrl(coverResult.coverUrl)
+          setLookupStatus(`✓ Found cover via ${coverResult.source}`)
+        } else {
+          setLookupStatus('')
+        }
+      }
+
       // Create the book
       const { data: book, error: bookError } = await supabase
         .from('books')
@@ -103,7 +122,7 @@ export default function AddBookModal({
           title: title.trim(),
           author: author.trim() || null,
           isbn: isbn.trim() || null,
-          cover_url: coverUrl.trim() || null,
+          cover_url: finalCoverUrl,
           owner_id: userId,
           status: 'available'
           // Don't set circle_id - we use book_circle_visibility instead
