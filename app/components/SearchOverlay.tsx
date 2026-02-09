@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase'
 import { completeGiftTransfer } from '@/lib/gift-actions'
 import RequestConfirmationDialog from './RequestConfirmationDialog'
 import BuyAmazonButton from './BuyAmazonButton'
+import BookCover from './BookCover'
 
 type SearchResult = {
   id: string
@@ -313,17 +314,13 @@ export default function SearchOverlay({ userId }: { userId: string }) {
                     {external.map((book) => (
                       <div key={book.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex gap-4">
                         {/* Cover */}
-                        {book.cover_url ? (
-                          <img 
-                            src={book.cover_url} 
-                            alt={book.title}
-                            className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-16 h-24 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                            <span className="text-2xl">📚</span>
-                          </div>
-                        )}
+                        <BookCover
+                          coverUrl={book.cover_url}
+                          title={book.title}
+                          author={book.author}
+                          isbn={book.isbn}
+                          className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
+                        />
 
                         {/* Details */}
                         <div className="flex-1">
@@ -489,17 +486,13 @@ function BookCard({
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 flex gap-4">
       {/* Cover */}
-      {book.cover_url ? (
-        <img 
-          src={book.cover_url} 
-          alt={book.title}
-          className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
-        />
-      ) : (
-        <div className="w-16 h-24 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-          <span className="text-2xl">📚</span>
-        </div>
-      )}
+      <BookCover
+        coverUrl={book.cover_url}
+        title={book.title}
+        author={book.author}
+        isbn={book.isbn}
+        className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
+      />
 
       {/* Details */}
       <div className="flex-1">

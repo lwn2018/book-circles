@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { handleAcceptResponse, handlePassResponse, leaveQueue } from '@/lib/queue-actions'
 import PassReasonModal from './PassReasonModal'
+import BookCover from '@/app/components/BookCover'
 
 type BookOffer = {
   id: string
@@ -75,17 +76,13 @@ export default function BookOfferCard({ book, userId, queueEntryId }: {
       <div className="border-2 border-green-500 rounded-lg p-6 bg-green-50 shadow-sm">
         <div className="flex gap-4">
           {/* Book Cover */}
-          {book.cover_url ? (
-            <img 
-              src={book.cover_url} 
-              alt={book.title}
-              className="w-24 h-32 object-cover rounded shadow-sm flex-shrink-0"
-            />
-          ) : (
-            <div className="w-24 h-32 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-              <span className="text-3xl">📚</span>
-            </div>
-          )}
+          <BookCover
+            coverUrl={book.cover_url}
+            title={book.title}
+            author={book.author}
+            isbn={book.isbn}
+            className="w-24 h-32 object-cover rounded shadow-sm flex-shrink-0"
+          />
 
           {/* Book Info */}
           <div className="flex-1">

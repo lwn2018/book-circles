@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import BookCover from './BookCover'
 
 type SearchResult = {
   id: string
@@ -196,17 +197,13 @@ export default function BookSearch({ userId }: { userId: string }) {
                 {external.map((book) => (
                   <div key={book.id} className="bg-white border border-gray-200 rounded-lg p-4 flex gap-4">
                     {/* Cover */}
-                    {book.cover_url ? (
-                      <img 
-                        src={book.cover_url} 
-                        alt={book.title}
-                        className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-16 h-24 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                        <span className="text-2xl">📚</span>
-                      </div>
-                    )}
+                    <BookCover
+                      coverUrl={book.cover_url}
+                      title={book.title}
+                      author={book.author}
+                      isbn={book.isbn}
+                      className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
+                    />
 
                     {/* Details */}
                     <div className="flex-1">
@@ -271,17 +268,13 @@ function BookCard({ book, type }: { book: SearchResult; type: 'own' | 'circle' }
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 flex gap-4">
       {/* Cover */}
-      {book.cover_url ? (
-        <img 
-          src={book.cover_url} 
-          alt={book.title}
-          className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
-        />
-      ) : (
-        <div className="w-16 h-24 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-          <span className="text-2xl">📚</span>
-        </div>
-      )}
+      <BookCover
+        coverUrl={book.cover_url}
+        title={book.title}
+        author={book.author}
+        isbn={book.isbn}
+        className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
+      />
 
       {/* Details */}
       <div className="flex-1">
