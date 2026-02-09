@@ -7,6 +7,7 @@ import { joinQueue, leaveQueue } from '@/lib/queue-actions'
 import { completeGiftTransfer } from '@/lib/gift-actions'
 import BuyAmazonButton from '@/app/components/BuyAmazonButton'
 import BookCover from '@/app/components/BookCover'
+import RequestConfirmationDialog from '@/app/components/RequestConfirmationDialog'
 
 type QueueEntry = {
   id: string
@@ -47,6 +48,7 @@ export default function BooksList({
   onBookUpdate?: (bookId: string, updates: Partial<Book>, toastMessage?: string) => void
 }) {
   const [loading, setLoading] = useState<string | null>(null)
+  const [requestingBookId, setRequestingBookId] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -264,6 +266,7 @@ export default function BooksList({
   }
 
   return (
+    <>
     <div className="space-y-4">
       {books.map((book) => (
         <div key={book.id} className="p-4 border rounded-lg flex gap-4">
@@ -372,18 +375,14 @@ export default function BooksList({
               {book.status === 'available' && book.owner_id !== userId && (
                 <div className="flex flex-col gap-1">
                   <button
-                    onClick={() => handleBorrow(book.id)}
-                    disabled={loading === book.id}
-                    className={`px-3 py-1 text-white text-sm rounded disabled:opacity-50 ${
+                    onClick={() => setRequestingBookId(book.id)}
+                    className={`px-3 py-1 text-white text-sm rounded ${
                       book.gift_on_borrow 
                         ? 'bg-pink-600 hover:bg-pink-700' 
                         : 'bg-blue-600 hover:bg-blue-700'
                     }`}
                   >
-                    {loading === book.id ? 
-                      (book.gift_on_borrow ? 'Accepting...' : 'Borrowing...') : 
-                      (book.gift_on_borrow ? '🎁 Accept Gift' : 'Borrow')
-                    }
+                    {book.gift_on_borrow ? '🎁 Accept Gift' : 'Borrow'}
                   </button>
                   {book.gift_on_borrow && (
                     <p className="text-xs text-pink-600">
@@ -497,5 +496,18 @@ export default function BooksList({
         </div>
       ))}
     </div>
+
+    {/* Request/Borrow Confirmation Dialog */}
+    {requestingBookId && (
+      <RequestConfirmationDialog
+        bookId={requestingBookId}
+        onClose={() => setRequestingBookId(null)}
+        onSuccess={() => {
+          setRequestingBookId(null)
+          router.refresh()
+        }}
+      />
+    )}
+  </>
   )
 }

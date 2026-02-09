@@ -72,10 +72,19 @@ export default function NotificationBell() {
   const markAllAsRead = async () => {
     setLoading(true)
     try {
-      await fetch('/api/notifications/mark-all-read', { method: 'POST' })
-      fetchNotifications()
+      const response = await fetch('/api/notifications/mark-all-read', { method: 'POST' })
+      const data = await response.json()
+      
+      if (!response.ok) {
+        console.error('Failed to mark all as read:', data.error)
+        alert('Failed to mark all notifications as read')
+        return
+      }
+      
+      await fetchNotifications()
     } catch (error) {
       console.error('Failed to mark all as read:', error)
+      alert('Failed to mark all notifications as read')
     } finally {
       setLoading(false)
     }

@@ -38,19 +38,22 @@ export default function BuyAmazonButton({
 
     setLoading(true)
 
+    // Generate Amazon affiliate URL
+    const affiliateTag = 'pagepass-20'
+    let amazonUrl: string
+
+    if (book.isbn) {
+      amazonUrl = `https://www.amazon.ca/dp/${book.isbn}?tag=${affiliateTag}`
+    } else {
+      const searchQuery = encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
+      amazonUrl = `https://www.amazon.ca/s?k=${searchQuery}&tag=${affiliateTag}`
+    }
+
+    // Open Amazon IMMEDIATELY (synchronously) to avoid popup blocker
+    window.open(amazonUrl, '_blank', 'noopener,noreferrer')
+
+    // Track the click asynchronously (don't await before opening)
     try {
-      // Generate Amazon affiliate URL
-      const affiliateTag = 'pagepass-20'
-      let amazonUrl: string
-
-      if (book.isbn) {
-        amazonUrl = `https://www.amazon.ca/dp/${book.isbn}?tag=${affiliateTag}`
-      } else {
-        const searchQuery = encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
-        amazonUrl = `https://www.amazon.ca/s?k=${searchQuery}&tag=${affiliateTag}`
-      }
-
-      // Track the click
       await fetch('/api/track-purchase-click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,18 +68,9 @@ export default function BuyAmazonButton({
           affiliate_url: amazonUrl
         })
       })
-
-      // Open Amazon in new tab
-      window.open(amazonUrl, '_blank', 'noopener,noreferrer')
     } catch (error) {
       console.error('Failed to track purchase click:', error)
-      // Still open Amazon even if tracking fails
-      const affiliateTag = 'pagepass-20'
-      const fallbackUrl = book.isbn
-        ? `https://www.amazon.ca/dp/${book.isbn}?tag=${affiliateTag}`
-        : `https://www.amazon.ca/s?k=${encodeURIComponent(book.title)}&tag=${affiliateTag}`
-      
-      window.open(fallbackUrl, '_blank', 'noopener,noreferrer')
+      // Window already opened, so just log the error
     } finally {
       setLoading(false)
     }

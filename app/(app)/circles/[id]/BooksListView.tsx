@@ -7,6 +7,7 @@ import { completeGiftTransfer } from '@/lib/gift-actions'
 import BuyAmazonButton from '@/app/components/BuyAmazonButton'
 import { createClient } from '@/lib/supabase'
 import BookCover from '@/app/components/BookCover'
+import RequestConfirmationDialog from '@/app/components/RequestConfirmationDialog'
 
 type QueueEntry = {
   id: string
@@ -47,6 +48,7 @@ export default function BooksListView({
   onBookUpdate?: (bookId: string, updates: Partial<Book>, toastMessage?: string) => void
 }) {
   const [loading, setLoading] = useState<string | null>(null)
+  const [requestingBookId, setRequestingBookId] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -193,6 +195,7 @@ export default function BooksListView({
   }
 
   return (
+    <>
     <div className="border-t border-gray-200">
       {books.map((book) => {
         const inQueue = book.book_queue?.some(q => q.user_id === userId)
@@ -250,7 +253,7 @@ export default function BooksListView({
             <div className="flex-shrink-0">
               {book.status === 'available' && book.owner_id !== userId && (
                 <button
-                  onClick={() => handleBorrow(book.id)}
+                  onClick={() => setRequestingBookId(book.id)}
                   className={`px-3 py-1 text-xs text-white rounded ${
                     book.gift_on_borrow 
                       ? 'bg-pink-600 hover:bg-pink-700' 
@@ -286,5 +289,18 @@ export default function BooksListView({
         )
       })}
     </div>
+
+    {/* Request/Borrow Confirmation Dialog */}
+    {requestingBookId && (
+      <RequestConfirmationDialog
+        bookId={requestingBookId}
+        onClose={() => setRequestingBookId(null)}
+        onSuccess={() => {
+          setRequestingBookId(null)
+          router.refresh()
+        }}
+      />
+    )}
+  </>
   )
 }

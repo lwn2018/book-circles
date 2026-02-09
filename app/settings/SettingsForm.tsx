@@ -259,28 +259,6 @@ export default function SettingsForm({ user }: { user: User }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Profile Picture
-            </label>
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-xl">
-                {user.avatar_url ? (
-                  <img src={user.avatar_url} alt={user.full_name} className="w-16 h-16 rounded-full" />
-                ) : (
-                  fullName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || user.email?.slice(0, 2).toUpperCase()
-                )}
-              </div>
-              <button
-                type="button"
-                disabled
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-500 text-sm"
-              >
-                Upload Photo (Coming Soon)
-              </button>
-            </div>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
