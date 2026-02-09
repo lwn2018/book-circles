@@ -9,6 +9,7 @@ type Book = {
   id: string
   title: string
   author: string | null
+  isbn: string | null
   cover_url: string | null
   status: string
   current_holder: { id: string; full_name: string }

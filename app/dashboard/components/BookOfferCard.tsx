@@ -10,6 +10,7 @@ type BookOffer = {
   id: string
   title: string
   author: string | null
+  isbn: string | null
   cover_url: string | null
   current_holder: { id: string; full_name: string }
   circle: { id: string; name: string }
