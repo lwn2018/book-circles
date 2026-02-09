@@ -134,12 +134,33 @@ export default function BooksListView({
 
   const handleJoinQueue = async (bookId: string) => {
     setLoading(bookId)
+    const book = books.find(b => b.id === bookId)
     const result = await joinQueue(bookId, userId)
     setLoading(null)
     if (result.error) {
       alert(result.error)
     } else {
-      router.refresh()
+      // Update local state with toast instead of refreshing
+      const queuePosition = (book?.book_queue?.length || 0) + 1
+      if (onBookUpdate) {
+        onBookUpdate(
+          bookId,
+          {
+            book_queue: [
+              ...(book?.book_queue || []),
+              { 
+                id: 'temp', 
+                user_id: userId, 
+                position: queuePosition,
+                profiles: { full_name: 'You' }
+              }
+            ]
+          },
+          `You're #${queuePosition} in the queue for "${book?.title}"`
+        )
+      } else {
+        router.refresh()
+      }
     }
   }
 
