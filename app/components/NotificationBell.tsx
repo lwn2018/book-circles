@@ -90,13 +90,17 @@ export default function NotificationBell() {
     }
   }
 
-  const deleteNotification = async (notificationId: string, event: React.MouseEvent) => {
+  const markNotificationAsRead = async (notificationId: string, event: React.MouseEvent) => {
     event.stopPropagation()
     try {
-      await fetch(`/api/notifications/${notificationId}`, { method: 'DELETE' })
+      await fetch(`/api/notifications/${notificationId}`, { 
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ read: true })
+      })
       fetchNotifications()
     } catch (error) {
-      console.error('Failed to delete notification:', error)
+      console.error('Failed to mark notification as read:', error)
     }
   }
 
@@ -187,10 +191,15 @@ export default function NotificationBell() {
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-4 hover:bg-gray-50 transition cursor-pointer relative ${
+                    className={`p-4 pl-6 hover:bg-gray-50 transition cursor-pointer relative ${
                       !notification.read ? 'bg-blue-50' : ''
                     }`}
                   >
+                    {/* Unread indicator dot on left */}
+                    {!notification.read && (
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-600 rounded-full" />
+                    )}
+                    
                     <div className="flex gap-3">
                       <span className="text-2xl flex-shrink-0">
                         {getNotificationIcon(notification.type)}
@@ -199,7 +208,7 @@ export default function NotificationBell() {
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-medium text-sm">{notification.message}</p>
                           <button
-                            onClick={(e) => deleteNotification(notification.id, e)}
+                            onClick={(e) => markNotificationAsRead(notification.id, e)}
                             className="text-gray-400 hover:text-gray-600 flex-shrink-0"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,9 +219,6 @@ export default function NotificationBell() {
                         <p className="text-xs text-gray-400 mt-2">{formatTime(notification.created_at)}</p>
                       </div>
                     </div>
-                    {!notification.read && (
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-600 rounded-full" />
-                    )}
                   </div>
                 ))}
               </div>

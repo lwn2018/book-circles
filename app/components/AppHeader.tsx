@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import NotificationBell from './NotificationBell'
 import UserMenu from './UserMenu'
 import AddBookButton from '../library/AddBookButton'
@@ -30,16 +31,33 @@ const normalizeUser = (user: AppHeaderProps['user']) => ({
 
 export default function AppHeader({ user, userCircles }: AppHeaderProps) {
   const normalizedUser = normalizeUser(user)
+  const pathname = usePathname()
+  const router = useRouter()
+  
+  // Detect if we're on a circle detail page
+  const isCircleDetailPage = pathname?.match(/^\/circles\/[^/]+$/) && !pathname.endsWith('/create') && !pathname.endsWith('/join')
   
   return (
     <div className="bg-white border-b sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left: Logo */}
-          <Link href="/circles" className="flex items-center gap-2 hover:opacity-80 transition">
-            <span className="text-2xl">📚</span>
-            <span className="font-bold text-lg hidden sm:inline">PagePass</span>
-          </Link>
+          {/* Left: Back button (on circle detail) or Logo */}
+          {isCircleDetailPage ? (
+            <button 
+              onClick={() => router.back()}
+              className="flex items-center gap-2 hover:opacity-80 transition text-gray-700"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium text-sm hidden sm:inline">Back</span>
+            </button>
+          ) : (
+            <Link href="/circles" className="flex items-center gap-2 hover:opacity-80 transition">
+              <span className="text-2xl">📚</span>
+              <span className="font-bold text-lg hidden sm:inline">PagePass</span>
+            </Link>
+          )}
 
           {/* Right: Search + Add Book + Bell + User Menu */}
           <div className="flex items-center gap-2 sm:gap-3">

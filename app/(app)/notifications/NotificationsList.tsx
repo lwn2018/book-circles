@@ -68,12 +68,17 @@ export default function NotificationsList() {
     }
   }
 
-  const deleteNotification = async (notificationId: string) => {
+  const markNotificationAsRead = async (notificationId: string, event: React.MouseEvent) => {
+    event.stopPropagation()
     try {
-      await fetch(`/api/notifications/${notificationId}`, { method: 'DELETE' })
+      await fetch(`/api/notifications/${notificationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ read: true })
+      })
       fetchNotifications()
     } catch (error) {
-      console.error('Failed to delete notification:', error)
+      console.error('Failed to mark notification as read:', error)
     }
   }
 
@@ -209,10 +214,15 @@ export default function NotificationsList() {
             <div
               key={notification.id}
               onClick={() => handleNotificationClick(notification)}
-              className={`p-5 hover:bg-gray-50 transition cursor-pointer relative ${
+              className={`p-5 pl-8 hover:bg-gray-50 transition cursor-pointer relative ${
                 !notification.read ? 'bg-blue-50' : ''
               }`}
             >
+              {/* Unread indicator dot on left */}
+              {!notification.read && (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-600 rounded-full" />
+              )}
+              
               <div className="flex gap-4">
                 <span className="text-3xl flex-shrink-0">
                   {getNotificationIcon(notification.type)}
@@ -221,10 +231,7 @@ export default function NotificationsList() {
                   <div className="flex items-start justify-between gap-3 mb-1">
                     <h3 className="font-semibold text-base">{notification.message}</h3>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        deleteNotification(notification.id)
-                      }}
+                      onClick={(e) => markNotificationAsRead(notification.id, e)}
                       className="text-gray-400 hover:text-gray-600 flex-shrink-0 p-1"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,9 +266,6 @@ export default function NotificationsList() {
                   )}
                 </div>
               </div>
-              {!notification.read && (
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-600 rounded-full" />
-              )}
             </div>
           ))}
         </div>

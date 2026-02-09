@@ -4,6 +4,7 @@ import Link from 'next/link'
 import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
 import LeaveCircleButton from './LeaveCircleButton'
+import CollapsibleMembersList from './CollapsibleMembersList'
 
 export default async function CirclePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -115,10 +116,6 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <Link href="/dashboard" className="text-blue-600 hover:underline mb-4 inline-block text-sm sm:text-base">
-          ← Back to Dashboard
-        </Link>
-
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
             <h1 className="text-2xl sm:text-3xl font-bold">{circle.name}</h1>
@@ -133,9 +130,6 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
             <p className="text-gray-600 mb-2 text-sm sm:text-base">{circle.description}</p>
           )}
           <InviteLink inviteCode={circle.invite_code} />
-          <p className="text-sm text-gray-500 mt-1">
-            {members?.length || 0} member{members?.length !== 1 ? 's' : ''}
-          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -151,16 +145,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
           </div>
 
           <div className="order-1 lg:order-2">
-            <div className="mt-6 sm:mt-8">
-              <h3 className="text-base sm:text-lg font-semibold mb-3">Members</h3>
-              <div className="space-y-2">
-                {members?.map((member: any) => (
-                  <div key={member.id} className="text-sm">
-                    <p className="font-medium">{member.profiles.full_name}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <CollapsibleMembersList members={(members as any) || []} />
           </div>
         </div>
       </div>

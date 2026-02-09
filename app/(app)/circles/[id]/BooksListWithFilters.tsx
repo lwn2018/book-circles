@@ -240,9 +240,9 @@ export default function BooksListWithFilters({
     <div>
       {/* New in this circle */}
       {newBooks.length > 0 && (
-        <div className="mb-3">
+        <div className="mb-4">
           <h3 className="text-base sm:text-lg font-semibold mb-2">New in this circle</h3>
-          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-1 px-1">
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto -mx-1 px-1">
             {newBooks.map(book => {
               const inQueue = book.book_queue?.some(q => q.user_id === userId)
               const isOwner = book.owner_id === userId
