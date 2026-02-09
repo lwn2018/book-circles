@@ -178,11 +178,8 @@ export default function BooksListView({
               title={book.title}
               author={book.author}
               isbn={book.isbn}
-              className={`w-10 h-14 object-cover rounded shadow-sm flex-shrink-0 transition-opacity ${
-                book.status === 'available' ? 'opacity-100' : 
-                book.status === 'off_shelf' ? 'opacity-50' : 
-                'opacity-70'
-              }`}
+              status={book.status as any}
+              className="w-10 h-14 object-cover rounded shadow-sm flex-shrink-0 transition-opacity"
             />
 
             {/* Book Info */}

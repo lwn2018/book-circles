@@ -8,6 +8,7 @@ interface BookCoverPlaceholderProps {
   author?: string | null
   isbn?: string | null
   className?: string
+  status?: 'available' | 'borrowed' | 'in_transit' | 'off_shelf'
 }
 
 // Muted jewel tone palette (matches user avatar circles)
@@ -44,13 +45,24 @@ export default function BookCoverPlaceholder({
   title,
   author,
   isbn,
-  className = ''
+  className = '',
+  status = 'available'
 }: BookCoverPlaceholderProps) {
   const backgroundColor = getColorForBook(isbn, title)
 
+  // Apply opacity based on book status
+  // Available: 100%, Borrowed/In Transit: 70%, Off Shelf: 50%
+  const getOpacityClass = () => {
+    if (status === 'off_shelf') return 'opacity-50'
+    if (status === 'borrowed' || status === 'in_transit') return 'opacity-70'
+    return 'opacity-100'
+  }
+
+  const opacityClass = getOpacityClass()
+
   return (
     <div
-      className={`relative flex flex-col items-center justify-center p-4 ${className}`}
+      className={`relative flex flex-col items-center justify-center p-4 ${className} ${opacityClass}`}
       style={{
         aspectRatio: '2/3',
         backgroundColor,

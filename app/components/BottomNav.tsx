@@ -14,20 +14,14 @@ export default function BottomNav() {
       path: '/circles'
     },
     {
-      id: 'handoffs',
-      label: 'Handoffs',
-      icon: '🤝',
-      path: '/handoffs'
-    },
-    {
       id: 'library',
-      label: 'Library',
+      label: 'My Library',
       icon: '📚',
       path: '/library'
     },
     {
       id: 'shelf',
-      label: 'Shelf',
+      label: 'My Shelf',
       icon: '📖',
       path: '/shelf'
     }

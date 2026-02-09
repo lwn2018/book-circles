@@ -1,7 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import AddBookForm from './AddBookForm'
 import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
 import LeaveCircleButton from './LeaveCircleButton'
@@ -152,16 +151,12 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
           </div>
 
           <div className="order-1 lg:order-2">
-            <h2 className="text-lg sm:text-xl font-bold mb-4">Add a Book</h2>
-            <AddBookForm circleId={id} userId={user.id} />
-
             <div className="mt-6 sm:mt-8">
               <h3 className="text-base sm:text-lg font-semibold mb-3">Members</h3>
               <div className="space-y-2">
                 {members?.map((member: any) => (
                   <div key={member.id} className="text-sm">
                     <p className="font-medium">{member.profiles.full_name}</p>
-                    <p className="text-gray-500 text-xs break-all">{member.profiles.email}</p>
                   </div>
                 ))}
               </div>

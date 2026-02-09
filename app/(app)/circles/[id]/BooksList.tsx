@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { joinQueue, leaveQueue } from '@/lib/queue-actions'
 import { completeGiftTransfer } from '@/lib/gift-actions'
 import BuyAmazonButton from '@/app/components/BuyAmazonButton'
+import BookCover from '@/app/components/BookCover'
 
 type QueueEntry = {
   id: string
@@ -246,25 +247,14 @@ export default function BooksList({
       {books.map((book) => (
         <div key={book.id} className="p-4 border rounded-lg flex gap-4">
           {/* Book Cover */}
-          {book.cover_url ? (
-            <img 
-              src={book.cover_url} 
-              alt={book.title}
-              className={`w-20 h-28 object-cover rounded shadow-sm flex-shrink-0 transition-opacity ${
-                book.status === 'available' ? 'opacity-100' : 
-                book.status === 'off_shelf' ? 'opacity-50' : 
-                'opacity-70'
-              }`}
-            />
-          ) : (
-            <div className={`w-20 h-28 bg-gray-200 rounded flex items-center justify-center flex-shrink-0 transition-opacity ${
-              book.status === 'available' ? 'opacity-100' : 
-              book.status === 'off_shelf' ? 'opacity-50' : 
-              'opacity-70'
-            }`}>
-              <span className="text-3xl">📚</span>
-            </div>
-          )}
+          <BookCover
+            coverUrl={book.cover_url}
+            title={book.title}
+            author={book.author}
+            isbn={book.isbn}
+            status={book.status as any}
+            className="w-20 h-28 object-cover rounded shadow-sm flex-shrink-0 transition-opacity"
+          />
 
           {/* Book Details */}
           <div className="flex-1">
