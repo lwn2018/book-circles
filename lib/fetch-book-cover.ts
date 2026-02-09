@@ -13,7 +13,15 @@ export async function fetchBookCover(
   title?: string | null,
   author?: string | null
 ): Promise<FetchBookCoverResult> {
-  // Try Google Books API first
+  // Try Open Library first (no API key, more reliable)
+  if (isbn) {
+    const openLibResult = await tryOpenLibrary(isbn)
+    if (openLibResult) {
+      return { coverUrl: openLibResult, source: 'open-library' }
+    }
+  }
+
+  // Try Google Books API
   if (isbn) {
     const googleResult = await tryGoogleBooks(isbn)
     if (googleResult) {
@@ -26,14 +34,6 @@ export async function fetchBookCover(
     const googleResult = await tryGoogleBooksSearch(title, author)
     if (googleResult) {
       return { coverUrl: googleResult, source: 'google-books' }
-    }
-  }
-
-  // Try Open Library as final fallback
-  if (isbn) {
-    const openLibResult = await tryOpenLibrary(isbn)
-    if (openLibResult) {
-      return { coverUrl: openLibResult, source: 'open-library' }
     }
   }
 
@@ -100,13 +100,15 @@ async function tryOpenLibrary(isbn: string): Promise<string | null> {
   try {
     const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`
     
-    const response = await fetch(url, { method: 'HEAD' })
+    // Open Library doesn't return content-length in HEAD requests
+    // We need to fetch and check the actual size
+    const response = await fetch(url)
     
-    // Open Library returns 200 even for missing covers, with a 1x1 placeholder
-    // Check content-length to detect the placeholder (usually ~43 bytes)
     if (response.ok) {
-      const contentLength = response.headers.get('content-length')
-      if (contentLength && parseInt(contentLength) > 1000) {
+      const buffer = await response.arrayBuffer()
+      // Open Library returns a 1x1 pixel placeholder (~43 bytes) for missing covers
+      // Real covers are typically >1000 bytes
+      if (buffer.byteLength > 1000) {
         return url
       }
     }
