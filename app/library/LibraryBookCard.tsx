@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toggleBookVisibility } from '@/lib/library-actions'
 import { toggleBookShelfStatus } from '@/lib/shelf-actions'
 import { toggleGiftStatus } from '@/lib/gift-actions'
+import BookCover from '@/app/components/BookCover'
 
 type Book = {
   id: string
@@ -94,17 +95,13 @@ export default function LibraryBookCard({
     <div className="bg-white rounded-lg shadow hover:shadow-lg transition p-4">
       {/* Book Cover */}
       <div className="flex gap-3 mb-3">
-        {book.cover_url ? (
-          <img 
-            src={book.cover_url} 
-            alt={book.title}
-            className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
-          />
-        ) : (
-          <div className="w-16 h-24 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-            <span className="text-2xl">📚</span>
-          </div>
-        )}
+        <BookCover
+          coverUrl={book.cover_url}
+          title={book.title}
+          author={book.author}
+          isbn={book.isbn}
+          className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
+        />
         
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-lg leading-tight mb-1 truncate">{book.title}</h3>

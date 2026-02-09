@@ -6,6 +6,7 @@ import { joinQueue, leaveQueue } from '@/lib/queue-actions'
 import { completeGiftTransfer } from '@/lib/gift-actions'
 import BuyAmazonButton from '@/app/components/BuyAmazonButton'
 import { createClient } from '@/lib/supabase'
+import BookCover from '@/app/components/BookCover'
 
 type Book = {
   id: string
@@ -172,25 +173,17 @@ export default function BooksListView({
             className="flex items-center gap-3 px-2 py-2 border-b border-gray-200 hover:bg-gray-50 transition-colors"
           >
             {/* Compact Cover */}
-            {book.cover_url ? (
-              <img 
-                src={book.cover_url} 
-                alt={book.title}
-                className={`w-10 h-14 object-cover rounded shadow-sm flex-shrink-0 transition-opacity ${
-                  book.status === 'available' ? 'opacity-100' : 
-                  book.status === 'off_shelf' ? 'opacity-50' : 
-                  'opacity-70'
-                }`}
-              />
-            ) : (
-              <div className={`w-10 h-14 bg-gray-200 rounded flex items-center justify-center flex-shrink-0 transition-opacity ${
+            <BookCover
+              coverUrl={book.cover_url}
+              title={book.title}
+              author={book.author}
+              isbn={book.isbn}
+              className={`w-10 h-14 object-cover rounded shadow-sm flex-shrink-0 transition-opacity ${
                 book.status === 'available' ? 'opacity-100' : 
                 book.status === 'off_shelf' ? 'opacity-50' : 
                 'opacity-70'
-              }`}>
-                <span className="text-xl">📚</span>
-              </div>
-            )}
+              }`}
+            />
 
             {/* Book Info */}
             <div className="flex-1 min-w-0">

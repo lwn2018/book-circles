@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import BookCover from '@/app/components/BookCover'
 
 type HandoffCardProps = {
   handoff: any
@@ -77,17 +78,13 @@ export default function HandoffCard({ handoff, userId }: HandoffCardProps) {
     <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
       <div className="flex gap-4">
         {/* Book Cover */}
-        {book.cover_url ? (
-          <img
-            src={book.cover_url}
-            alt={book.title}
-            className="w-20 h-28 sm:w-24 sm:h-32 object-cover rounded shadow-sm flex-shrink-0"
-          />
-        ) : (
-          <div className="w-20 h-28 sm:w-24 sm:h-32 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-            <span className="text-3xl">📚</span>
-          </div>
-        )}
+        <BookCover
+          coverUrl={book.cover_url}
+          title={book.title}
+          author={book.author}
+          isbn={book.isbn}
+          className="w-20 h-28 sm:w-24 sm:h-32 object-cover rounded shadow-sm flex-shrink-0"
+        />
 
         {/* Content */}
         <div className="flex-1 min-w-0">
