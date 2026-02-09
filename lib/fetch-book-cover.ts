@@ -13,19 +13,19 @@ export async function fetchBookCover(
   title?: string | null,
   author?: string | null
 ): Promise<FetchBookCoverResult> {
-  // Try Open Library first (no API key, more reliable)
-  if (isbn) {
-    const openLibResult = await tryOpenLibrary(isbn)
-    if (openLibResult) {
-      return { coverUrl: openLibResult, source: 'open-library' }
-    }
-  }
-
-  // Try Google Books API
+  // Try Google Books API first (richer metadata)
   if (isbn) {
     const googleResult = await tryGoogleBooks(isbn)
     if (googleResult) {
       return { coverUrl: googleResult, source: 'google-books' }
+    }
+  }
+
+  // Try Open Library as backup
+  if (isbn) {
+    const openLibResult = await tryOpenLibrary(isbn)
+    if (openLibResult) {
+      return { coverUrl: openLibResult, source: 'open-library' }
     }
   }
 
