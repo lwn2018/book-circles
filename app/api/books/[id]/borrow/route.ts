@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail, handoffInitiatedEmailOwner, handoffInitiatedEmailBorrower } from '@/lib/send-email'
 
@@ -16,6 +16,9 @@ export async function POST(
   const { id: bookId } = await params
 
   try {
+    // Get service role client for operations that need to bypass RLS
+    const adminClient = createServiceRoleClient()
+    
     // Get book details
     const { data: book, error: bookError } = await supabase
       .from('books')
@@ -69,8 +72,8 @@ export async function POST(
     const dueDate = new Date()
     dueDate.setDate(dueDate.getDate() + 30)
 
-    // Update book status
-    const { error: updateError } = await supabase
+    // Update book status (use service role to bypass RLS)
+    const { error: updateError } = await adminClient
       .from('books')
       .update({
         status: 'in_transit',
@@ -86,8 +89,8 @@ export async function POST(
       )
     }
 
-    // Create handoff confirmation record and get the ID
-    const { data: handoffData, error: handoffError } = await supabase
+    // Create handoff confirmation record and get the ID (use service role)
+    const { data: handoffData, error: handoffError } = await adminClient
       .from('handoff_confirmations')
       .insert({
         book_id: bookId,
@@ -108,8 +111,8 @@ export async function POST(
     const handoffId = handoffData.id
     const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://book-circles.vercel.app'}/handoff/${handoffId}`
 
-    // Send notifications to BOTH parties
-    await supabase
+    // Send notifications to BOTH parties (use service role)
+    await adminClient
       .from('notifications')
       .insert([
         {
@@ -132,8 +135,8 @@ export async function POST(
         }
       ])
 
-    // Add to borrow history
-    await supabase.from('borrow_history').insert({
+    // Add to borrow history (use service role)
+    await adminClient.from('borrow_history').insert({
       book_id: bookId,
       borrower_id: user.id,
       due_date: dueDate.toISOString()
