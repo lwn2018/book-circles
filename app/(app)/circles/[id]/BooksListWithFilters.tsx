@@ -6,16 +6,6 @@ import BooksList from './BooksList'
 import BooksListView from './BooksListView'
 import FilterBar from './FilterBar'
 
-// Detect iOS Safari
-const isIOSSafari = () => {
-  if (typeof window === 'undefined') return false
-  const ua = window.navigator.userAgent
-  const iOS = /iPad|iPhone|iPod/.test(ua)
-  const webkit = /WebKit/.test(ua)
-  const noChrome = !/CriOS|Chrome/.test(ua)
-  return iOS && webkit && noChrome
-}
-
 type Book = {
   id: string
   title: string
@@ -53,9 +43,6 @@ export default function BooksListWithFilters({
   const [availableOnly, setAvailableOnly] = useState(false)
   const [displayCount, setDisplayCount] = useState(20)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
-  const [useFixedPosition, setUseFixedPosition] = useState(false)
-  const [filterBarHeight, setFilterBarHeight] = useState(0)
-  const filterBarRef = useRef<HTMLDivElement | null>(null)
   const searchParams = useSearchParams()
   const [searchFilter, setSearchFilter] = useState('')
   const [toast, setToast] = useState<{message: string; type: 'success' | 'info'} | null>(null)
@@ -90,19 +77,6 @@ export default function BooksListWithFilters({
       setSearchFilter(q)
     }
   }, [searchParams])
-
-  // Detect iOS Safari for fixed positioning workaround
-  useEffect(() => {
-    setUseFixedPosition(isIOSSafari())
-  }, [])
-
-  // Measure filter bar height for wrapper min-height (prevents content jump)
-  useEffect(() => {
-    if (filterBarRef.current) {
-      const height = filterBarRef.current.offsetHeight
-      setFilterBarHeight(height)
-    }
-  }, [sortBy, availableOnly]) // Re-measure if bar size changes
 
   // Load view preference from user settings
   useEffect(() => {
@@ -322,22 +296,18 @@ export default function BooksListWithFilters({
         </div>
       )}
 
-      {/* FilterBar wrapper - preserves height when sticky to prevent content jump */}
-      <div style={{ minHeight: filterBarHeight > 0 ? `${filterBarHeight}px` : 'auto' }}>
-        <div ref={filterBarRef}>
-          <FilterBar
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            availableOnly={availableOnly}
-            onAvailableOnlyChange={setAvailableOnly}
-            totalBooks={books.length}
-            filteredCount={filteredAndSortedBooks.length}
-          />
-        </div>
-      </div>
+      {/* FilterBar */}
+      <FilterBar
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        availableOnly={availableOnly}
+        onAvailableOnlyChange={setAvailableOnly}
+        totalBooks={books.length}
+        filteredCount={filteredAndSortedBooks.length}
+      />
 
-      {/* Content below filter bar - add padding-top only on iOS Safari (fixed positioning) */}
-      <div className={useFixedPosition ? 'pt-32' : ''}>
+      {/* Content below filter bar */}
+      <div>
         {/* Search filter indicator (from URL parameter) */}
         {searchFilter && (
           <div className="mb-2 mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
