@@ -389,9 +389,37 @@ export default function BooksList({
       <RequestConfirmationDialog
         bookId={requestingBookId}
         onClose={() => setRequestingBookId(null)}
-        onSuccess={() => {
+        onSuccess={(result) => {
           setRequestingBookId(null)
-          router.refresh()
+          
+          if (result.action === 'borrow') {
+            // Update book status in place - borrowed books show as 'in_transit'
+            if (onBookUpdate) {
+              onBookUpdate(
+                requestingBookId,
+                {
+                  status: 'in_transit',
+                  current_borrower_id: userId,
+                  current_borrower: { full_name: 'You' }
+                },
+                result.message
+              )
+            }
+          } else {
+            // Request action - book stays same status, just show toast
+            if (onBookUpdate) {
+              onBookUpdate(
+                requestingBookId,
+                {}, // No status change for joining queue
+                result.message
+              )
+            }
+          }
+          
+          // If no onBookUpdate callback, fall back to refresh
+          if (!onBookUpdate) {
+            router.refresh()
+          }
         }}
       />
     )}

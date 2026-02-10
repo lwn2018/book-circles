@@ -23,7 +23,13 @@ type RequestInfo = {
 type Props = {
   bookId: string
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (result: { 
+    action: 'borrow' | 'request', 
+    message: string,
+    bookTitle: string,
+    ownerName: string,
+    queuePosition?: number
+  }) => void
 }
 
 export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }: Props) {
@@ -69,7 +75,8 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
     try {
       // If book is available, call borrow API (creates handoff)
       // Otherwise call request API (joins queue)
-      const endpoint = info.queue.isAvailable 
+      const isBorrow = info.queue.isAvailable
+      const endpoint = isBorrow 
         ? `/api/books/${bookId}/borrow`
         : `/api/books/${bookId}/request`
       
@@ -84,8 +91,14 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
         return
       }
 
-      // Success! Call onSuccess callback
-      onSuccess()
+      // Success! Call onSuccess callback with result data
+      onSuccess({
+        action: isBorrow ? 'borrow' : 'request',
+        message: data.message,
+        bookTitle: info.book.title,
+        ownerName: info.book.ownerName,
+        queuePosition: data.position
+      })
     } catch (err: any) {
       setError(err.message || 'Failed to request book')
     } finally {
