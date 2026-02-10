@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabaseClient } from './supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from './supabase-server'
 import { createNotification } from './notifications'
 
 /**
@@ -13,9 +13,10 @@ export async function initiateHandoff(
 ) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminClient = createServiceRoleClient() // Use service role to bypass RLS
 
-    // Create handoff confirmation record
-    const { data: handoff, error: handoffError } = await supabase
+    // Create handoff confirmation record (use service role)
+    const { data: handoff, error: handoffError } = await adminClient
       .from('handoff_confirmations')
       .insert({
         book_id: bookId,
@@ -30,8 +31,8 @@ export async function initiateHandoff(
       return { error: handoffError.message }
     }
 
-    // Update book status to in_transit
-    const { error: bookError } = await supabase
+    // Update book status to in_transit (use service role)
+    const { error: bookError } = await adminClient
       .from('books')
       .update({ status: 'in_transit' })
       .eq('id', bookId)
@@ -85,6 +86,7 @@ export async function confirmHandoff(
 ) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminClient = createServiceRoleClient() // Use service role for updates
 
     // Get current handoff state
     const { data: handoff, error: fetchError } = await supabase
@@ -137,8 +139,8 @@ export async function confirmHandoff(
       // Both confirmed! Complete the handoff
       updates.both_confirmed_at = now
 
-      // Update book status to borrowed and set new owner
-      await supabase
+      // Update book status to borrowed and set new owner (use service role)
+      await adminClient
         .from('books')
         .update({
           status: 'borrowed',
@@ -148,8 +150,8 @@ export async function confirmHandoff(
         })
         .eq('id', handoff.book_id)
 
-      // Create borrow history
-      await supabase
+      // Create borrow history (use service role)
+      await adminClient
         .from('borrow_history')
         .insert({
           book_id: handoff.book_id,
@@ -192,8 +194,8 @@ export async function confirmHandoff(
       })
     }
 
-    // Update handoff record
-    const { error: updateError } = await supabase
+    // Update handoff record (use service role)
+    const { error: updateError } = await adminClient
       .from('handoff_confirmations')
       .update(updates)
       .eq('id', handoffId)
