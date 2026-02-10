@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
+import { analytics } from '@/lib/analytics'
 
 // Get book details + queue info for request confirmation
 export async function GET(
@@ -191,6 +192,14 @@ export async function POST(
         message: notificationMessage,
         read: false
       })
+
+    // Track borrow request
+    await analytics.track('borrow_requested', {
+      bookId,
+      ownerId: book.owner_id,
+      queuePosition: nextPosition,
+      isAvailable: book.status === 'available'
+    })
 
     return NextResponse.json({
       success: true,

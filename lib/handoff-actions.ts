@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient, createServiceRoleClient } from './supabase-server'
 import { createNotification } from './notifications'
+import { analytics } from './analytics'
 
 /**
  * Initiate a handoff - creates handoff confirmation record and sets book to "in_transit"
@@ -177,6 +178,14 @@ export async function confirmHandoff(
           link: `/dashboard/borrowed`
         })
       ])
+
+      // Track handoff confirmed
+      await analytics.track('handoff_confirmed', {
+        handoffId,
+        bookId: handoff.book_id,
+        giverId: handoff.giver_id,
+        receiverId: handoff.receiver_id
+      })
     } else {
       // First confirmation - nudge the other person
       const otherUserId = role === 'giver' ? handoff.receiver_id : handoff.giver_id

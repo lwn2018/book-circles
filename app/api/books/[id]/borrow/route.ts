@@ -1,6 +1,7 @@
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail, handoffInitiatedEmailOwner, handoffInitiatedEmailBorrower } from '@/lib/send-email'
+import { analytics } from '@/lib/analytics'
 
 export async function POST(
   request: NextRequest,
@@ -173,6 +174,14 @@ export async function POST(
         html: emailTemplate.html
       })
     }
+
+    // Track borrow accepted
+    await analytics.track('borrow_accepted', {
+      bookId,
+      borrowerId: user.id,
+      ownerId: book.owner_id,
+      handoffId
+    })
 
     return NextResponse.json({
       success: true,

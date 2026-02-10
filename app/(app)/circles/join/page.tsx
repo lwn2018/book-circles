@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { trackEvent } from '@/lib/analytics'
 
 function JoinCircleForm() {
   const searchParams = useSearchParams()
@@ -31,7 +32,7 @@ function JoinCircleForm() {
     // Find circle by invite code
     const { data: circle, error: circleError } = await supabase
       .from('circles')
-      .select('id')
+      .select('id, name, owner_id')
       .eq('invite_code', inviteCode.toUpperCase())
       .single()
 
@@ -68,6 +69,9 @@ function JoinCircleForm() {
       setLoading(false)
       return
     }
+
+    // Track circle joined
+    trackEvent.circleJoined(circle.id, circle.name, circle.owner_id)
 
     router.push(`/circles/${circle.id}`)
     router.refresh()

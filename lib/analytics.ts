@@ -52,12 +52,12 @@ export const analytics = {
 
 // Convenience functions for common events
 export const trackEvent = {
-  signup: (userId: string, email: string) => {
-    analytics.track('user_signup', { userId, email })
+  signup: (userId: string, email: string, source: 'invite' | 'direct', invitedBy?: string) => {
+    analytics.track('user_signed_up', { userId, email, source, invitedBy })
   },
 
-  bookAdded: (bookId: string, method: 'manual' | 'scan' | 'import', circleIds: string[]) => {
-    analytics.track('book_added', { bookId, method, circleIds })
+  bookAdded: (bookId: string, source: 'barcode' | 'search' | 'manual', hasCover: boolean, circleIds: string[]) => {
+    analytics.track('book_added', { bookId, source, hasCover, circleCount: circleIds.length })
   },
 
   circleCreated: (circleId: string, circleName: string) => {

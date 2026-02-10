@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { trackEvent } from '@/lib/analytics'
 
 export default function SignupForm() {
   const [email, setEmail] = useState('')
@@ -91,6 +92,16 @@ export default function SignupForm() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: inviteCode })
         })
+      }
+
+      // Track signup
+      if (authData.user) {
+        trackEvent.signup(
+          authData.user.id,
+          email,
+          inviteCode ? 'invite' : 'direct',
+          inviter_id || undefined
+        )
       }
 
       router.push('/dashboard')

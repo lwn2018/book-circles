@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { fetchBookCover } from '@/lib/fetch-book-cover'
+import { trackEvent } from '@/lib/analytics'
 
 type Circle = {
   id: string
@@ -36,6 +37,7 @@ export default function AddBookModal({
   const [scanning, setScanning] = useState(false)
   const [titleSearchResults, setTitleSearchResults] = useState<any[]>([])
   const [showTitleDropdown, setShowTitleDropdown] = useState(false)
+  const [bookSource, setBookSource] = useState<'barcode' | 'search' | 'manual'>('manual')
   const scannerRef = useRef<HTMLDivElement>(null)
   const quaggaRef = useRef<any>(null)
   const titleSearchTimer = useRef<NodeJS.Timeout | null>(null)
@@ -55,6 +57,7 @@ export default function AddBookModal({
         setTitle(data.title || '')
         setAuthor(data.author || '')
         setCoverUrl(data.coverUrl || '')
+        setBookSource('barcode')
         setLookupStatus(`✓ Found via ${data.source}`)
         setTimeout(() => setLookupStatus(''), 3000)
       } else {
@@ -134,6 +137,7 @@ export default function AddBookModal({
     setTitle(result.title)
     setAuthor(result.author || '')
     setIsbn(result.isbn || '')
+    setBookSource('search')
     setCoverUrl(result.coverUrl || '')
     setTitleSearchResults([])
     setShowTitleDropdown(false)
@@ -222,6 +226,9 @@ export default function AddBookModal({
           // Don't block book creation if visibility fails
         }
       }
+
+      // Track book added
+      trackEvent.bookAdded(book.id, bookSource, !!finalCoverUrl, selectedCircles)
 
       router.refresh()
       handleClose()

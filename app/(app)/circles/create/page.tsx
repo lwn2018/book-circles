@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { trackEvent } from '@/lib/analytics'
 
 export default function CreateCircle() {
   const [name, setName] = useState('')
@@ -57,6 +58,9 @@ export default function CreateCircle() {
       setLoading(false)
       return
     }
+
+    // Track circle creation
+    trackEvent.circleCreated(circle.id, circle.name)
 
     router.push(`/circles/${circle.id}`)
     router.refresh()
