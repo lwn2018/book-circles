@@ -6,6 +6,10 @@ export default function DownloadDataSection() {
   const [loading, setLoading] = useState(false)
 
   const handleDownload = async () => {
+    // Show brief confirmation message
+    const proceed = window.confirm("We'll prepare your data — this may take a moment.")
+    if (!proceed) return
+
     setLoading(true)
     try {
       const response = await fetch('/api/account/export')
