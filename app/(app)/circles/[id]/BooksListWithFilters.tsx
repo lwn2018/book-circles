@@ -50,6 +50,10 @@ export default function BooksListWithFilters({
   
   // Update local state when server data changes (on navigation)
   useEffect(() => {
+    console.log('🔍 DEBUG: Books received from server:', initialBooks.length)
+    console.log('🔍 DEBUG: Circle ID:', circleId)
+    console.log('🔍 DEBUG: User ID:', userId)
+    console.log('🔍 DEBUG: Books:', initialBooks.map(b => ({ title: b.title, owner_id: b.owner_id })))
     setBooks(initialBooks)
     setSessionModifiedBooks(new Set()) // Clear session modifications on navigation
   }, [initialBooks])
@@ -90,6 +94,8 @@ export default function BooksListWithFilters({
 
   // Filter and sort books
   const filteredAndSortedBooks = useMemo(() => {
+    console.log('🔍 DEBUG: Starting filter/sort. Total books:', books.length)
+    
     // If we have session-modified books, don't re-sort at all - keep current order
     if (sessionModifiedBooks.size > 0) {
       let result = [...books]
@@ -107,6 +113,7 @@ export default function BooksListWithFilters({
         result = result.filter(book => book.status === 'available')
       }
       
+      console.log('🔍 DEBUG: After filters (session modified):', result.length)
       return result
     }
     
@@ -174,12 +181,15 @@ export default function BooksListWithFilters({
         break
     }
 
+    console.log('🔍 DEBUG: After all filtering/sorting:', result.length)
     return result
   }, [books, searchFilter, availableOnly, sortBy, userId, sessionModifiedBooks])
 
   // Paginated books (for infinite scroll)
   const displayedBooks = useMemo(() => {
-    return filteredAndSortedBooks.slice(0, displayCount)
+    const result = filteredAndSortedBooks.slice(0, displayCount)
+    console.log('🔍 DEBUG: Displaying', result.length, 'of', filteredAndSortedBooks.length, 'books (displayCount:', displayCount, ')')
+    return result
   }, [filteredAndSortedBooks, displayCount])
 
   // Infinite scroll handler
