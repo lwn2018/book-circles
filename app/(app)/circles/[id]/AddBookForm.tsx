@@ -244,14 +244,23 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
       return
     }
 
-    // Make visible in this circle
-    await supabase
-      .from('book_circle_visibility')
-      .insert({
+    // Make visible in ALL circles the user belongs to
+    const { data: userCircles } = await supabase
+      .from('circle_members')
+      .select('circle_id')
+      .eq('user_id', userId)
+    
+    if (userCircles && userCircles.length > 0) {
+      const visibilityEntries = userCircles.map(c => ({
         book_id: newBook.id,
-        circle_id: circleId,
+        circle_id: c.circle_id,
         is_visible: true
-      })
+      }))
+      
+      await supabase
+        .from('book_circle_visibility')
+        .insert(visibilityEntries)
+    }
 
     // Reset form
     setTitle('')

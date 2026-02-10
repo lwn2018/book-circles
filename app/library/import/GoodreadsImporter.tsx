@@ -229,8 +229,8 @@ export default function GoodreadsImporter({
             author: book.author,
             isbn: book.isbn,
             owner_id: userId,
-            status: 'available',
-            circle_id: book.selectedCircles[0]
+            status: 'available'
+            // Don't set circle_id - we use book_circle_visibility instead
           })
           .select()
           .single()

@@ -204,22 +204,19 @@ export default function AddBookModal({
 
       if (bookError) throw bookError
 
-      // OPT-OUT model: Create visibility entries ONLY for UNchecked circles (hidden)
-      // Books are visible by default in all circles unless explicitly hidden
-      const unselectedCircles = userCircles
-        .filter(circle => !selectedCircles.includes(circle.id))
-        .map(circle => circle.id)
+      // Create visibility entries for ALL circles the user is in
+      // Visible (is_visible=true) for selected circles
+      // Hidden (is_visible=false) for unselected circles
+      const visibilityEntries = userCircles.map(circle => ({
+        book_id: book.id,
+        circle_id: circle.id,
+        is_visible: selectedCircles.includes(circle.id)
+      }))
 
-      if (unselectedCircles.length > 0) {
-        const hiddenEntries = unselectedCircles.map(circleId => ({
-          book_id: book.id,
-          circle_id: circleId,
-          is_visible: false // Hide from these circles
-        }))
-
+      if (visibilityEntries.length > 0) {
         const { error: visError } = await supabase
           .from('book_circle_visibility')
-          .insert(hiddenEntries)
+          .insert(visibilityEntries)
 
         if (visError) {
           console.error('Failed to set visibility:', visError)
