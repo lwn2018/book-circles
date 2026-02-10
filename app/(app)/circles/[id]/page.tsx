@@ -111,7 +111,23 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
   const hiddenBookIds = new Set(hiddenBooks?.map(h => h.book_id) || [])
 
   // Filter out hidden books
-  const books = allBooks?.filter(book => !hiddenBookIds.has(book.id)) || []
+  const visibleBooks = allBooks?.filter(book => !hiddenBookIds.has(book.id)) || []
+
+  // De-duplicate books (by ISBN if available, otherwise by title+author)
+  const seenBooks = new Map<string, any>()
+  const books = visibleBooks.filter(book => {
+    const key = book.isbn 
+      ? `isbn:${book.isbn}`
+      : `title:${book.title.toLowerCase()}:author:${(book.author || '').toLowerCase()}`
+    
+    if (seenBooks.has(key)) {
+      // Skip duplicate - keep the first occurrence
+      return false
+    }
+    
+    seenBooks.set(key, book)
+    return true
+  })
 
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-8">
