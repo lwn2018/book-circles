@@ -1,4 +1,4 @@
-# 🚨 URGENT FIX: Books Disappeared
+# ✅ RESOLVED: Books Disappeared (Fixed 2026-02-10)
 
 ## Problem
 All books disappeared for all users (mathieu@yuill.ca, test@yuill.ca, everyone).
@@ -9,8 +9,8 @@ Migration 017 created an RLS policy on the `books` table with **infinite recursi
 infinite recursion detected in policy for relation "books"
 ```
 
-## Solution
-Run Migration 019 to fix the RLS policy.
+## Solution Applied
+Migration 021 (executed via Supabase SQL Editor) - created a SECURITY DEFINER function to break the recursion.
 
 ## Steps to Fix (RUN NOW)
 
@@ -71,11 +71,33 @@ id IN (
 )
 ```
 
+## Resolution Details
+
+**What was tried:**
+1. Migration 019: Used `IN` subquery - still caused recursion
+2. Migration 020: Alternative approach - still had issues
+
+**What worked (Migration 021):**
+Created a `SECURITY DEFINER` function with proper parameter prefixes (`p_book_id`, `p_user_id`) to avoid column name ambiguity, then used that function in the RLS policy.
+
+**SQL executed via Supabase SQL Editor:**
+```sql
+-- See migrations/021-fix-rls-with-function.sql for full code
+CREATE FUNCTION user_can_see_book(p_book_id uuid, p_user_id uuid) ...
+CREATE POLICY "Users can view accessible books" USING (user_can_see_book(id, auth.uid()));
+```
+
+**Verification:**
+- ✅ All 35 books visible in Alpha Circle for all users
+- ✅ No more infinite recursion errors
+- ✅ App working normally
+
 ## Status
-- ✅ Fix created: Migration 019
-- ⏳ Waiting to deploy: Manual SQL execution required
-- 📋 Testing: Simulated fix works (35 books for mathieu)
+- ✅ **RESOLVED** - Books restored for all users
+- ✅ Migration 021 applied successfully
+- ✅ Verified in production
 
 ---
-**Created:** 2026-02-10 06:12 UTC
-**Priority:** CRITICAL - Blocks all users
+**Created:** 2026-02-10 06:12 UTC  
+**Resolved:** 2026-02-10 06:16 UTC  
+**Priority:** CRITICAL - Blocks all users (RESOLVED)
