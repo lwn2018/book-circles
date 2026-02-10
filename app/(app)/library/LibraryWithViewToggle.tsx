@@ -134,10 +134,10 @@ export default function LibraryWithViewToggle({
           </div>
         )}
 
-        {/* In Transit */}
+        {/* Passing */}
         {inTransit.length > 0 && (
           <div>
-            <h2 className="text-xl font-bold mb-4">🚚 In Transit ({inTransit.length})</h2>
+            <h2 className="text-xl font-bold mb-4">🚚 Passing ({inTransit.length})</h2>
             <p className="text-sm text-gray-600 mb-4">
               Books ready for the next person to pick up
             </p>

@@ -40,7 +40,7 @@ export default function BookCover({
   const [imageError, setImageError] = useState(false)
 
   // Apply opacity based on book status
-  // Available: 100% (opacity-100), Borrowed/In Transit: 70% (opacity-70), Off Shelf: 50% (opacity-50)
+  // Available: 100% (opacity-100), Borrowed/Passing: 70% (opacity-70), Off Shelf: 50% (opacity-50)
   const getOpacityClass = () => {
     if (status === 'off_shelf') return 'opacity-50'
     if (status === 'borrowed' || status === 'in_transit') return 'opacity-70'

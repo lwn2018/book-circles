@@ -56,7 +56,7 @@ export default function LibraryListView({ books, userId }: { books: Book[]; user
             )}
             {book.status === 'in_transit' && (
               <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-                In Transit
+                Passing
               </span>
             )}
             {book.status === 'borrowed' && book.current_holder && (

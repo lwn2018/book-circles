@@ -51,7 +51,7 @@ export default function BookCoverPlaceholder({
   const backgroundColor = getColorForBook(isbn, title)
 
   // Apply opacity based on book status
-  // Available: 100%, Borrowed/In Transit: 70%, Off Shelf: 50%
+  // Available: 100%, Borrowed/Passing: 70%, Off Shelf: 50%
   const getOpacityClass = () => {
     if (status === 'off_shelf') return 'opacity-50'
     if (status === 'borrowed' || status === 'in_transit') return 'opacity-70'
