@@ -2,6 +2,8 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import SettingsForm from './SettingsForm'
+import DownloadDataSection from './DownloadDataSection'
+import CloseAccountSection from './CloseAccountSection'
 
 export default async function Settings() {
   const supabase = await createServerSupabaseClient()
@@ -38,6 +40,14 @@ export default async function Settings() {
             default_browse_view: profile?.default_browse_view || 'card'
           }}
         />
+
+        {/* Data & Privacy Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Data & Privacy</h2>
+          
+          <DownloadDataSection />
+          <CloseAccountSection />
+        </div>
 
         {/* Amazon Associate Disclosure */}
         <footer className="mt-12 pt-6 border-t border-gray-200">
