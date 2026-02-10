@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         previously_borrowed,
         circle_id: circle_id || null,
         search_query: search_query || null,
-        affiliate_tag: 'pagepass-20',
+        affiliate_tag: 'pagepass04-20',
         affiliate_url
       })
 

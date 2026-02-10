@@ -25,15 +25,11 @@ export default function PagePassCompletionScreen({ book, onClose }: Props) {
 
     try {
       // Generate Amazon affiliate URL
-      const affiliateTag = 'pagepass-20'
-      let amazonUrl: string
-
-      if (book.isbn) {
-        amazonUrl = `https://www.amazon.ca/dp/${book.isbn}?tag=${affiliateTag}`
-      } else {
-        const searchQuery = encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
-        amazonUrl = `https://www.amazon.ca/s?k=${searchQuery}&tag=${affiliateTag}`
-      }
+      const affiliateTag = 'pagepass04-20'
+      const searchQuery = book.isbn 
+        ? encodeURIComponent(book.isbn)
+        : encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
+      const amazonUrl = `https://www.amazon.ca/s?k=${searchQuery}&tag=${affiliateTag}`
 
       // Track the click
       await fetch('/api/track-purchase-click', {
@@ -59,10 +55,11 @@ export default function PagePassCompletionScreen({ book, onClose }: Props) {
     } catch (error) {
       console.error('Failed to track purchase click:', error)
       // Still open Amazon even if tracking fails
-      const affiliateTag = 'pagepass-20'
-      const fallbackUrl = book.isbn
-        ? `https://www.amazon.ca/dp/${book.isbn}?tag=${affiliateTag}`
-        : `https://www.amazon.ca/s?k=${encodeURIComponent(book.title)}&tag=${affiliateTag}`
+      const affiliateTag = 'pagepass04-20'
+      const fallbackQuery = book.isbn
+        ? encodeURIComponent(book.isbn)
+        : encodeURIComponent(book.title)
+      const fallbackUrl = `https://www.amazon.ca/s?k=${fallbackQuery}&tag=${affiliateTag}`
       
       window.open(fallbackUrl, '_blank', 'noopener,noreferrer')
       

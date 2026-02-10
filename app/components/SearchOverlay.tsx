@@ -181,13 +181,10 @@ export default function SearchOverlay({ userId }: { userId: string }) {
   }
 
   const getBuyAmazonLink = (book: SearchResult) => {
-    const affiliateTag = 'pagepass-20'
-    
-    if (book.isbn) {
-      return `https://www.amazon.ca/dp/${book.isbn}?tag=${affiliateTag}`
-    }
-    
-    const searchQuery = encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
+    const affiliateTag = 'pagepass04-20'
+    const searchQuery = book.isbn 
+      ? encodeURIComponent(book.isbn)
+      : encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
     return `https://www.amazon.ca/s?k=${searchQuery}&tag=${affiliateTag}`
   }
 

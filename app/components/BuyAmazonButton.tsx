@@ -39,15 +39,11 @@ export default function BuyAmazonButton({
     setLoading(true)
 
     // Generate Amazon affiliate URL
-    const affiliateTag = 'pagepass-20'
-    let amazonUrl: string
-
-    if (book.isbn) {
-      amazonUrl = `https://www.amazon.ca/dp/${book.isbn}?tag=${affiliateTag}`
-    } else {
-      const searchQuery = encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
-      amazonUrl = `https://www.amazon.ca/s?k=${searchQuery}&tag=${affiliateTag}`
-    }
+    const affiliateTag = 'pagepass04-20'
+    const searchQuery = book.isbn 
+      ? encodeURIComponent(book.isbn)
+      : encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
+    const amazonUrl = `https://www.amazon.ca/s?k=${searchQuery}&tag=${affiliateTag}`
 
     // Open Amazon IMMEDIATELY (synchronously) to avoid popup blocker
     window.open(amazonUrl, '_blank', 'noopener,noreferrer')

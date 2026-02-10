@@ -56,29 +56,19 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
   }
 
   const generateAmazonCaLink = () => {
-    if (!settings.amazonCaTag) return null
-    
-    if (isbn) {
-      // Direct ISBN link for Amazon.ca
-      return `https://www.amazon.ca/dp/${isbn}?tag=${settings.amazonCaTag}`
-    }
-    
-    // Search link fallback
-    const query = encodeURIComponent(`${title} ${author || ''}`.trim())
-    return `https://www.amazon.ca/s?k=${query}&tag=${settings.amazonCaTag}`
+    const affiliateTag = 'pagepass04-20'
+    const query = isbn 
+      ? encodeURIComponent(isbn)
+      : encodeURIComponent(`${title} ${author || ''}`.trim())
+    return `https://www.amazon.ca/s?k=${query}&tag=${affiliateTag}`
   }
 
   const generateAmazonLink = () => {
-    if (!settings.amazonTag) return null
-    
-    if (isbn) {
-      // Direct ISBN link for Amazon.com
-      return `https://www.amazon.com/dp/${isbn}?tag=${settings.amazonTag}`
-    }
-    
-    // Search link fallback
-    const query = encodeURIComponent(`${title} ${author || ''}`.trim())
-    return `https://www.amazon.com/s?k=${query}&tag=${settings.amazonTag}`
+    const affiliateTag = 'pagepass04-20'
+    const query = isbn 
+      ? encodeURIComponent(isbn)
+      : encodeURIComponent(`${title} ${author || ''}`.trim())
+    return `https://www.amazon.ca/s?k=${query}&tag=${affiliateTag}`
   }
 
   const handleClick = (source: 'bookshop' | 'amazon' | 'indigo' | 'amazon-ca', link: string) => {
