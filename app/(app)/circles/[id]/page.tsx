@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
-import LeaveCircleButton from './LeaveCircleButton'
 import CollapsibleMembersList from './CollapsibleMembersList'
 
 export default async function CirclePage({ params }: { params: Promise<{ id: string }> }) {
@@ -133,15 +132,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
     <div className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
-            <h1 className="text-2xl sm:text-3xl font-bold">{circle.name}</h1>
-            <LeaveCircleButton 
-              circleId={id}
-              circleName={circle.name}
-              userId={user.id}
-              isOwner={circle.owner_id === user.id}
-            />
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-3">{circle.name}</h1>
           {circle.description && (
             <p className="text-gray-600 mb-2 text-sm sm:text-base">{circle.description}</p>
           )}
