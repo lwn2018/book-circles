@@ -5,6 +5,9 @@ import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
 import CollapsibleMembersList from './CollapsibleMembersList'
 
+// Disable caching for this page - always fetch fresh data
+export const revalidate = 0
+
 export default async function CirclePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createServerSupabaseClient()
