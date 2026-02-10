@@ -1,0 +1,268 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
+import BookCover from '@/app/components/BookCover'
+import { v4 as uuidv4 } from 'uuid'
+
+type Handoff = {
+  id: string
+  book_id: string
+  giver_id: string
+  receiver_id: string
+  giver_confirmed_at: string | null
+  receiver_confirmed_at: string | null
+  both_confirmed_at: string | null
+  books: {
+    id: string
+    title: string
+    author: string | null
+    cover_url: string | null
+    isbn: string | null
+    gift_on_borrow?: boolean
+  }
+  giver: {
+    id: string
+    full_name: string
+    contact_preference_type?: string
+    contact_preference_value?: string
+  }
+  receiver: {
+    id: string
+    full_name: string
+    contact_preference_type?: string
+    contact_preference_value?: string
+  }
+}
+
+type BatchHandoffGroupProps = {
+  handoffs: Handoff[]
+  userId: string
+  isGiver: boolean
+}
+
+export default function BatchHandoffGroup({ 
+  handoffs, 
+  userId, 
+  isGiver 
+}: BatchHandoffGroupProps) {
+  const [confirming, setConfirming] = useState(false)
+  const [confirmationStatus, setConfirmationStatus] = useState<Record<string, 'pending' | 'success' | 'error'>>({})
+  const [expanded, setExpanded] = useState(false)
+  const [showIndividual, setShowIndividual] = useState(false)
+  const router = useRouter()
+  const supabase = createClient()
+
+  if (handoffs.length === 0) return null
+
+  const otherPerson = isGiver ? handoffs[0].receiver : handoffs[0].giver
+  const hasGiftBooks = handoffs.some(h => h.books.gift_on_borrow)
+
+  // Show contact info only to receiver and only for the giver's contact
+  const showContact = !isGiver && handoffs[0].giver.contact_preference_type !== 'none'
+  const contactType = handoffs[0].giver.contact_preference_type
+  const contactValue = handoffs[0].giver.contact_preference_value
+
+  const handleConfirmAll = async () => {
+    setConfirming(true)
+    const batchId = uuidv4() // Generate batch ID for activity ledger
+    const field = isGiver ? 'giver_confirmed_at' : 'receiver_confirmed_at'
+    const now = new Date().toISOString()
+
+    // Initialize all as pending
+    const initialStatus: Record<string, 'pending' | 'success' | 'error'> = {}
+    handoffs.forEach(h => initialStatus[h.id] = 'pending')
+    setConfirmationStatus(initialStatus)
+
+    // Confirm each handoff individually using Promise.allSettled
+    const results = await Promise.allSettled(
+      handoffs.map(async (handoff) => {
+        try {
+          // Update handoff confirmation
+          const { error: updateError } = await supabase
+            .from('handoff_confirmations')
+            .update({ [field]: now })
+            .eq('id', handoff.id)
+
+          if (updateError) throw updateError
+
+          // Check if both have confirmed
+          const { data: updated } = await supabase
+            .from('handoff_confirmations')
+            .select('giver_confirmed_at, receiver_confirmed_at, book_id')
+            .eq('id', handoff.id)
+            .single()
+
+          if (updated && updated.giver_confirmed_at && updated.receiver_confirmed_at) {
+            // Both confirmed - finalize handoff
+            await supabase
+              .from('handoff_confirmations')
+              .update({ both_confirmed_at: now })
+              .eq('id', handoff.id)
+
+            await supabase
+              .from('books')
+              .update({ status: 'borrowed' })
+              .eq('id', updated.book_id)
+
+            // Log to activity ledger with batch_id
+            await supabase
+              .from('activity_ledger')
+              .insert({
+                user_id: userId,
+                action: isGiver ? 'handoff_given' : 'handoff_received',
+                book_id: handoff.book_id,
+                metadata: {
+                  book_title: handoff.books.title,
+                  other_person: otherPerson.full_name,
+                  batch_id: batchId
+                },
+                batch_id: batchId
+              })
+          }
+
+          setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'success' }))
+          return { handoffId: handoff.id, success: true }
+        } catch (error) {
+          console.error(`Failed to confirm handoff ${handoff.id}:`, error)
+          setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'error' }))
+          return { handoffId: handoff.id, success: false, error }
+        }
+      })
+    )
+
+    // Count successes and failures
+    const successes = results.filter(r => r.status === 'fulfilled' && r.value.success).length
+    const failures = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length
+
+    setConfirming(false)
+
+    if (successes === handoffs.length) {
+      alert(`✅ All ${handoffs.length} books confirmed!`)
+      router.refresh()
+    } else if (successes > 0) {
+      alert(`⚠️ Confirmed ${successes} of ${handoffs.length} books. ${failures} failed.`)
+      router.refresh()
+    } else {
+      alert(`❌ Failed to confirm any books. Please try again.`)
+    }
+  }
+
+  if (showIndividual) {
+    // Render individual cards
+    return (
+      <div className="space-y-4">
+        <button
+          onClick={() => setShowIndividual(false)}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          ← Back to batch view
+        </button>
+        {handoffs.map(handoff => (
+          <div key={handoff.id} className="bg-white border border-gray-200 rounded-lg p-4">
+            {/* Individual handoff card content (simplified) */}
+            <div className="flex gap-4">
+              <BookCover
+                coverUrl={handoff.books.cover_url}
+                title={handoff.books.title}
+                author={handoff.books.author}
+                isbn={handoff.books.isbn}
+                className="w-20 h-28 object-cover rounded shadow-sm flex-shrink-0"
+              />
+              <div className="flex-1">
+                <h3 className="font-semibold">{handoff.books.title}</h3>
+                {handoff.books.author && (
+                  <p className="text-sm text-gray-600">{handoff.books.author}</p>
+                )}
+                {handoff.books.gift_on_borrow && (
+                  <p className="text-sm text-pink-600 mt-1">🎁 Yours to keep</p>
+                )}
+                {confirmationStatus[handoff.id] === 'success' && (
+                  <p className="text-sm text-green-600 mt-2">✓ Confirmed</p>
+                )}
+                {confirmationStatus[handoff.id] === 'error' && (
+                  <p className="text-sm text-red-600 mt-2">✗ Failed</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white border-2 border-blue-200 rounded-lg p-4 sm:p-6">
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <span>{otherPerson.full_name}</span>
+          <span className="text-sm font-normal text-gray-600">
+            — {handoffs.length} book{handoffs.length > 1 ? 's' : ''} to hand off
+          </span>
+        </h3>
+
+        {showContact && contactValue && (
+          <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-3">
+            <p className="text-xs text-blue-700 font-medium mb-1">
+              Contact {handoffs[0].giver.full_name}:
+            </p>
+            <p className="text-sm text-blue-900">
+              {contactType === 'phone' ? '📱' : '📧'} {contactValue}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Book list */}
+      <div className="space-y-2 mb-4">
+        {handoffs.map((handoff, index) => (
+          <div 
+            key={handoff.id} 
+            className="flex items-center gap-2 text-sm"
+          >
+            <span className="text-gray-400">•</span>
+            <span>
+              {handoff.books.title}
+              {handoff.books.gift_on_borrow && (
+                <span className="text-pink-600 ml-2">
+                  ({isGiver ? 'gift' : 'yours to keep!'})
+                </span>
+              )}
+            </span>
+            {confirmationStatus[handoff.id] === 'success' && (
+              <span className="text-green-600 ml-auto">✓</span>
+            )}
+            {confirmationStatus[handoff.id] === 'error' && (
+              <span className="text-red-600 ml-auto">✗</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <button
+          onClick={handleConfirmAll}
+          disabled={confirming}
+          className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
+        >
+          {confirming ? 'Confirming...' : isGiver ? 'Confirm all handed off' : 'Got them all'}
+        </button>
+        <button
+          onClick={() => setShowIndividual(true)}
+          disabled={confirming}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          or tap to handle individually
+        </button>
+      </div>
+
+      {hasGiftBooks && (
+        <p className="text-xs text-pink-600 mt-3 italic">
+          * Gift books will transfer ownership to {otherPerson.full_name}
+        </p>
+      )}
+    </div>
+  )
+}

@@ -2,6 +2,24 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import HandoffCard from './HandoffCard'
+import BatchHandoffGroup from './BatchHandoffGroup'
+
+// Group handoffs by the other party (giver/receiver)
+function groupHandoffsByPerson(handoffs: any[], userId: string) {
+  const groups: Record<string, any[]> = {}
+  
+  for (const handoff of handoffs) {
+    const isGiver = handoff.giver_id === userId
+    const otherPersonId = isGiver ? handoff.receiver_id : handoff.giver_id
+    
+    if (!groups[otherPersonId]) {
+      groups[otherPersonId] = []
+    }
+    groups[otherPersonId].push(handoff)
+  }
+  
+  return groups
+}
 
 export default async function HandoffsPage() {
   const supabase = await createServerSupabaseClient()
@@ -20,7 +38,9 @@ export default async function HandoffsPage() {
         id,
         title,
         author,
-        cover_url
+        cover_url,
+        isbn,
+        gift_on_borrow
       ),
       giver:profiles!handoff_confirmations_giver_id_fkey (
         id,
@@ -47,6 +67,10 @@ export default async function HandoffsPage() {
     (h.giver_id === user.id && h.giver_confirmed_at && !h.receiver_confirmed_at) ||
     (h.receiver_id === user.id && h.receiver_confirmed_at && !h.giver_confirmed_at)
   )
+
+  // Group pending handoffs by the other person
+  const pendingGroups = groupHandoffsByPerson(pendingHandoffs, user.id)
+  const waitingGroups = groupHandoffsByPerson(waitingHandoffs, user.id)
 
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-8">
@@ -80,13 +104,30 @@ export default async function HandoffsPage() {
                   Needs Your Confirmation ({pendingHandoffs.length})
                 </h2>
                 <div className="space-y-4">
-                  {pendingHandoffs.map((handoff: any) => (
-                    <HandoffCard
-                      key={handoff.id}
-                      handoff={handoff}
-                      userId={user.id}
-                    />
-                  ))}
+                  {Object.entries(pendingGroups).map(([otherPersonId, groupedHandoffs]: [string, any[]]) => {
+                    const isGiver = groupedHandoffs[0].giver_id === user.id
+                    
+                    // Show batch UI if 2+ books to same person
+                    if (groupedHandoffs.length >= 2) {
+                      return (
+                        <BatchHandoffGroup
+                          key={otherPersonId}
+                          handoffs={groupedHandoffs}
+                          userId={user.id}
+                          isGiver={isGiver}
+                        />
+                      )
+                    }
+                    
+                    // Single book - show normal card
+                    return (
+                      <HandoffCard
+                        key={groupedHandoffs[0].id}
+                        handoff={groupedHandoffs[0]}
+                        userId={user.id}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -98,13 +139,30 @@ export default async function HandoffsPage() {
                   Waiting for Confirmation ({waitingHandoffs.length})
                 </h2>
                 <div className="space-y-4">
-                  {waitingHandoffs.map((handoff: any) => (
-                    <HandoffCard
-                      key={handoff.id}
-                      handoff={handoff}
-                      userId={user.id}
-                    />
-                  ))}
+                  {Object.entries(waitingGroups).map(([otherPersonId, groupedHandoffs]: [string, any[]]) => {
+                    const isGiver = groupedHandoffs[0].giver_id === user.id
+                    
+                    // Show batch UI if 2+ books to same person
+                    if (groupedHandoffs.length >= 2) {
+                      return (
+                        <BatchHandoffGroup
+                          key={otherPersonId}
+                          handoffs={groupedHandoffs}
+                          userId={user.id}
+                          isGiver={isGiver}
+                        />
+                      )
+                    }
+                    
+                    // Single book - show normal card
+                    return (
+                      <HandoffCard
+                        key={groupedHandoffs[0].id}
+                        handoff={groupedHandoffs[0]}
+                        userId={user.id}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             )}
