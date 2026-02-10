@@ -118,6 +118,10 @@ export default function LibraryBookCard({
             <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
               📦 Off Shelf
             </span>
+          ) : book.status === 'in_transit' ? (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              🚚 In Transit
+            </span>
           ) : book.status === 'borrowed' && book.current_holder ? (
             <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
               📖 With {book.current_holder.full_name}
