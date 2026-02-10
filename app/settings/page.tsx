@@ -4,6 +4,7 @@ import Link from 'next/link'
 import SettingsForm from './SettingsForm'
 import DownloadDataSection from './DownloadDataSection'
 import CloseAccountSection from './CloseAccountSection'
+import CircleManagementSection from './CircleManagementSection'
 
 export default async function Settings() {
   const supabase = await createServerSupabaseClient()
@@ -19,6 +20,22 @@ export default async function Settings() {
     .select('*')
     .eq('id', user.id)
     .single()
+
+  // Get user's circles
+  const { data: memberCircles } = await supabase
+    .from('circle_members')
+    .select(`
+      circle_id,
+      circles (
+        id,
+        name,
+        description,
+        owner_id
+      )
+    `)
+    .eq('user_id', user.id)
+
+  const circles = memberCircles?.map(m => m.circles).filter(Boolean) || []
 
   return (
     <div className="min-h-screen p-8 bg-gray-50">
@@ -40,6 +57,12 @@ export default async function Settings() {
             default_browse_view: profile?.default_browse_view || 'card'
           }}
         />
+
+        {/* Circle Management Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Circle Management</h2>
+          <CircleManagementSection circles={circles as any} userId={user.id} />
+        </div>
 
         {/* Data & Privacy Section */}
         <div className="mt-12">
