@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import AppHeader from '../components/AppHeader'
 import BottomNav from '../components/BottomNav'
 import SearchOverlay from '../components/SearchOverlay'
+import BetaFeedbackButton from '../components/BetaFeedbackButton'
 
 export default async function AppLayout({
   children,
@@ -51,6 +52,9 @@ export default async function AppLayout({
       
       {/* Global Search Overlay */}
       <SearchOverlay userId={user.id} />
+      
+      {/* Beta Feedback Button */}
+      <BetaFeedbackButton />
     </div>
   )
 }
