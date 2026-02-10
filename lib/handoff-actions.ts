@@ -83,7 +83,8 @@ export async function initiateHandoff(
 export async function confirmHandoff(
   handoffId: string,
   userId: string,
-  role: 'giver' | 'receiver'
+  role: 'giver' | 'receiver',
+  batchId?: string // Optional: for grouping batch confirmations
 ) {
   try {
     const supabase = await createServerSupabaseClient()
@@ -186,6 +187,23 @@ export async function confirmHandoff(
         giverId: handoff.giver_id,
         receiverId: handoff.receiver_id
       })
+
+      // Log to activity ledger (use service role)
+      await adminClient
+        .from('activity_ledger')
+        .insert({
+          user_id: userId,
+          action: role === 'giver' ? 'handoff_given' : 'handoff_received',
+          book_id: handoff.book_id,
+          batch_id: batchId || null,
+          metadata: {
+            handoff_id: handoffId,
+            book_title: (handoff.book as any).title,
+            giver_name: (handoff.giver as any).full_name,
+            receiver_name: (handoff.receiver as any).full_name,
+            completed_at: now
+          }
+        })
     } else {
       // First confirmation - nudge the other person
       const otherUserId = role === 'giver' ? handoff.receiver_id : handoff.giver_id
