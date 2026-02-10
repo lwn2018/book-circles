@@ -38,6 +38,13 @@ export default async function Settings() {
             default_browse_view: profile?.default_browse_view || 'card'
           }}
         />
+
+        {/* Amazon Associate Disclosure */}
+        <footer className="mt-12 pt-6 border-t border-gray-200">
+          <p className="text-xs text-gray-500 text-center">
+            As an Amazon Associate PagePass earns from qualifying purchases.
+          </p>
+        </footer>
       </div>
     </div>
   )
