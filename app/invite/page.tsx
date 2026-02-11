@@ -67,7 +67,7 @@ export default function InvitePage() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold mb-2">Invite Friends</h1>
           <p className="text-gray-600 mb-6">
-            Share Book Circles with friends and family. Each invite link is unique to you.
+            Share PagePass with friends and family. Each invite link is unique to you.
           </p>
 
           <button

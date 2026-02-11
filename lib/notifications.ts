@@ -1,4 +1,11 @@
 import { createServerSupabaseClient } from './supabase-server'
+import {
+  sendEmail,
+  bookReadyEmail,
+  handoffConfirmationEmail,
+  overdueReminderEmail,
+  queueUpdateEmail
+} from './email'
 
 type NotificationType = 
   | 'book_ready' 
@@ -16,6 +23,8 @@ type NotificationData = {
   link?: string
   data?: Record<string, any>
   sendEmail?: boolean
+  emailTemplate?: string
+  emailParams?: Record<string, any>
 }
 
 export async function createNotification(notification: NotificationData) {
@@ -41,13 +50,109 @@ export async function createNotification(notification: NotificationData) {
       return null
     }
 
-    // TODO: Send email if requested and user has email notifications enabled
-    // This will be implemented in the next step
+    // Send email if requested
+    if (notification.sendEmail && notification.emailTemplate && notification.emailParams) {
+      await sendEmailNotification(
+        notification.userId,
+        notification.emailTemplate,
+        notification.emailParams
+      )
+    }
 
     return createdNotification
   } catch (error) {
     console.error('Notification error:', error)
     return null
+  }
+}
+
+/**
+ * Send an email notification to a user
+ */
+async function sendEmailNotification(
+  userId: string,
+  template: string,
+  params: Record<string, any>
+) {
+  try {
+    const supabase = await createServerSupabaseClient()
+
+    // Get user's email from auth
+    const { data: { user } } = await supabase.auth.admin.getUserById(userId)
+    
+    if (!user?.email) {
+      console.warn(`No email found for user ${userId}`)
+      return
+    }
+
+    // Get user's profile for name
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', userId)
+      .single()
+
+    const recipientName = profile?.full_name || 'there'
+
+    // Build the base URL for links
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pagepass.app'
+
+    // Generate email based on template
+    let emailContent
+    switch (template) {
+      case 'book_ready':
+        emailContent = bookReadyEmail({
+          recipientName,
+          bookTitle: params.bookTitle,
+          ownerName: params.ownerName,
+          handoffUrl: `${baseUrl}${params.handoffUrl || '/handoffs'}`
+        })
+        break
+      
+      case 'handoff_confirmation':
+        emailContent = handoffConfirmationEmail({
+          recipientName,
+          bookTitle: params.bookTitle,
+          otherPersonName: params.otherPersonName,
+          role: params.role,
+          handoffUrl: `${baseUrl}${params.handoffUrl}`
+        })
+        break
+      
+      case 'overdue_reminder':
+        emailContent = overdueReminderEmail({
+          recipientName,
+          bookTitle: params.bookTitle,
+          dueDate: params.dueDate,
+          daysOverdue: params.daysOverdue,
+          actionUrl: `${baseUrl}${params.actionUrl || '/shelf'}`
+        })
+        break
+      
+      case 'queue_update':
+        emailContent = queueUpdateEmail({
+          recipientName,
+          bookTitle: params.bookTitle,
+          position: params.position,
+          totalInQueue: params.totalInQueue,
+          bookUrl: `${baseUrl}${params.bookUrl}`
+        })
+        break
+      
+      default:
+        console.warn(`Unknown email template: ${template}`)
+        return
+    }
+
+    // Send the email
+    await sendEmail({
+      to: user.email,
+      subject: emailContent.subject,
+      html: emailContent.html
+    })
+  } catch (error) {
+    console.error('Email notification error:', error)
+    // Don't throw - email failures shouldn't break the notification system
   }
 }
 
