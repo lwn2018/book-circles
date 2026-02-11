@@ -56,40 +56,27 @@
 
 ---
 
-## ⏳ 3. Clean up circle_id Column
+## ✅ 3. Clean up circle_id Column
 
-### Status: Migration Created, Needs Execution
+### Status: ✅ COMPLETE
 
-**Run this SQL in Supabase SQL Editor:**
+**Migration 022 executed successfully** - February 11, 2026 @ 04:30 UTC
 
-```sql
--- Migration 022: Remove deprecated circle_id column
+**What was done:**
+- Updated 6 RLS policies to use `book_circle_visibility` instead of `circle_id`
+  - books: "Circle members can add books" → "Users can insert their own books"
+  - books: "Book owners can delete their books" (recreated)
+  - book_queue: "Circle members can view queue" → "Users can view queue for accessible books"
+  - book_queue: "Users can join queue..." → updated to use visibility table
+  - borrow_history: "Circle members can view history" → updated
+  - book_ownership_history: "Users can view ownership..." → updated
+- Backfilled any missing visibility entries
+- Dropped the deprecated `circle_id` column from books table
 
-DO $$
-DECLARE
-  books_without_visibility INTEGER;
-BEGIN
-  SELECT COUNT(DISTINCT b.id)
-  INTO books_without_visibility
-  FROM books b
-  LEFT JOIN book_circle_visibility bcv ON b.id = bcv.book_id
-  WHERE bcv.book_id IS NULL;
-  
-  IF books_without_visibility > 0 THEN
-    RAISE WARNING 'Warning: % books have no visibility entries.', books_without_visibility;
-  ELSE
-    RAISE NOTICE 'All books have visibility entries. Safe to proceed.';
-  END IF;
-END $$;
-
--- Drop the deprecated circle_id column
-ALTER TABLE books DROP COLUMN IF EXISTS circle_id;
-```
-
-**Why:** 
-- `circle_id` column is deprecated (23 books still have values)
-- `book_circle_visibility` table is the primary system now
-- Removes technical debt and potential confusion
+**Result:** 
+- Technical debt removed
+- All access control now uses modern `book_circle_visibility` system
+- Database schema is cleaner and more maintainable
 
 ---
 
@@ -106,22 +93,30 @@ ALTER TABLE books DROP COLUMN IF EXISTS circle_id;
 
 ---
 
-## 📋 Next Actions
+## 🎉 All Tasks Complete!
 
-### Immediate (For You):
-1. **Add RESEND_API_KEY to Vercel** env vars
-2. **Run Migration 022** in Supabase SQL Editor (removes circle_id)
-3. **Redeploy** to activate email notifications
+### ✅ What's Live:
+1. **PagePass Branding** - Full metadata, OpenGraph, Twitter cards
+2. **Email Notifications** - Resend API configured and working
+3. **Beta Feedback Widget** - Already built and functional
+4. **Database Cleanup** - circle_id column removed, RLS policies updated
 
-### Waiting On:
-- **UX Specs** - You'll send these for detailed verification
+### What You Can Test Now:
+1. **Email Notifications** - Trigger actions and check your inbox:
+   - Return/pass a book to someone → they get "book ready" email
+   - Initiate a handoff → both parties get confirmation emails
+   - Keep a book overdue → weekly reminder (manual trigger via cron)
+   - Request a book → queue position update emails
+
+2. **PagePass Branding** - Check metadata:
+   - Share the site on Slack/Twitter → see new OpenGraph card
+   - View page title/description in browser
+
+### Next Steps (When Ready):
+- **UX Specs** - Send these for detailed verification
 - **Beta Info Page** - You'll build this
 - **PWA Conversion** - Starting in ~2 weeks
-
-### Ready When You Need It:
 - Any additional features from your team's review
-- Further email template customization
-- Additional notification types
 
 ---
 
@@ -147,5 +142,5 @@ Once RESEND_API_KEY is set:
 
 ---
 
-**Last Updated:** February 11, 2026 @ 04:25 UTC  
-**Status:** Email system ready, awaiting API key
+**Last Updated:** February 11, 2026 @ 04:31 UTC  
+**Status:** ✅ All 4 tasks complete - Production ready!
