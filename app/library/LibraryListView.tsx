@@ -1,8 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-
 type Book = {
   id: string
   title: string
@@ -21,10 +18,9 @@ export default function LibraryListView({ books, userId }: { books: Book[]; user
   return (
     <div className="space-y-2">
       {books.map((book) => (
-        <Link 
+        <div 
           key={book.id}
-          href={`/library/${book.id}`}
-          className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-3 p-3 border rounded-lg bg-white"
         >
           {/* Compact Cover */}
           {book.cover_url ? (
@@ -75,7 +71,7 @@ export default function LibraryListView({ books, userId }: { books: Book[]; user
               </span>
             )}
           </div>
-        </Link>
+        </div>
       ))}
     </div>
   )
