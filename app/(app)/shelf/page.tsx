@@ -36,8 +36,9 @@ export default async function MyShelfTab() {
   if (borrowedError) {
     console.error('Error fetching borrowed books:', borrowedError)
   }
-  console.log('User ID:', user.id)
-  console.log('Borrowed books count:', borrowedBooks?.length || 0)
+  console.log('Shelf Debug - User ID:', user.id)
+  console.log('Shelf Debug - Borrowed books:', JSON.stringify(borrowedBooks, null, 2))
+  console.log('Shelf Debug - Count:', borrowedBooks?.length || 0)
 
   // Get queue positions for books user is waiting for
   const { data: queueEntries } = await supabase
