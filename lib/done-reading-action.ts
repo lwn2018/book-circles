@@ -105,22 +105,22 @@ export async function initiateDoneReading(bookId: string) {
       // Notify giver (current borrower)
       createNotification({
         userId: user.id,
-        type: 'handoff_initiated',
+        type: 'book_ready',
         title: isPagepass ? '📖 Pagepass Initiated' : '📖 Return Initiated',
         message: isPagepass 
           ? `Nice! ${receiverName} is next — arrange the handoff.`
           : `We've let ${receiverName} know you're ready to return "${book.title}".`,
         link: `/handoff/${handoff.id}`,
-        bookId: bookId
+        data: { handoffId: handoff.id, bookId }
       }),
       // Notify receiver (next in queue or owner)
       createNotification({
         userId: receiverId,
-        type: 'handoff_initiated',
+        type: 'book_ready',
         title: '📬 Book Ready for Pickup',
         message: `Time to pick up "${book.title}" from ${user.user_metadata?.full_name || 'a circle member'}!`,
         link: `/handoff/${handoff.id}`,
-        bookId: bookId
+        data: { handoffId: handoff.id, bookId }
       })
     ])
 
