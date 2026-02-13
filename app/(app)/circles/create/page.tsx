@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { trackEvent } from '@/lib/analytics'
+import { logEvent } from '@/lib/gamification/log-event-action'
 
 export default function CreateCircle() {
   const [name, setName] = useState('')
@@ -61,6 +62,17 @@ export default function CreateCircle() {
 
     // Track circle creation
     trackEvent.circleCreated(circle.id, circle.name)
+
+    // Log gamification event
+    await logEvent(user.id, 'circle_created', {
+      circle_id: circle.id
+    })
+
+    // Also log circle_joined since creator auto-joins
+    await logEvent(user.id, 'circle_joined', {
+      circle_id: circle.id,
+      invite_source: 'creator'
+    })
 
     router.push(`/circles/${circle.id}`)
     router.refresh()

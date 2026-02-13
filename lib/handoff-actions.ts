@@ -3,6 +3,7 @@
 import { createServerSupabaseClient, createServiceRoleClient } from './supabase-server'
 import { createNotification } from './notifications'
 import { analytics } from './analytics'
+import { logUserEvent } from './gamification/events'
 
 /**
  * Initiate a handoff - creates handoff confirmation record and sets book to "in_transit"
@@ -145,11 +146,12 @@ export async function confirmHandoff(
       // Check if this is a return to owner or a pagepass
       const { data: book } = await adminClient
         .from('books')
-        .select('owner_id')
+        .select('owner_id, retail_price_cad, borrowed_at')
         .eq('id', handoff.book_id)
         .single()
 
       const isReturnToOwner = book && book.owner_id === handoff.receiver_id
+      const retailPrice = book?.retail_price_cad || 20.0 // Default if not set
 
       console.log('Handoff completion debug:', {
         bookId: handoff.book_id,
@@ -175,6 +177,18 @@ export async function confirmHandoff(
         } else {
           console.log('Successfully cleared borrower for return to owner')
         }
+
+        // Log book_returned event for the borrower (giver in this case)
+        const daysHeld = book?.borrowed_at 
+          ? Math.floor((Date.now() - new Date(book.borrowed_at).getTime()) / (1000 * 60 * 60 * 24))
+          : 0
+
+        await logUserEvent(handoff.giver_id, 'book_returned', {
+          book_id: handoff.book_id,
+          borrower_id: handoff.giver_id,
+          days_held: daysHeld,
+          retail_price: retailPrice
+        })
       } else {
         // Pagepass - set new borrower
         const { error: updateError } = await adminClient
@@ -202,6 +216,26 @@ export async function confirmHandoff(
             borrowed_at: now,
             due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days, not hours!
           })
+
+        // Log gamification events
+        // Log book_lent for the giver (or book_passed if giver isn't the owner)
+        const isOwner = book && book.owner_id === handoff.giver_id
+        const eventType = isOwner ? 'book_lent' : 'book_passed'
+
+        await logUserEvent(handoff.giver_id, eventType, {
+          book_id: handoff.book_id,
+          borrower_id: handoff.receiver_id,
+          to_user_id: handoff.receiver_id,
+          from_user_id: handoff.giver_id,
+          retail_price: retailPrice
+        })
+
+        // Log book_borrowed for the receiver
+        await logUserEvent(handoff.receiver_id, 'book_borrowed', {
+          book_id: handoff.book_id,
+          lender_id: handoff.giver_id,
+          retail_price: retailPrice
+        })
       }
 
       // Mark old handoff notifications as read (dismiss them)

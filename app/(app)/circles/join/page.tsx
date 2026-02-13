@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { trackEvent } from '@/lib/analytics'
+import { logEvent } from '@/lib/gamification/log-event-action'
 
 function JoinCircleForm() {
   const searchParams = useSearchParams()
@@ -72,6 +73,12 @@ function JoinCircleForm() {
 
     // Track circle joined
     trackEvent.circleJoined(circle.id, circle.name, circle.owner_id)
+
+    // Log gamification event
+    await logEvent(user.id, 'circle_joined', {
+      circle_id: circle.id,
+      invite_source: 'code'
+    })
 
     router.push(`/circles/${circle.id}`)
     router.refresh()

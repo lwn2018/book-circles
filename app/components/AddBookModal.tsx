@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { fetchBookCover } from '@/lib/fetch-book-cover'
 import { trackEvent } from '@/lib/analytics'
+import { logEvent } from '@/lib/gamification/log-event-action'
 
 type Circle = {
   id: string
@@ -187,8 +188,11 @@ export default function AddBookModal({
         }
       }
 
+      // Estimate retail price (default $20 CAD)
+      const retailPrice = 20.0 // TODO: Fetch from Google Books API in future enhancement
+
       // Create the book
-      const { data: book, error: bookError } = await supabase
+      const { data: book, error: bookError} = await supabase
         .from('books')
         .insert({
           title: title.trim(),
@@ -196,13 +200,21 @@ export default function AddBookModal({
           isbn: isbn.trim() || null,
           cover_url: finalCoverUrl,
           owner_id: userId,
-          status: 'available'
+          status: 'available',
+          retail_price_cad: retailPrice
           // Don't set circle_id - we use book_circle_visibility instead
         })
         .select()
         .single()
 
       if (bookError) throw bookError
+
+      // Log gamification event
+      await logEvent(userId, 'book_added', {
+        book_id: book.id,
+        source: bookSource,
+        retail_price: retailPrice
+      })
 
       // Create visibility entries for ALL circles the user is in
       // Visible (is_visible=true) for selected circles
