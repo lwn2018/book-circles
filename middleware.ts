@@ -69,6 +69,7 @@ export async function middleware(req: NextRequest) {
     '/settings',
     '/admin',
     '/invite', // Invite page (not API)
+    '/handoff', // Handoff confirmation pages
   ]
 
   // Check if current path starts with any protected route
@@ -84,10 +85,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // If logged in and trying to access auth pages, redirect to dashboard
+  // If logged in and trying to access auth pages, redirect to circles (not dashboard to avoid loop)
   if (session && req.nextUrl.pathname.startsWith('/auth/')) {
     const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/dashboard'
+    redirectUrl.pathname = '/circles'
     return NextResponse.redirect(redirectUrl)
   }
 
