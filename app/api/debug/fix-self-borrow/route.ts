@@ -4,8 +4,8 @@ import { NextResponse } from 'next/server'
 export async function POST() {
   const adminClient = createServiceRoleClient()
 
-  // Find all books where owner_id === current_borrower_id (self-borrows)
-  const { data: selfBorrowedBooks, error } = await adminClient
+  // Find all books with a borrower, then filter for self-borrows in JavaScript
+  const { data: borrowedBooks, error } = await adminClient
     .from('books')
     .select(`
       id,
@@ -18,11 +18,15 @@ export async function POST() {
       due_date
     `)
     .not('current_borrower_id', 'is', null)
-    .eq('owner_id', 'current_borrower_id')
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Filter for self-borrows (owner_id === current_borrower_id)
+  const selfBorrowedBooks = borrowedBooks?.filter(
+    book => book.owner_id === book.current_borrower_id
+  ) || []
 
   const fixes: any[] = []
 
