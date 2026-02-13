@@ -60,11 +60,11 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
         setConfirmed(true)
         setShowSuccess(true)
         
-        // Redirect after showing success message
+        // Redirect after animation completes (book flies to shelf)
         setTimeout(() => {
-          router.push('/library')
+          router.push('/shelf')
           router.refresh()
-        }, 2500)
+        }, 1800) // 1.8s matches the 1.5s animation + small buffer
       } else {
         // Just this person confirmed - refresh to show updated state
         setLoading(false)
@@ -97,38 +97,63 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
     )
   }
 
-  // Success animation overlay
+  // Success animation: book flies to shelf icon
   if (showSuccess) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg shadow-2xl p-8 text-center max-w-sm mx-4 animate-fade-in">
-          {/* Animated book cover */}
-          <div className="mb-6 animate-bounce">
-            {handoff.book.cover_url ? (
-              <img 
-                src={handoff.book.cover_url} 
-                alt={handoff.book.title}
-                className="w-32 h-48 object-cover rounded shadow-md mx-auto"
-              />
-            ) : (
-              <div className="w-32 h-48 bg-gray-200 rounded flex items-center justify-center mx-auto">
-                <span className="text-5xl">📚</span>
-              </div>
-            )}
-          </div>
-          
-          <h2 className="text-2xl font-bold text-green-600 mb-2">Enjoy!</h2>
-          <p className="text-lg text-gray-700">
-            {role === 'receiver' 
-              ? `Enjoy "${handoff.book.title}"!` 
-              : `"${handoff.book.title}" is with ${otherPerson.full_name}!`
-            }
-          </p>
-          <p className="text-sm text-gray-500 mt-4">
-            Redirecting to your library...
-          </p>
+      <>
+        {/* Semi-transparent overlay */}
+        <div className="fixed inset-0 z-40 bg-black bg-opacity-30" />
+        
+        {/* Flying book animation */}
+        <div 
+          className="fixed z-50 animate-fly-to-shelf"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            animation: 'flyToShelf 1.5s cubic-bezier(0.65, 0, 0.35, 1) forwards'
+          }}
+        >
+          {handoff.book.cover_url ? (
+            <img 
+              src={handoff.book.cover_url} 
+              alt={handoff.book.title}
+              className="w-32 h-48 object-cover rounded shadow-lg"
+            />
+          ) : (
+            <div className="w-32 h-48 bg-gray-200 rounded flex items-center justify-center shadow-lg">
+              <span className="text-5xl">📚</span>
+            </div>
+          )}
         </div>
-      </div>
+
+        {/* Success message */}
+        <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 z-50 text-center">
+          <h2 className="text-3xl font-bold text-white drop-shadow-lg mb-2">
+            Enjoy {role === 'receiver' ? '' : 'sharing '}"{handoff.book.title}"!
+          </h2>
+        </div>
+
+        <style jsx>{`
+          @keyframes flyToShelf {
+            0% {
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 1;
+            }
+            60% {
+              opacity: 1;
+            }
+            100% {
+              top: calc(100vh - 80px);
+              left: calc(100vw - 80px);
+              transform: translate(-50%, -50%) scale(0.3);
+              opacity: 0.5;
+            }
+          }
+        `}</style>
+      </>
     )
   }
 

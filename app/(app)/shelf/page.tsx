@@ -17,9 +17,6 @@ export default async function MyShelfTab() {
       *,
       owner:owner_id (
         full_name
-      ),
-      circle:circle_id (
-        name
       )
     `)
     .eq('current_borrower_id', user.id)
@@ -39,9 +36,6 @@ export default async function MyShelfTab() {
         current_borrower_id,
         owner:owner_id (
           full_name
-        ),
-        circle:circle_id (
-          name
         )
       )
     `)
@@ -123,11 +117,6 @@ export default async function MyShelfTab() {
                             <p className="text-gray-600">
                               Owner: {book.owner?.full_name || 'Unknown'}
                             </p>
-                            {book.circle && (
-                              <p className="text-gray-600">
-                                Circle: {book.circle.name}
-                              </p>
-                            )}
                             {daysBorrowed !== null && (
                               <p className="text-gray-600">
                                 You've had this for {daysBorrowed} day{daysBorrowed !== 1 ? 's' : ''}
@@ -186,11 +175,6 @@ export default async function MyShelfTab() {
                             <p className="text-gray-600">
                               Owner: {book.owner?.full_name || 'Unknown'}
                             </p>
-                            {book.circle && (
-                              <p className="text-gray-600">
-                                Circle: {book.circle.name}
-                              </p>
-                            )}
                             <p className="text-purple-600 font-semibold">
                               Position #{entry.position} in queue
                             </p>

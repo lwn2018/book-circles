@@ -160,8 +160,16 @@ export async function confirmHandoff(
           book_id: handoff.book_id,
           borrower_id: handoff.receiver_id,
           borrowed_at: now,
-          due_date: new Date(Date.now() + 14 * 60 * 60 * 1000).toISOString()
+          due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days, not hours!
         })
+
+      // Mark old handoff notifications as read (dismiss them)
+      await adminClient
+        .from('notifications')
+        .update({ read: true })
+        .eq('book_id', handoff.book_id)
+        .eq('type', 'handoff_initiated')
+        .is('read', false)
 
       // Notify both parties of completion
       await Promise.all([
@@ -177,7 +185,7 @@ export async function confirmHandoff(
           type: 'book_ready',
           title: '✅ Handoff Complete',
           message: `You're all set with "${(handoff.book as any).title}"! Enjoy reading.`,
-          link: `/dashboard/borrowed`
+          link: `/shelf`
         })
       ])
 
