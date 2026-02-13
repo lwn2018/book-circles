@@ -15,24 +15,25 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
 export const analytics = {
   // Track event in PostHog and Supabase
   track: async (eventType: string, properties?: Record<string, any>) => {
-    // Track in PostHog
+    // Track in PostHog (client-side only)
     if (typeof window !== 'undefined') {
       posthog.capture(eventType, properties)
-    }
-
-    // Also track in Supabase for our own analytics
-    try {
-      const response = await fetch('/api/analytics/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventType, properties })
-      })
-      if (!response.ok) {
-        console.error('Failed to track event in Supabase')
+      
+      // Also track in Supabase for our own analytics
+      try {
+        const response = await fetch('/api/analytics/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventType, properties })
+        })
+        if (!response.ok) {
+          console.error('Failed to track event in Supabase')
+        }
+      } catch (error) {
+        console.error('Analytics tracking error:', error)
       }
-    } catch (error) {
-      console.error('Analytics tracking error:', error)
     }
+    // Server-side: skip tracking (could implement server-side tracking later)
   },
 
   // Identify user
