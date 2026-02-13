@@ -39,45 +39,53 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
 
   const handleConfirm = async () => {
     setLoading(true)
-    const result = await confirmHandoff(handoff.id, userId, role)
-    
-    if (result.error) {
-      alert(result.error)
-      setLoading(false)
-      return
-    }
+    try {
+      const result = await confirmHandoff(handoff.id, userId, role)
+      console.log('Confirmation result:', result)
+      
+      if (result.error) {
+        console.error('Confirmation error:', result.error)
+        alert('Error: ' + result.error)
+        setLoading(false)
+        return
+      }
 
     setConfirmed(true)
     setLoading(false)
 
-    if (result.bothConfirmed) {
-      // Both confirmed - check if this was a gift
-      const isGift = (handoff.book as any).gift_on_borrow
-      
-      // If receiver and it's a gift, offer thank you prompt
-      if (role === 'receiver' && isGift) {
-        const sendThankYou = confirm(`Send ${otherPerson.full_name} a quick thanks?`)
-        if (sendThankYou) {
-          // Send thank you notification (fire and forget)
-          fetch('/api/notifications/send-thanks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              recipientId: otherPerson.id,
-              bookTitle: handoff.book.title
+      if (result.bothConfirmed) {
+        // Both confirmed - check if this was a gift
+        const isGift = (handoff.book as any).gift_on_borrow
+        
+        // If receiver and it's a gift, offer thank you prompt
+        if (role === 'receiver' && isGift) {
+          const sendThankYou = confirm(`Send ${otherPerson.full_name} a quick thanks?`)
+          if (sendThankYou) {
+            // Send thank you notification (fire and forget)
+            fetch('/api/notifications/send-thanks', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                recipientId: otherPerson.id,
+                bookTitle: handoff.book.title
+              })
             })
-          })
+          }
         }
-      }
-      
-      // Show success and redirect
-      setTimeout(() => {
-        router.push(role === 'giver' ? '/library' : '/dashboard/borrowed')
+        
+        // Show success and redirect
+        setTimeout(() => {
+          router.push(role === 'giver' ? '/library' : '/dashboard/borrowed')
+          router.refresh()
+        }, 2000)
+      } else {
+        // Just this person confirmed - refresh to show updated state
         router.refresh()
-      }, 2000)
-    } else {
-      // Just this person confirmed - refresh to show updated state
-      router.refresh()
+      }
+    } catch (error: any) {
+      console.error('Unexpected error during confirmation:', error)
+      alert('Unexpected error: ' + (error.message || 'Unknown error'))
+      setLoading(false)
     }
   }
 

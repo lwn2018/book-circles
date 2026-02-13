@@ -90,8 +90,8 @@ export async function confirmHandoff(
     const supabase = await createServerSupabaseClient()
     const adminClient = createServiceRoleClient() // Use service role for updates
 
-    // Get current handoff state
-    const { data: handoff, error: fetchError } = await supabase
+    // Get current handoff state (use adminClient to avoid RLS issues)
+    const { data: handoff, error: fetchError } = await adminClient
       .from('handoff_confirmations')
       .select(`
         *,
@@ -103,7 +103,8 @@ export async function confirmHandoff(
       .single()
 
     if (fetchError || !handoff) {
-      return { error: 'Handoff not found' }
+      console.error('Failed to fetch handoff:', fetchError)
+      return { error: 'Handoff not found: ' + (fetchError?.message || 'No data') }
     }
 
     // Verify user is part of this handoff
