@@ -28,7 +28,8 @@ export async function initiateDoneReading(bookId: string) {
       .single()
 
     if (bookError || !book) {
-      return { error: 'Book not found or you are not the current borrower' }
+      console.error('Book fetch error:', bookError)
+      return { error: `Book error: ${bookError?.message || 'Not found'}` }
     }
 
     // Check if there's a queue for this book
@@ -45,7 +46,8 @@ export async function initiateDoneReading(bookId: string) {
       .order('position', { ascending: true })
 
     if (queueError) {
-      return { error: 'Failed to check queue' }
+      console.error('Queue check error:', queueError)
+      return { error: `Queue error: ${queueError.message}` }
     }
 
     const nextInQueue = queueEntries?.[0]
@@ -87,7 +89,7 @@ export async function initiateDoneReading(bookId: string) {
 
     if (handoffError || !handoff) {
       console.error('Failed to create handoff:', handoffError)
-      return { error: 'Failed to initiate handoff' }
+      return { error: `Failed to create handoff: ${handoffError?.message || 'Unknown error'}` }
     }
 
     // Update book status to "passing"
