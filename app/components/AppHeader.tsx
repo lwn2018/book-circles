@@ -41,7 +41,7 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
     <div className="bg-white border-b sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left: Back button (on circle detail) or Logo */}
+          {/* Left: Back button on circle detail, otherwise Search Icon */}
           {isCircleDetailPage ? (
             <button 
               onClick={() => router.back()}
@@ -53,15 +53,6 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
               <span className="font-medium text-sm hidden sm:inline">Back</span>
             </button>
           ) : (
-            <Link href="/circles" className="flex items-center gap-2 hover:opacity-80 transition">
-              <span className="text-2xl">📚</span>
-              <span className="font-bold text-lg hidden sm:inline">PagePass</span>
-            </Link>
-          )}
-
-          {/* Right: Search + Add Book + Bell + User Menu */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Search Icon */}
             <button
               onClick={() => {
                 // Trigger search overlay
@@ -76,8 +67,15 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
-            
+          )}
+
+          {/* Center: Add Book Button */}
+          <div className="absolute left-1/2 transform -translate-x-1/2">
             <AddBookButton userId={user.id} userCircles={userCircles} />
+          </div>
+
+          {/* Right: Bell + User Menu */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <NotificationBell />
             <UserMenu user={normalizedUser} />
           </div>

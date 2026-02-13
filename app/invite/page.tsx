@@ -58,12 +58,6 @@ export default function InvitePage() {
   return (
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-6">
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back to Dashboard
-          </Link>
-        </div>
-
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold mb-2">Invite Friends</h1>
           <p className="text-gray-600 mb-6">
