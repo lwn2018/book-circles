@@ -58,15 +58,13 @@ export async function initiateDoneReading(bookId: string) {
       book_id: bookId,
       giver_id: user.id,
       receiver_id: nextInQueue ? nextInQueue.user_id : book.owner_id,
-      initiated_at: now,
       giver_confirmed_at: null,
       receiver_confirmed_at: null,
-      both_confirmed_at: null,
-      is_gift: book.gift_on_borrow || false
+      both_confirmed_at: null
     }
 
     const { data: handoff, error: handoffError } = await adminClient
-      .from('handoffs')
+      .from('handoff_confirmations')
       .insert(handoffData)
       .select(`
         *,
@@ -92,10 +90,10 @@ export async function initiateDoneReading(bookId: string) {
       return { error: `Failed to create handoff: ${handoffError?.message || 'Unknown error'}` }
     }
 
-    // Update book status to "passing"
+    // Update book status to "in_transit"
     await adminClient
       .from('books')
-      .update({ status: 'passing' })
+      .update({ status: 'in_transit' })
       .eq('id', bookId)
 
     // Send notifications to both parties

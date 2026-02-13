@@ -15,7 +15,7 @@ export default function DoneReadingButton({ bookId, bookTitle, status }: DoneRea
   const router = useRouter()
 
   // Don't show button if handoff already in progress
-  if (status === 'passing') {
+  if (status === 'in_transit' || status === 'passing') {
     return null
   }
 
