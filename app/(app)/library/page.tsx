@@ -18,6 +18,25 @@ export default async function MyLibraryTab() {
     .eq('id', user.id)
     .single()
 
+  // Get pending handoffs where user is the receiver
+  const { data: pendingHandoffs } = await supabase
+    .from('handoff_confirmations')
+    .select(`
+      *,
+      book:book_id (
+        id,
+        title,
+        cover_url
+      ),
+      giver:giver_id (
+        id,
+        full_name
+      )
+    `)
+    .eq('receiver_id', user.id)
+    .is('both_confirmed_at', null)
+    .order('created_at', { ascending: false })
+
   // Get all books owned by this user
   const { data: books } = await supabase
     .from('books')
@@ -62,6 +81,43 @@ export default async function MyLibraryTab() {
 
   return (
     <div>
+      {/* Pending Handoffs */}
+      {pendingHandoffs && pendingHandoffs.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <h2 className="text-lg font-bold mb-3">📬 Pending Handoffs ({pendingHandoffs.length})</h2>
+          <div className="space-y-3">
+            {pendingHandoffs.map((handoff: any) => (
+              <Link
+                key={handoff.id}
+                href={`/handoff/${handoff.id}`}
+                className="flex items-center gap-3 p-3 bg-white rounded border border-yellow-300 hover:border-yellow-400 transition-colors"
+              >
+                {handoff.book.cover_url ? (
+                  <img 
+                    src={handoff.book.cover_url} 
+                    alt={handoff.book.title}
+                    className="w-12 h-16 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
+                    <span className="text-xl">📚</span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className="font-semibold">{handoff.book.title}</p>
+                  <p className="text-sm text-gray-600">
+                    Waiting for handoff with {handoff.giver.full_name}
+                  </p>
+                </div>
+                <div className="text-blue-600 font-medium">
+                  Confirm →
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <h1 className="text-3xl font-bold">My Library</h1>
         <p className="text-gray-600 mt-1">
