@@ -14,18 +14,7 @@ export default async function MyShelfTab() {
   const { data: borrowedBooks, error: borrowedError } = await supabase
     .from('books')
     .select(`
-      id,
-      title,
-      author,
-      isbn,
-      cover_url,
-      status,
-      owner_id,
-      current_borrower_id,
-      borrowed_at,
-      due_date,
-      is_gift,
-      original_owner_id,
+      *,
       owner:owner_id (
         full_name
       )
@@ -44,21 +33,9 @@ export default async function MyShelfTab() {
   const { data: queueEntries } = await supabase
     .from('book_queue')
     .select(`
-      id,
-      book_id,
-      user_id,
-      position,
-      pass_count,
-      last_pass_reason,
-      created_at,
+      *,
       book:book_id (
-        id,
-        title,
-        author,
-        cover_url,
-        status,
-        current_borrower_id,
-        owner_id,
+        *,
         owner:owner_id (
           full_name
         )
