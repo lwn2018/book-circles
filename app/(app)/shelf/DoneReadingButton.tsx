@@ -61,7 +61,7 @@ export default function DoneReadingButton({ bookId, bookTitle, status }: DoneRea
     <button
       onClick={handleDoneReading}
       disabled={loading}
-      className="mt-3 w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+      className="mt-3 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {loading ? 'Processing...' : 'Done reading'}
     </button>
