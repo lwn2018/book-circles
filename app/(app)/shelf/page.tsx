@@ -11,7 +11,7 @@ export default async function MyShelfTab() {
   }
 
   // Get books user is currently borrowing
-  const { data: borrowedBooks } = await supabase
+  const { data: borrowedBooks, error: borrowedError } = await supabase
     .from('books')
     .select(`
       id,
@@ -32,6 +32,12 @@ export default async function MyShelfTab() {
     `)
     .eq('current_borrower_id', user.id)
     .order('due_date', { ascending: true })
+  
+  if (borrowedError) {
+    console.error('Error fetching borrowed books:', borrowedError)
+  }
+  console.log('User ID:', user.id)
+  console.log('Borrowed books count:', borrowedBooks?.length || 0)
 
   // Get queue positions for books user is waiting for
   const { data: queueEntries } = await supabase
