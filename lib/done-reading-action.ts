@@ -1,13 +1,11 @@
 'use server'
 
-import { createServerSupabaseClient } from './supabase-server'
-import { createAdminClient } from './supabase-admin'
+import { createServerSupabaseClient, createServiceRoleClient } from './supabase-server'
 import { createNotification } from './notifications'
-import { redirect } from 'next/navigation'
 
 export async function initiateDoneReading(bookId: string) {
   const supabase = await createServerSupabaseClient()
-  const adminClient = createAdminClient()
+  const adminClient = createServiceRoleClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
