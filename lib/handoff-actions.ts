@@ -151,9 +151,16 @@ export async function confirmHandoff(
 
       const isReturnToOwner = book && book.owner_id === handoff.receiver_id
 
+      console.log('Handoff completion debug:', {
+        bookId: handoff.book_id,
+        ownerId: book?.owner_id,
+        receiverId: handoff.receiver_id,
+        isReturnToOwner
+      })
+
       if (isReturnToOwner) {
         // Return to owner - set status to available, clear borrower
-        await adminClient
+        const { error: updateError } = await adminClient
           .from('books')
           .update({
             status: 'available',
@@ -162,9 +169,15 @@ export async function confirmHandoff(
             due_date: null
           })
           .eq('id', handoff.book_id)
+
+        if (updateError) {
+          console.error('Failed to update book on return:', updateError)
+        } else {
+          console.log('Successfully cleared borrower for return to owner')
+        }
       } else {
         // Pagepass - set new borrower
-        await adminClient
+        const { error: updateError } = await adminClient
           .from('books')
           .update({
             status: 'borrowed',
@@ -173,6 +186,12 @@ export async function confirmHandoff(
             due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 2 weeks
           })
           .eq('id', handoff.book_id)
+
+        if (updateError) {
+          console.error('Failed to update book on pagepass:', updateError)
+        } else {
+          console.log('Successfully set new borrower for pagepass')
+        }
 
         // Create borrow history (use service role)
         await adminClient
