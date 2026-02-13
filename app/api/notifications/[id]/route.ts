@@ -19,10 +19,7 @@ export async function PATCH(
 
     const { error } = await supabase
       .from('notifications')
-      .update({
-        read,
-        read_at: read ? new Date().toISOString() : null
-      })
+      .update({ read })
       .eq('id', id)
       .eq('user_id', user.id)
 
