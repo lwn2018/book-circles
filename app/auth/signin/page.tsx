@@ -24,7 +24,12 @@ export default function SignIn() {
     })
 
     if (error) {
-      setError(error.message)
+      // Replace Supabase's "Email not confirmed" with friendlier message
+      if (error.message === 'Email not confirmed') {
+        setError('Check your inbox — we sent you a confirmation link. Once confirmed, you\'re in!')
+      } else {
+        setError(error.message)
+      }
       setLoading(false)
     } else {
       router.push('/dashboard')

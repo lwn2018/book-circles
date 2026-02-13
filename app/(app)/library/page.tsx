@@ -139,7 +139,7 @@ export default async function MyLibraryTab() {
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
           <p className="text-gray-600 mb-4">You haven't added any books yet.</p>
           <p className="text-sm text-gray-500">
-            Use the "+ Add Book" button above to get started.
+            Your library is where you keep track of books you own and are willing to share. Add your first book, or import your collection from Goodreads.
           </p>
         </div>
       ) : (

@@ -96,7 +96,7 @@ export default async function CirclesTab() {
       {circles.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
           <p className="text-gray-600 mb-4">You're not in any circles yet.</p>
-          <p className="text-sm text-gray-500">Create a circle or join one with an invite code.</p>
+          <p className="text-sm text-gray-500">A circle is a group of friends who share books. Create one and invite your people — or join one you've been invited to.</p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -111,7 +111,7 @@ export default async function CirclesTab() {
                 <p className="text-gray-600 mb-2">{circle.description}</p>
               )}
               <p className="text-sm text-gray-500">
-                Invite code: <span className="font-mono">{circle.invite_code}</span>
+                Share this code to invite friends: <span className="font-mono">{circle.invite_code}</span>
               </p>
             </Link>
           ))}
