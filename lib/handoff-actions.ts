@@ -142,26 +142,48 @@ export async function confirmHandoff(
       // Both confirmed! Complete the handoff
       updates.both_confirmed_at = now
 
-      // Update book status to borrowed and set new owner (use service role)
-      await adminClient
+      // Check if this is a return to owner or a pagepass
+      const { data: book } = await adminClient
         .from('books')
-        .update({
-          status: 'borrowed',
-          current_borrower_id: handoff.receiver_id,
-          borrowed_at: now,
-          due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 2 weeks
-        })
+        .select('owner_id')
         .eq('id', handoff.book_id)
+        .single()
 
-      // Create borrow history (use service role)
-      await adminClient
-        .from('borrow_history')
-        .insert({
-          book_id: handoff.book_id,
-          borrower_id: handoff.receiver_id,
-          borrowed_at: now,
-          due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days, not hours!
-        })
+      const isReturnToOwner = book && book.owner_id === handoff.receiver_id
+
+      if (isReturnToOwner) {
+        // Return to owner - set status to available, clear borrower
+        await adminClient
+          .from('books')
+          .update({
+            status: 'available',
+            current_borrower_id: null,
+            borrowed_at: null,
+            due_date: null
+          })
+          .eq('id', handoff.book_id)
+      } else {
+        // Pagepass - set new borrower
+        await adminClient
+          .from('books')
+          .update({
+            status: 'borrowed',
+            current_borrower_id: handoff.receiver_id,
+            borrowed_at: now,
+            due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 2 weeks
+          })
+          .eq('id', handoff.book_id)
+
+        // Create borrow history (use service role)
+        await adminClient
+          .from('borrow_history')
+          .insert({
+            book_id: handoff.book_id,
+            borrower_id: handoff.receiver_id,
+            borrowed_at: now,
+            due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days, not hours!
+          })
+      }
 
       // Mark old handoff notifications as read (dismiss them)
       await adminClient
@@ -172,22 +194,43 @@ export async function confirmHandoff(
         .is('read', false)
 
       // Notify both parties of completion
-      await Promise.all([
-        createNotification({
-          userId: handoff.giver_id,
-          type: 'book_returned',
-          title: '✅ Handoff Complete',
-          message: `${(handoff.receiver as any).full_name} confirmed receiving "${(handoff.book as any).title}"`,
-          link: `/library`
-        }),
-        createNotification({
-          userId: handoff.receiver_id,
-          type: 'book_ready',
-          title: '✅ Handoff Complete',
-          message: `You're all set with "${(handoff.book as any).title}"! Enjoy reading.`,
-          link: `/shelf`
-        })
-      ])
+      if (isReturnToOwner) {
+        // Return to owner notifications
+        await Promise.all([
+          createNotification({
+            userId: handoff.giver_id,
+            type: 'book_returned',
+            title: '✅ Return Complete',
+            message: `${(handoff.receiver as any).full_name} confirmed receiving "${(handoff.book as any).title}" back`,
+            link: `/shelf`
+          }),
+          createNotification({
+            userId: handoff.receiver_id,
+            type: 'book_returned',
+            title: '✅ Book Returned',
+            message: `"${(handoff.book as any).title}" is back in your library`,
+            link: `/library`
+          })
+        ])
+      } else {
+        // Pagepass notifications
+        await Promise.all([
+          createNotification({
+            userId: handoff.giver_id,
+            type: 'book_returned',
+            title: '✅ Pagepass Complete',
+            message: `${(handoff.receiver as any).full_name} confirmed receiving "${(handoff.book as any).title}"`,
+            link: `/shelf`
+          }),
+          createNotification({
+            userId: handoff.receiver_id,
+            type: 'book_ready',
+            title: '✅ Handoff Complete',
+            message: `You're all set with "${(handoff.book as any).title}"! Enjoy reading.`,
+            link: `/shelf`
+          })
+        ])
+      }
 
       // Track handoff confirmed (skipped - analytics doesn't work in server actions)
       // TODO: Move to client-side tracking
