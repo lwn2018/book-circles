@@ -84,7 +84,7 @@ export default function LibraryWithViewToggle({
                 ))}
               </div>
             ) : (
-              <LibraryListView books={onShelf} userId={userId} />
+              <LibraryListView books={onShelf} userId={userId} userCircles={circles} />
             )}
           </div>
         )}
@@ -108,7 +108,7 @@ export default function LibraryWithViewToggle({
                 ))}
               </div>
             ) : (
-              <LibraryListView books={offShelf} userId={userId} />
+              <LibraryListView books={offShelf} userId={userId} userCircles={circles} />
             )}
           </div>
         )}
@@ -129,7 +129,7 @@ export default function LibraryWithViewToggle({
                 ))}
               </div>
             ) : (
-              <LibraryListView books={lentOut} userId={userId} />
+              <LibraryListView books={lentOut} userId={userId} userCircles={circles} />
             )}
           </div>
         )}
@@ -153,7 +153,7 @@ export default function LibraryWithViewToggle({
                 ))}
               </div>
             ) : (
-              <LibraryListView books={inTransit} userId={userId} />
+              <LibraryListView books={inTransit} userId={userId} userCircles={circles} />
             )}
           </div>
         )}
