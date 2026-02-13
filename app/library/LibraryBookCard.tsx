@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toggleBookVisibility } from '@/lib/library-actions'
 import { toggleBookShelfStatus } from '@/lib/shelf-actions'
 import { toggleGiftStatus } from '@/lib/gift-actions'
+import { checkBookRemovalStatus, removeBookPermanently } from '@/lib/remove-book-actions'
 import BookCover from '@/app/components/BookCover'
 
 type Book = {
@@ -37,7 +38,26 @@ export default function LibraryBookCard({
   const [loading, setLoading] = useState(false)
   const [togglingShelf, setTogglingShelf] = useState(false)
   const [togglingGift, setTogglingGift] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false)
+  const [removalStatus, setRemovalStatus] = useState<any>(null)
+  const [removing, setRemoving] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showMenu])
 
   const handleToggleShelf = async () => {
     setTogglingShelf(true)
@@ -68,6 +88,48 @@ export default function LibraryBookCard({
     router.refresh()
   }
 
+  const handleRemoveClick = async () => {
+    setShowMenu(false)
+    
+    // Check if removal is allowed
+    const status = await checkBookRemovalStatus(book.id)
+    
+    if (status.error) {
+      alert(`Error: ${status.error}`)
+      return
+    }
+
+    setRemovalStatus(status)
+    
+    if (!status.canRemove) {
+      // Show blocking message
+      alert(status.message)
+      return
+    }
+
+    // Show confirmation dialog
+    setShowRemoveDialog(true)
+  }
+
+  const handleConfirmRemove = async () => {
+    setRemoving(true)
+    
+    const result = await removeBookPermanently(book.id)
+    
+    if (result.error) {
+      alert(`Error: ${result.error}`)
+      setRemoving(false)
+      return
+    }
+
+    // Success - show message and refresh
+    const notifiedCount = result.notifiedUsers || 0
+    alert(result.message + (notifiedCount > 0 ? ` ${notifiedCount} ${notifiedCount === 1 ? 'person' : 'people'} in the queue ${notifiedCount === 1 ? 'was' : 'were'} notified.` : ''))
+    setShowRemoveDialog(false)
+    setRemoving(false)
+    router.refresh()
+  }
+
   const handleToggleVisibility = async (circleId: string) => {
     setLoading(true)
     
@@ -92,7 +154,32 @@ export default function LibraryBookCard({
   const visibleInCount = userCircles.filter(c => getVisibilityStatus(c.id)).length
 
   return (
-    <div className="bg-white rounded-lg shadow hover:shadow-lg transition p-4">
+    <div className="bg-white rounded-lg shadow hover:shadow-lg transition p-4 relative">
+      {/* Three-Dot Menu */}
+      <div className="absolute top-2 right-2" ref={menuRef}>
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100"
+          aria-label="More options"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+          </svg>
+        </button>
+        
+        {/* Dropdown Menu */}
+        {showMenu && (
+          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+            <button
+              onClick={handleRemoveClick}
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            >
+              🗑️ Remove from PagePass
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Book Cover */}
       <div className="flex gap-3 mb-3">
         <BookCover
@@ -215,6 +302,55 @@ export default function LibraryBookCard({
               </label>
             )
           })}
+        </div>
+      )}
+
+      {/* Remove Confirmation Dialog */}
+      {showRemoveDialog && removalStatus && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold mb-4">Remove from PagePass?</h3>
+            
+            <p className="text-gray-700 mb-4">
+              {removalStatus.message}
+            </p>
+
+            {removalStatus.scenario === 'with_queue' && removalStatus.queueCount > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+                <p className="text-sm text-yellow-800 font-medium mb-2">
+                  {removalStatus.queueCount} {removalStatus.queueCount === 1 ? 'person is' : 'people are'} waiting:
+                </p>
+                <ul className="text-sm text-yellow-700 space-y-1">
+                  {removalStatus.queueMembers?.map((member: any) => (
+                    <li key={member.id}>• {member.profiles?.full_name || 'Someone'}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
+              <p className="text-sm text-red-800 font-medium">
+                ⚠️ This action cannot be undone
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRemoveDialog(false)}
+                disabled={removing}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmRemove}
+                disabled={removing}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {removing ? 'Removing...' : 'Remove Book'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

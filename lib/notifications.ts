@@ -14,6 +14,7 @@ type NotificationType =
   | 'book_returned' 
   | 'invite_accepted' 
   | 'new_book'
+  | 'book_removed'
 
 type NotificationData = {
   userId: string
