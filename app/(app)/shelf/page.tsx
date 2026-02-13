@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import DoneReadingButton from './DoneReadingButton'
 
 export default async function MyShelfTab() {
   const supabase = await createServerSupabaseClient()
@@ -133,6 +134,13 @@ export default async function MyShelfTab() {
                               </p>
                             )}
                           </div>
+                          
+                          {/* Done reading button */}
+                          <DoneReadingButton 
+                            bookId={book.id}
+                            bookTitle={book.title}
+                            status={book.status}
+                          />
                         </div>
                       </div>
                     </div>
