@@ -1,11 +1,24 @@
-'use server'
-
 import { createServerSupabaseClient } from './supabase-server'
+
+/**
+ * Actions that require email confirmation
+ */
+export const RESTRICTED_ACTIONS = [
+  'request_book',
+  'borrow_book',
+  'confirm_handoff',
+  'create_circle',
+  'invite_to_circle'
+] as const
+
+export type RestrictedAction = typeof RESTRICTED_ACTIONS[number]
 
 /**
  * Check if user's email is confirmed
  */
 export async function isEmailConfirmed(userId: string): Promise<boolean> {
+  'use server'
+  
   try {
     const supabase = await createServerSupabaseClient()
     
@@ -22,25 +35,14 @@ export async function isEmailConfirmed(userId: string): Promise<boolean> {
 }
 
 /**
- * Actions that require email confirmation
- */
-export const RESTRICTED_ACTIONS = [
-  'request_book',
-  'borrow_book',
-  'confirm_handoff',
-  'create_circle',
-  'invite_to_circle'
-] as const
-
-export type RestrictedAction = typeof RESTRICTED_ACTIONS[number]
-
-/**
  * Check if action is allowed (email must be confirmed)
  */
 export async function canPerformAction(
   userId: string,
   action: RestrictedAction
 ): Promise<{ allowed: boolean; reason?: string }> {
+  'use server'
+  
   const confirmed = await isEmailConfirmed(userId)
   
   if (!confirmed) {
@@ -60,6 +62,8 @@ export async function resendConfirmationEmail(email: string): Promise<{
   success: boolean
   error?: string
 }> {
+  'use server'
+  
   try {
     const supabase = await createServerSupabaseClient()
     
