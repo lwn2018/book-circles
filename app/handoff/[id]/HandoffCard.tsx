@@ -31,6 +31,7 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
   const [confirmed, setConfirmed] = useState(
     role === 'giver' ? !!handoff.giver_confirmed_at : !!handoff.receiver_confirmed_at
   )
+  const [showSuccess, setShowSuccess] = useState(false)
   const router = useRouter()
 
   const otherConfirmed = role === 'giver' 
@@ -54,32 +55,20 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
     setLoading(false)
 
       if (result.bothConfirmed) {
-        // Both confirmed - check if this was a gift
-        const isGift = (handoff.book as any).gift_on_borrow
+        // Both confirmed! Show success animation
+        setLoading(false)
+        setConfirmed(true)
+        setShowSuccess(true)
         
-        // If receiver and it's a gift, offer thank you prompt
-        if (role === 'receiver' && isGift) {
-          const sendThankYou = confirm(`Send ${otherPerson.full_name} a quick thanks?`)
-          if (sendThankYou) {
-            // Send thank you notification (fire and forget)
-            fetch('/api/notifications/send-thanks', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                recipientId: otherPerson.id,
-                bookTitle: handoff.book.title
-              })
-            })
-          }
-        }
-        
-        // Show success and redirect
+        // Redirect after showing success message
         setTimeout(() => {
-          router.push(role === 'giver' ? '/library' : '/dashboard/borrowed')
+          router.push('/library')
           router.refresh()
-        }, 2000)
+        }, 2500)
       } else {
         // Just this person confirmed - refresh to show updated state
+        setLoading(false)
+        setConfirmed(true)
         router.refresh()
       }
     } catch (error: any) {
@@ -104,6 +93,41 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
         >
           Done
         </button>
+      </div>
+    )
+  }
+
+  // Success animation overlay
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg shadow-2xl p-8 text-center max-w-sm mx-4 animate-fade-in">
+          {/* Animated book cover */}
+          <div className="mb-6 animate-bounce">
+            {handoff.book.cover_url ? (
+              <img 
+                src={handoff.book.cover_url} 
+                alt={handoff.book.title}
+                className="w-32 h-48 object-cover rounded shadow-md mx-auto"
+              />
+            ) : (
+              <div className="w-32 h-48 bg-gray-200 rounded flex items-center justify-center mx-auto">
+                <span className="text-5xl">📚</span>
+              </div>
+            )}
+          </div>
+          
+          <h2 className="text-2xl font-bold text-green-600 mb-2">Enjoy!</h2>
+          <p className="text-lg text-gray-700">
+            {role === 'receiver' 
+              ? `Enjoy "${handoff.book.title}"!` 
+              : `"${handoff.book.title}" is with ${otherPerson.full_name}!`
+            }
+          </p>
+          <p className="text-sm text-gray-500 mt-4">
+            Redirecting to your library...
+          </p>
+        </div>
       </div>
     )
   }

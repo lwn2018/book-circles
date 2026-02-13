@@ -181,13 +181,9 @@ export async function confirmHandoff(
         })
       ])
 
-      // Track handoff confirmed
-      await analytics.track('handoff_confirmed', {
-        handoffId,
-        bookId: handoff.book_id,
-        giverId: handoff.giver_id,
-        receiverId: handoff.receiver_id
-      })
+      // Track handoff confirmed (skipped - analytics doesn't work in server actions)
+      // TODO: Move to client-side tracking
+      // await analytics.track('handoff_confirmed', { ... })
 
       // Log to activity ledger (use service role)
       await adminClient
