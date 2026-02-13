@@ -1,5 +1,3 @@
-'use server'
-
 import { createServerSupabaseClient } from './supabase-server'
 import { getRetailPrice } from './gamification/retail-price'
 import { logUserEvent } from './gamification/events'
@@ -19,6 +17,7 @@ export type AddBookInput = {
  * Add a book to user's library with retail price capture
  */
 export async function addBook(input: AddBookInput) {
+  'use server'
   try {
     const supabase = await createServerSupabaseClient()
 
