@@ -5,6 +5,7 @@ import SettingsForm from './SettingsForm'
 import DownloadDataSection from './DownloadDataSection'
 import CloseAccountSection from './CloseAccountSection'
 import CircleManagementSection from './CircleManagementSection'
+import AvatarSection from './AvatarSection'
 
 export default async function Settings() {
   const supabase = await createServerSupabaseClient()
@@ -41,6 +42,17 @@ export default async function Settings() {
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Settings</h1>
+
+        {/* Avatar Section */}
+        <div className="mb-8">
+          <AvatarSection
+            userId={user.id}
+            userName={profile?.full_name || user.email || 'User'}
+            currentAvatarUrl={profile?.avatar_url || null}
+            currentAvatarType={profile?.avatar_type as 'upload' | 'preset' | 'initials' | null}
+            currentAvatarId={profile?.avatar_id || null}
+          />
+        </div>
 
         <SettingsForm 
           user={{
