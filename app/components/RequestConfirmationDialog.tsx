@@ -40,10 +40,13 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
 
   // Fetch book + queue info
   useEffect(() => {
+    console.log('[RequestDialog] Mounting for bookId:', bookId)
     async function fetchInfo() {
+      console.log('[RequestDialog] Fetching book info...')
       try {
         const response = await fetch(`/api/books/${bookId}/request`)
         const data = await response.json()
+        console.log('[RequestDialog] API response:', response.status, data)
 
         if (!response.ok) {
           setError(data.error || 'Failed to load book info')
@@ -57,6 +60,7 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
 
         setInfo(data)
       } catch (err: any) {
+        console.error('[RequestDialog] Fetch error:', err)
         setError(err.message || 'Failed to load book info')
       } finally {
         setLoading(false)
@@ -67,6 +71,7 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
   }, [bookId])
 
   const handleRequest = async () => {
+    console.log('[RequestDialog] handleRequest called, info:', info)
     if (!info) return
 
     setSubmitting(true)
@@ -80,11 +85,14 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
         ? `/api/books/${bookId}/borrow`
         : `/api/books/${bookId}/request`
       
+      console.log('[RequestDialog] Calling endpoint:', endpoint, 'isBorrow:', isBorrow)
+      
       const response = await fetch(endpoint, {
         method: 'POST'
       })
 
       const data = await response.json()
+      console.log('[RequestDialog] Response:', response.status, data)
 
       if (!response.ok) {
         setError(data.error || 'Failed to request book')
@@ -92,6 +100,7 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
       }
 
       // Success! Call onSuccess callback with result data
+      console.log('[RequestDialog] Success, calling onSuccess')
       onSuccess({
         action: isBorrow ? 'borrow' : 'request',
         message: data.message,
@@ -100,6 +109,7 @@ export default function RequestConfirmationDialog({ bookId, onClose, onSuccess }
         queuePosition: data.position
       })
     } catch (err: any) {
+      console.error('[RequestDialog] Error:', err)
       setError(err.message || 'Failed to request book')
     } finally {
       setSubmitting(false)

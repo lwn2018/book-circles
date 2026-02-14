@@ -162,7 +162,10 @@ export default function BooksListView({
             <div className="flex-shrink-0">
               {book.status === 'available' && book.owner_id !== userId && (
                 <button
-                  onClick={() => setRequestingBookId(book.id)}
+                  onClick={() => {
+                    console.log('[BooksListView] Borrow button clicked for book:', book.id, book.title)
+                    setRequestingBookId(book.id)
+                  }}
                   className={`px-3 py-1 text-xs text-white rounded ${
                     book.gift_on_borrow 
                       ? 'bg-pink-600 hover:bg-pink-700' 
