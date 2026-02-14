@@ -5,7 +5,7 @@ console.log('Adding files...');
 execSync(`git -C ${dir} add -A`, { stdio: 'inherit' });
 
 console.log('Committing...');
-const result = execSync(`git -C ${dir} commit -m "feat: add success toast when book is added"`, { encoding: 'utf8' });
+const result = execSync(`git -C ${dir} commit -m "fix: wrap handleClose in arrow functions for TypeScript"`, { encoding: 'utf8' });
 console.log(result);
 
 console.log('Pushing...');

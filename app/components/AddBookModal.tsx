@@ -324,7 +324,7 @@ export default function AddBookModal({
       <div className="bg-white rounded-lg max-w-2xl p-6 my-auto" style={{ width: '100%', minWidth: '280px', maxWidth: '42rem', boxSizing: 'border-box' }}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Add Book to Library</h2>
-          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 text-2xl">
+          <button onClick={() => handleClose()} className="text-gray-500 hover:text-gray-700 text-2xl">
             ×
           </button>
         </div>
@@ -476,7 +476,7 @@ export default function AddBookModal({
             </button>
             <button
               type="button"
-              onClick={handleClose}
+              onClick={() => handleClose()}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               Cancel
