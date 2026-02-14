@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -44,6 +44,12 @@ export default function AvatarSection({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+
+  // Sync local state with props when they change (after router.refresh())
+  useEffect(() => {
+    setAvatarType(currentAvatarType || 'initials')
+    setSelectedPreset(currentAvatarId)
+  }, [currentAvatarType, currentAvatarId])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -196,12 +202,8 @@ export default function AvatarSection({
       }
       
       // Refresh to show new avatar across the app
+      // The useEffect will sync local state with updated props
       router.refresh()
-      
-      // Force page reload after short delay to ensure preview updates
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
     } catch (err: any) {
       setError(`❌ ${err.message || 'Failed to save avatar'}`)
     } finally {
