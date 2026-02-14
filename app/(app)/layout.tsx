@@ -24,8 +24,14 @@ export default async function AppLayout({
     .eq('id', user.id)
     .single()
 
-  // Redirect to onboarding if not completed
-  if (profile && !profile.onboarding_completed) {
+  // Only enforce onboarding for new users (created after 2026-02-13)
+  // This prevents existing users from being forced into onboarding
+  const onboardingLaunchDate = new Date('2026-02-13T00:00:00Z')
+  const userCreatedAt = new Date(user.created_at)
+  
+  if (profile && 
+      !profile.onboarding_completed && 
+      userCreatedAt > onboardingLaunchDate) {
     redirect('/onboarding/avatar')
   }
 

@@ -129,7 +129,7 @@ export default function OnboardingWelcome() {
         })
         .eq('id', user.id)
 
-      router.push('/dashboard')
+      router.push('/circles')
     } catch (err) {
       console.error('Failed to complete onboarding:', err)
       alert('Something went wrong. Please try again.')
