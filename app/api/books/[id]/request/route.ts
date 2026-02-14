@@ -194,13 +194,17 @@ export async function POST(
         read: false
       })
 
-    // Track borrow request (analytics)
-    await analytics.track('borrow_requested', {
-      bookId,
-      ownerId: book.owner_id,
-      queuePosition: nextPosition,
-      isAvailable: book.status === 'available'
-    })
+    // Track borrow request (analytics) - wrapped in try-catch since analytics is client-side
+    try {
+      await analytics.track('borrow_requested', {
+        bookId,
+        ownerId: book.owner_id,
+        queuePosition: nextPosition,
+        isAvailable: book.status === 'available'
+      })
+    } catch (analyticsError) {
+      console.warn('Analytics tracking failed:', analyticsError)
+    }
 
     // Log event for gamification (user_events table)
     await logUserEvent(user.id, 'borrow_requested', {
