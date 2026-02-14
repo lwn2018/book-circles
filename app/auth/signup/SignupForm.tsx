@@ -33,7 +33,7 @@ export default function SignupForm() {
     const cCode = searchParams.get('circleCode')
     if (cCode) {
       setCircleCode(cCode.toUpperCase())
-      setInviteCode(cCode.toUpperCase()) // Also populate the invite code field
+      setError('') // Clear any existing errors
       validateCircleCode(cCode)
     }
   }, [searchParams])
@@ -210,20 +210,19 @@ export default function SignupForm() {
               minLength={6}
             />
           </div>
-          {!inviteInfo && (
+          {!inviteInfo && !circleCode && (
             <div>
               <label className="block text-sm font-medium mb-1">
-                Invite Code {circleCode ? '' : <span className="text-gray-500">(optional)</span>}
+                Invite Code <span className="text-gray-500">(optional)</span>
               </label>
               <input
                 type="text"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                onBlur={() => !circleCode && inviteCode && validateInvite(inviteCode)}
+                onBlur={() => inviteCode && validateInvite(inviteCode)}
                 placeholder="ABCD1234"
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase ${circleCode ? 'bg-gray-50' : ''}`}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
                 maxLength={8}
-                readOnly={!!circleCode}
               />
             </div>
           )}
