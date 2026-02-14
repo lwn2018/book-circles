@@ -5,7 +5,7 @@ console.log('Adding files...');
 execSync(`git -C ${dir} add -A`, { stdio: 'inherit' });
 
 console.log('Committing...');
-const result = execSync(`git -C ${dir} commit -m "fix: add placeholder to coversBySource type"`, { encoding: 'utf8' });
+const result = execSync(`git -C ${dir} commit -m "fix: use email allowlist for admin check"`, { encoding: 'utf8' });
 console.log(result);
 
 console.log('Pushing...');

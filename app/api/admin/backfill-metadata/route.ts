@@ -12,14 +12,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is beta tester or admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_beta_tester')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile?.is_beta_tester) {
+    // Check if user is admin (email allowlist)
+    const adminEmails = ['mathieu@yuill.ca', 'mathieu@leadingwithnice.com']
+    if (!user.email || !adminEmails.includes(user.email)) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
