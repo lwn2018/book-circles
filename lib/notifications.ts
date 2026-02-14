@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from './supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from './supabase-server'
 import {
   sendEmail,
   bookReadyEmail,
@@ -30,10 +30,11 @@ type NotificationData = {
 
 export async function createNotification(notification: NotificationData) {
   try {
-    const supabase = await createServerSupabaseClient()
+    // Use service role to bypass RLS for notification inserts
+    const adminClient = createServiceRoleClient()
 
     // Insert notification
-    const { data: createdNotification, error } = await supabase
+    const { data: createdNotification, error } = await adminClient
       .from('notifications')
       .insert({
         user_id: notification.userId,
