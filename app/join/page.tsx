@@ -25,11 +25,14 @@ function JoinCircleContent() {
       }
 
       // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
       
-      if (!user) {
+      console.log('[Join] User:', user ? user.id : 'not logged in', 'Code:', code)
+      
+      if (!user || authError) {
         // Redirect to signup with circle code
-        router.push(`/auth/signup?circleCode=${code}`)
+        console.log('[Join] Redirecting to signup with circleCode:', code)
+        window.location.href = `/auth/signup?circleCode=${code}`
         return
       }
 
@@ -44,8 +47,12 @@ function JoinCircleContent() {
           .eq('invite_code', code.toUpperCase())
           .single()
 
+        console.log('[Join] Circle lookup:', circle, circleError)
+
         if (circleError || !circle) {
-          setError('Invalid invite code')
+          const errorMsg = circleError?.message || 'Invalid invite code'
+          console.error('[Join] Circle lookup failed:', errorMsg)
+          setError(errorMsg)
           setStatus('error')
           return
         }
@@ -58,13 +65,17 @@ function JoinCircleContent() {
           .eq('user_id', user.id)
           .single()
 
+        console.log('[Join] Existing member check:', existing)
+
         if (existing) {
           // Already a member - just redirect to circle
+          console.log('[Join] Already a member, redirecting to circle:', circle.id)
           router.push(`/circles/${circle.id}`)
           return
         }
 
         // Add as member
+        console.log('[Join] Adding user to circle:', circle.id)
         const { error: memberError } = await supabase
           .from('circle_members')
           .insert({
@@ -73,10 +84,13 @@ function JoinCircleContent() {
           })
 
         if (memberError) {
+          console.error('[Join] Failed to add member:', memberError)
           setError(memberError.message)
           setStatus('error')
           return
         }
+
+        console.log('[Join] Successfully joined circle!')
 
         // Track circle joined
         trackEvent.circleJoined(circle.id, circle.name, circle.owner_id)
@@ -88,9 +102,10 @@ function JoinCircleContent() {
         })
 
         // Redirect to the circle
-        router.push(`/circles/${circle.id}`)
-        router.refresh()
+        console.log('[Join] Redirecting to circle page:', circle.id)
+        window.location.href = `/circles/${circle.id}`
       } catch (err: any) {
+        console.error('[Join] Unexpected error:', err)
         setError(err.message || 'Failed to join circle')
         setStatus('error')
       }
