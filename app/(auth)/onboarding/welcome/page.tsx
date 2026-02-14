@@ -61,7 +61,7 @@ export default function OnboardingWelcome() {
         .select('id')
         .eq('circle_id', circleId)
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (!existing) {
         // Add as member
