@@ -6,6 +6,7 @@ import DownloadDataSection from './DownloadDataSection'
 import CloseAccountSection from './CloseAccountSection'
 import CircleManagementSection from './CircleManagementSection'
 import AvatarSection from './AvatarSection'
+import RestartOnboardingButton from './RestartOnboardingButton'
 
 export default async function Settings() {
   const supabase = await createServerSupabaseClient()
@@ -65,6 +66,19 @@ export default async function Settings() {
             default_browse_view: profile?.default_browse_view || 'card'
           }}
         />
+
+        {/* Onboarding Section */}
+        <div className="mt-12 bg-white rounded-lg shadow p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-1">Onboarding</h3>
+              <p className="text-sm text-gray-600">
+                Revisit the welcome flow and setup screens
+              </p>
+            </div>
+            <RestartOnboardingButton userId={user.id} />
+          </div>
+        </div>
 
         {/* Circle Management Section */}
         <div className="mt-12">

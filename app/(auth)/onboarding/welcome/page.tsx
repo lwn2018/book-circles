@@ -158,7 +158,7 @@ export default function OnboardingWelcome() {
 
         {inviteCode && circleId ? (
           /* Invited via circle link */
-          <div className="space-y-4">
+          <div className="space-y-3">
             <button
               onClick={handleGoToCircle}
               disabled={joiningCircle}
@@ -169,14 +169,14 @@ export default function OnboardingWelcome() {
             <button
               onClick={handleCompleteOnboarding}
               disabled={loading || joiningCircle}
-              className="w-full py-3 text-blue-600 hover:underline disabled:opacity-50"
+              className="w-full py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
-              Or explore your library
+              Skip for now
             </button>
           </div>
         ) : (
           /* Organic sign-up */
-          <div className="space-y-4">
+          <div className="space-y-3">
             <button
               onClick={() => router.push('/circles/create')}
               disabled={loading}
@@ -187,9 +187,9 @@ export default function OnboardingWelcome() {
             <button
               onClick={handleCompleteOnboarding}
               disabled={loading}
-              className="w-full py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="w-full py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
-              Add your first books
+              Skip for now
             </button>
           </div>
         )}
