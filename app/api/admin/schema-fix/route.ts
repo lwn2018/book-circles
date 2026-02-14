@@ -46,12 +46,11 @@ export async function POST() {
     // Step 2: Columns exist - reload PostgREST schema cache
     console.log('Reloading PostgREST schema cache...')
     
-    // Trigger schema cache reload via NOTIFY
-    await adminClient.rpc('notify_schema_reload', {})
-      .catch(() => {
-        // If custom function doesn't exist, that's okay
-        console.log('Custom reload function not available')
-      })
+    // Trigger schema cache reload via NOTIFY (ignore if function doesn't exist)
+    const { error: reloadError } = await adminClient.rpc('notify_schema_reload', {})
+    if (reloadError) {
+      console.log('Custom reload function not available:', reloadError.message)
+    }
 
     // Force a simple query to refresh cache
     await adminClient.from('profiles').select('id').limit(1)
