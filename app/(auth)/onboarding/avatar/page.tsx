@@ -189,6 +189,8 @@ export default function OnboardingAvatar() {
 
   // Get current avatar preview
   const getCurrentAvatar = () => {
+    console.log('[Avatar] Rendering preview:', { avatarType, selectedPreset, uploadedPreview })
+    
     if (avatarType === 'upload' && uploadedPreview) {
       return (
         <img
@@ -201,6 +203,7 @@ export default function OnboardingAvatar() {
 
     if (avatarType === 'preset' && selectedPreset) {
       const preset = PRESET_AVATARS.find(p => p.id === selectedPreset)
+      console.log('[Avatar] Found preset:', preset)
       if (preset) {
         return (
           <div className={`w-full h-full rounded-full ${preset.color} flex items-center justify-center`}>
@@ -241,7 +244,7 @@ export default function OnboardingAvatar() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 rounded-full transition-all flex items-center justify-center group"
+              className="absolute inset-0 bg-black/0 hover:bg-black/30 disabled:bg-black/0 rounded-full transition-all flex items-center justify-center group"
             >
               <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity">
                 📷

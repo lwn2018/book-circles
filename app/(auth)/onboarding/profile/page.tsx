@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import ProgressBar from '../components/ProgressBar'
@@ -15,6 +15,25 @@ export default function OnboardingProfile() {
   const [phoneValue, setPhoneValue] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Pre-populate with data from signup
+  useEffect(() => {
+    const loadUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        // Pre-fill name from signup
+        if (user.user_metadata?.full_name) {
+          setFullName(user.user_metadata.full_name)
+        }
+        // Pre-fill email
+        if (user.email) {
+          setEmailValue(user.email)
+          setContactMethods(['email'])
+        }
+      }
+    }
+    loadUserData()
+  }, [supabase])
 
   const toggleContactMethod = (method: 'email' | 'phone' | 'text') => {
     if (contactMethods.includes(method)) {
