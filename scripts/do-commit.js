@@ -5,7 +5,10 @@ console.log('Adding files...');
 execSync(`git -C ${dir} add -A`, { stdio: 'inherit' });
 
 console.log('Committing...');
-const result = execSync(`git -C ${dir} commit -m "fix: wrap handleClose in arrow functions for TypeScript"`, { encoding: 'utf8' });
+const result = execSync(`git -C ${dir} commit -m "fix: Bug 1 & 2 - Mark all read + Buy on Amazon
+
+Bug 1: Mark all read now uses service role to bypass RLS
+Bug 2: Buy on Amazon now uses anchor tag (Safari never blocks)"`, { encoding: 'utf8' });
 console.log(result);
 
 console.log('Pushing...');

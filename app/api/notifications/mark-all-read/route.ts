@@ -1,8 +1,10 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
 export async function POST() {
   const supabase = await createServerSupabaseClient()
+  const adminClient = createServiceRoleClient() // Bypass RLS
+  
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -10,7 +12,8 @@ export async function POST() {
   }
 
   try {
-    const { error } = await supabase
+    // Use service role to bypass RLS
+    const { error } = await adminClient
       .from('notifications')
       .update({ read: true })
       .eq('user_id', user.id)
