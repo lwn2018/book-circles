@@ -82,6 +82,15 @@ export default async function Settings() {
 
         {/* Amazon Associate Disclosure */}
         <footer className="mt-12 pt-6 border-t border-gray-200">
+          <div className="flex justify-center gap-4 mb-3">
+            <Link href="/privacy" className="text-xs text-blue-600 hover:underline">
+              Privacy Policy
+            </Link>
+            <span className="text-xs text-gray-400">•</span>
+            <Link href="/terms" className="text-xs text-blue-600 hover:underline">
+              Terms of Service
+            </Link>
+          </div>
           <p className="text-xs text-gray-500 text-center">
             As an Amazon Associate PagePass earns from qualifying purchases.
           </p>

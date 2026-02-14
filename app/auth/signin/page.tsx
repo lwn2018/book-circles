@@ -88,6 +88,19 @@ export default function SignIn() {
             Sign up
           </Link>
         </p>
+
+        {/* Footer Links */}
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="flex justify-center gap-4 text-xs text-gray-500">
+            <Link href="/privacy" className="hover:text-blue-600 hover:underline">
+              Privacy Policy
+            </Link>
+            <span>•</span>
+            <Link href="/terms" className="hover:text-blue-600 hover:underline">
+              Terms of Service
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )
