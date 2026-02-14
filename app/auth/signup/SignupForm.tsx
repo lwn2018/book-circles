@@ -12,6 +12,7 @@ export default function SignupForm() {
   const [fullName, setFullName] = useState('')
   const [inviteCode, setInviteCode] = useState('')
   const [inviteInfo, setInviteInfo] = useState<any>(null)
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -42,6 +43,13 @@ export default function SignupForm() {
     e.preventDefault()
     setError('')
     setLoading(true)
+
+    // Validate consent checkbox
+    if (!agreedToTerms) {
+      setError('You must agree to the Terms of Service and Privacy Policy to create an account')
+      setLoading(false)
+      return
+    }
 
     try {
       // Validate invite code if provided
@@ -104,7 +112,7 @@ export default function SignupForm() {
         )
       }
 
-      router.push('/dashboard')
+      router.push('/circles')
       router.refresh()
     } catch (err: any) {
       setError(err.message || 'Failed to create account')
@@ -183,6 +191,28 @@ export default function SignupForm() {
               🔒 <strong>Your reading data is yours.</strong><br />
               We never sell individual data to anyone.
             </p>
+          </div>
+
+          {/* Consent Checkbox */}
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="agreedToTerms"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              required
+            />
+            <label htmlFor="agreedToTerms" className="text-sm text-gray-700">
+              I agree to the{' '}
+              <Link href="/terms" className="text-blue-600 hover:underline" target="_blank">
+                Terms of Service
+              </Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="text-blue-600 hover:underline" target="_blank">
+                Privacy Policy
+              </Link>
+            </label>
           </div>
 
           <button

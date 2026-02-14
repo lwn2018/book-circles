@@ -32,7 +32,7 @@ export default function SignIn() {
       }
       setLoading(false)
     } else {
-      router.push('/dashboard')
+      router.push('/circles')
       router.refresh()
     }
   }
