@@ -5,24 +5,11 @@ console.log('Adding files...');
 execSync(`git -C ${dir} add -A`, { stdio: 'inherit' });
 
 console.log('Committing...');
-const result = execSync(`git -C ${dir} commit -m "feat: comprehensive event logging per spec
+const result = execSync(`git -C ${dir} commit -m "fix: AddBookModal rendering as black bar - use Portal
 
-Events added:
-- book_added (manual, search, barcode, goodreads)
-- book_removed
-- handoff_confirmed (both parties)
-- borrow_requested
-- borrow_confirmed
-- return_confirmed
-- circle_left
-- off_shelf_toggled (on/off)
-- gift_given / gift_received
-- affiliate_click
-- goodreads_imported
-
-Price capture:
-- retail_price_cad in book_added events
-- retail_price_cad snapshot in handoff_confirmed"`, { encoding: 'utf8' });
+The modal was inside a transform container in the header,
+which breaks position:fixed. Using createPortal to render
+at document.body level fixes this."`, { encoding: 'utf8' });
 console.log(result);
 
 console.log('Pushing...');
