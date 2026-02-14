@@ -48,8 +48,8 @@ export default function UpdatePassword() {
       setError(error.message)
       setLoading(false)
     } else {
-      // Success! Redirect to dashboard
-      router.push('/dashboard')
+      // Success! Redirect to circles
+      router.push('/circles')
     }
   }
 

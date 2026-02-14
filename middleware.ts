@@ -95,7 +95,11 @@ export async function middleware(req: NextRequest) {
   }
 
   // If logged in and trying to access auth pages, redirect to circles (not dashboard to avoid loop)
-  if (session && req.nextUrl.pathname.startsWith('/auth/')) {
+  // EXCEPT for password reset pages which need the recovery session
+  const passwordResetPaths = ['/auth/reset-password', '/auth/update-password']
+  const isPasswordReset = passwordResetPaths.some(path => req.nextUrl.pathname === path)
+  
+  if (session && req.nextUrl.pathname.startsWith('/auth/') && !isPasswordReset) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/circles'
     return NextResponse.redirect(redirectUrl)
