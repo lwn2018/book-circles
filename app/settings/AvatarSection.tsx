@@ -188,11 +188,20 @@ export default function AvatarSection({
       if (updateError) throw updateError
 
       setMessage('✅ Avatar updated successfully!')
-      setUploadedFile(null)
-      setUploadedPreview(null)
       
-      // Refresh to show new avatar
+      // Clear uploaded file/preview (but keep preset selection)
+      if (avatarType === 'upload') {
+        setUploadedFile(null)
+        setUploadedPreview(null)
+      }
+      
+      // Refresh to show new avatar across the app
       router.refresh()
+      
+      // Force page reload after short delay to ensure preview updates
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     } catch (err: any) {
       setError(`❌ ${err.message || 'Failed to save avatar'}`)
     } finally {
