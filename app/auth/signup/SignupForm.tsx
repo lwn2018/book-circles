@@ -33,6 +33,7 @@ export default function SignupForm() {
     const cCode = searchParams.get('circleCode')
     if (cCode) {
       setCircleCode(cCode.toUpperCase())
+      setInviteCode(cCode.toUpperCase()) // Also populate the invite code field
       validateCircleCode(cCode)
     }
   }, [searchParams])
@@ -166,25 +167,9 @@ export default function SignupForm() {
 
         {circleCode && (
           <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="font-semibold text-green-900 mb-2">📚 You've been invited to join a book circle!</p>
-            {circleInfo ? (
-              <>
-                <p className="text-green-800 font-medium mb-2">{circleInfo.name}</p>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-green-700">Circle Code:</span>
-                  <span className="font-mono font-semibold text-green-900 bg-white px-2 py-1 rounded">
-                    {circleCode}
-                  </span>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-green-700">Circle Code:</span>
-                <span className="font-mono font-semibold text-green-900 bg-white px-2 py-1 rounded">
-                  {circleCode}
-                </span>
-              </div>
-            )}
+            <p className="font-semibold text-green-900 text-center">
+              📚 You've been invited to join{circleInfo ? ` the ${circleInfo.name} circle` : ' a book circle'}!
+            </p>
           </div>
         )}
         
@@ -228,7 +213,7 @@ export default function SignupForm() {
           {!inviteInfo && (
             <div>
               <label className="block text-sm font-medium mb-1">
-                Invite Code <span className="text-gray-500">(optional)</span>
+                Invite Code {circleCode ? '' : <span className="text-gray-500">(optional)</span>}
               </label>
               <input
                 type="text"
@@ -236,8 +221,9 @@ export default function SignupForm() {
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                 onBlur={() => inviteCode && validateInvite(inviteCode)}
                 placeholder="ABCD1234"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase ${circleCode ? 'bg-gray-50' : ''}`}
                 maxLength={8}
+                readOnly={!!circleCode}
               />
             </div>
           )}
