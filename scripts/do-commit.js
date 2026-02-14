@@ -5,7 +5,7 @@ console.log('Adding files...');
 execSync(`git -C ${dir} add -A`, { stdio: 'inherit' });
 
 console.log('Committing...');
-const result = execSync(`git -C ${dir} commit -m "fix: use is_admin field for admin check"`, { encoding: 'utf8' });
+const result = execSync(`git -C ${dir} commit -m "fix: remove Book from Circle page titles"`, { encoding: 'utf8' });
 console.log(result);
 
 console.log('Pushing...');
