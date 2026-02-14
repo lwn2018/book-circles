@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { logUserEvent } from '@/lib/gamification/events'
 import { getRetailPrice } from '@/lib/gamification/retail-price'
 import { sendEmail, queueUpdateEmail } from '@/lib/email'
+import { fetchBookMetadata, delay } from '@/lib/bookMetadata'
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,17 +72,39 @@ export async function POST(request: NextRequest) {
     // Import books in batches
     for (const bookData of booksToImport) {
       try {
-        // Get retail price
-        const retailPrice = await getRetailPrice(bookData.isbn, bookData.binding)
+        // Fetch comprehensive metadata if ISBN available
+        let metadata: any = null
+        if (bookData.isbn) {
+          try {
+            metadata = await fetchBookMetadata(bookData.isbn)
+            // Rate limiting: 300ms between calls
+            await delay(300)
+          } catch (err) {
+            console.error('Metadata fetch failed:', err)
+          }
+        }
 
-        // Create book
+        // Use metadata if available, otherwise use CSV data
+        const retailPrice = metadata?.retail_price_cad || await getRetailPrice(bookData.isbn, bookData.binding)
+
+        // Create book with full metadata
         const { data: book, error: bookError } = await supabase
           .from('books')
           .insert({
-            title: bookData.title,
-            author: bookData.author || null,
-            isbn: bookData.isbn || null,
-            binding: bookData.binding || null,
+            title: metadata?.title || bookData.title,
+            author: metadata?.author || bookData.author || null,
+            isbn: metadata?.isbn13 || bookData.isbn || null,
+            isbn10: metadata?.isbn10 || null,
+            cover_url: metadata?.cover_url || null,
+            cover_source: metadata?.cover_source || null,
+            format: metadata?.format || bookData.binding || null,
+            page_count: metadata?.page_count || null,
+            publish_date: metadata?.publish_date || null,
+            publisher: metadata?.publisher || null,
+            description: metadata?.description || null,
+            language: metadata?.language || null,
+            metadata_sources: metadata?.metadata_sources || [],
+            metadata_updated_at: metadata?.metadata_updated_at || new Date().toISOString(),
             owner_id: userId,
             status: 'available',
             retail_price_cad: retailPrice

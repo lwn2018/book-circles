@@ -31,6 +31,7 @@ export default function AddBookModal({
   const [author, setAuthor] = useState('')
   const [isbn, setIsbn] = useState('')
   const [coverUrl, setCoverUrl] = useState('')
+  const [fullMetadata, setFullMetadata] = useState<any>(null)
   const [selectedCircles, setSelectedCircles] = useState<string[]>(userCircles.map(c => c.id))
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -58,6 +59,7 @@ export default function AddBookModal({
         setTitle(data.title || '')
         setAuthor(data.author || '')
         setCoverUrl(data.coverUrl || '')
+        setFullMetadata(data.fullMetadata || null)
         setBookSource('barcode')
         setLookupStatus(`✓ Found via ${data.source}`)
         setTimeout(() => setLookupStatus(''), 3000)
@@ -188,20 +190,30 @@ export default function AddBookModal({
         }
       }
 
-      // Estimate retail price (default $20 CAD)
-      const retailPrice = 20.0 // TODO: Fetch from Google Books API in future enhancement
+      // Use retail price from metadata, or default to $20 CAD
+      const retailPrice = fullMetadata?.retail_price_cad || 20.0
 
-      // Create the book
+      // Create the book with full metadata
       const { data: book, error: bookError} = await supabase
         .from('books')
         .insert({
           title: title.trim(),
           author: author.trim() || null,
-          isbn: isbn.trim() || null,
+          isbn: isbn.trim() || fullMetadata?.isbn13 || null,
+          isbn10: fullMetadata?.isbn10 || null,
           cover_url: finalCoverUrl,
+          cover_source: fullMetadata?.cover_source || null,
           owner_id: userId,
           status: 'available',
-          retail_price_cad: retailPrice
+          retail_price_cad: retailPrice,
+          format: fullMetadata?.format || null,
+          page_count: fullMetadata?.page_count || null,
+          publish_date: fullMetadata?.publish_date || null,
+          publisher: fullMetadata?.publisher || null,
+          description: fullMetadata?.description || null,
+          language: fullMetadata?.language || null,
+          metadata_sources: fullMetadata?.metadata_sources || [],
+          metadata_updated_at: fullMetadata?.metadata_updated_at || new Date().toISOString()
           // Don't set circle_id - we use book_circle_visibility instead
         })
         .select()
@@ -329,8 +341,8 @@ export default function AddBookModal({
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+      <div className="bg-white rounded-lg max-w-2xl p-6 my-auto" style={{ width: '100%', minWidth: '280px', maxWidth: '42rem', boxSizing: 'border-box' }}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Add Book to Library</h2>
           <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 text-2xl">
@@ -344,15 +356,16 @@ export default function AddBookModal({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">ISBN (Optional)</label>
-            <div className="flex gap-2">
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', width: '100%' }}>
+          <div style={{ display: 'grid', gap: '0.25rem' }}>
+            <label className="block text-sm font-medium">ISBN (Optional)</label>
+            <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
               <input
                 type="text"
                 value={isbn}
                 onChange={(e) => handleIsbnChange(e.target.value)}
-                className="flex-1 px-3 py-2 border rounded-lg"
+                className="px-3 py-2 border rounded-lg"
+                style={{ flex: '1 1 0', minWidth: '0', width: '100%', boxSizing: 'border-box' }}
                 placeholder="Enter ISBN or scan barcode"
                 disabled={scanning}
               />
@@ -382,8 +395,8 @@ export default function AddBookModal({
             </div>
           )}
 
-          <div className="relative">
-            <label className="block text-sm font-medium mb-1">Title *</label>
+          <div style={{ display: 'grid', gap: '0.25rem', position: 'relative' }}>
+            <label className="block text-sm font-medium">Title *</label>
             <input
               type="text"
               value={title}
@@ -393,7 +406,8 @@ export default function AddBookModal({
                   setShowTitleDropdown(true)
                 }
               }}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="px-3 py-2 border rounded-lg"
+              style={{ display: 'block', width: '100%', minWidth: '0', boxSizing: 'border-box' }}
               placeholder="Start typing to search books..."
               required
             />
@@ -437,13 +451,14 @@ export default function AddBookModal({
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Author</label>
+          <div style={{ display: 'grid', gap: '0.25rem' }}>
+            <label className="block text-sm font-medium">Author</label>
             <input
               type="text"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="px-3 py-2 border rounded-lg"
+              style={{ display: 'block', width: '100%', minWidth: '0', boxSizing: 'border-box' }}
               placeholder="Author name"
             />
           </div>

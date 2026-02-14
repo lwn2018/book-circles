@@ -207,16 +207,16 @@ export default function BooksListWithFilters({
   const newBooks = useMemo(() => {
     return [...books]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 3)
+      .slice(0, 5)
   }, [books])
 
   return (
     <div>
       {/* New in this circle */}
       {newBooks.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4 overflow-hidden">
           <h3 className="text-base sm:text-lg font-semibold mb-2">New in this circle</h3>
-          <div className="flex gap-3 sm:gap-4 overflow-x-auto -mx-1 px-1">
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2">
             {newBooks.map(book => {
               const inQueue = book.book_queue?.some(q => q.user_id === userId)
               const isOwner = book.owner_id === userId
@@ -329,10 +329,10 @@ export default function BooksListWithFilters({
         )}
 
         {/* View Toggle - Mobile Optimized */}
-        <div className="flex justify-end gap-2 mb-2 mt-3">
+        <div className="flex justify-end gap-2 mb-2 mt-3 px-2 sm:px-0">
           <button
             onClick={() => handleViewModeChange('card')}
-            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
               viewMode === 'card'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -342,7 +342,7 @@ export default function BooksListWithFilters({
           </button>
           <button
             onClick={() => handleViewModeChange('list')}
-            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
               viewMode === 'list'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
