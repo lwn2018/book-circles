@@ -1,17 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
-export default function SignIn() {
+function SignInContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [circleName, setCircleName] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const circleCode = searchParams.get('circleCode')
   const supabase = createClient()
+
+  // Look up circle name if circleCode is present
+  useEffect(() => {
+    if (circleCode) {
+      const fetchCircleName = async () => {
+        const { data } = await supabase
+          .from('circles')
+          .select('name')
+          .eq('invite_code', circleCode.toUpperCase())
+          .maybeSingle()
+        
+        if (data) {
+          setCircleName(data.name)
+        }
+      }
+      fetchCircleName()
+    }
+  }, [circleCode, supabase])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,8 +54,13 @@ export default function SignIn() {
       }
       setLoading(false)
     } else {
-      router.push('/circles')
-      router.refresh()
+      // If circleCode is present, redirect to join flow to complete invitation
+      if (circleCode) {
+        window.location.href = `/join?code=${circleCode}`
+      } else {
+        router.push('/circles')
+        router.refresh()
+      }
     }
   }
 
@@ -41,6 +68,16 @@ export default function SignIn() {
     <div className="min-h-screen flex items-center justify-center p-8">
       <div className="max-w-md w-full">
         <h1 className="text-3xl font-bold mb-6 text-center">Sign In</h1>
+        
+        {/* Circle Invitation Banner */}
+        {circleCode && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-900 text-center font-medium">
+              📚 {circleName ? `Join to access the ${circleName} circle` : 'Join to access your invited circle'}
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSignIn} className="space-y-4">
           {error && (
             <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">
@@ -83,9 +120,12 @@ export default function SignIn() {
         </div>
         
         <p className="mt-2 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link href="/auth/signup" className="text-blue-600 hover:underline">
-            Sign up
+          New here?{' '}
+          <Link 
+            href={circleCode ? `/auth/signup?circleCode=${circleCode}` : '/auth/signup'} 
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Create an account
           </Link>
         </p>
 
@@ -103,5 +143,17 @@ export default function SignIn() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin text-4xl">⏳</div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   )
 }

@@ -31,9 +31,9 @@ function JoinCircleContent() {
       console.log('[Join] User:', user ? user.id : 'not logged in', 'Code:', code)
       
       if (!user || authError) {
-        // Redirect to signup with circle code
-        console.log('[Join] Redirecting to signup with circleCode:', code)
-        window.location.href = `/auth/signup?circleCode=${code}`
+        // Redirect to signin with circle code (signin page has "create account" link)
+        console.log('[Join] Redirecting to signin with circleCode:', code)
+        window.location.href = `/auth/signin?circleCode=${code}`
         return
       }
 

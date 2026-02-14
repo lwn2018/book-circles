@@ -267,7 +267,10 @@ export default function SignupForm() {
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <Link href="/auth/signin" className="text-blue-600 hover:underline">
+          <Link 
+            href={circleCode ? `/auth/signin?circleCode=${circleCode}` : '/auth/signin'} 
+            className="text-blue-600 hover:underline"
+          >
             Sign in
           </Link>
         </p>
