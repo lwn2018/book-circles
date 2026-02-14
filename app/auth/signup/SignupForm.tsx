@@ -145,7 +145,8 @@ export default function SignupForm() {
         )
       }
 
-      router.push('/circles')
+      // Redirect to onboarding for new users
+      router.push('/onboarding/avatar')
       router.refresh()
     } catch (err: any) {
       setError(err.message || 'Failed to create account')

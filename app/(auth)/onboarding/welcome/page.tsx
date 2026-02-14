@@ -16,8 +16,8 @@ export default function OnboardingWelcome() {
   const [joiningCircle, setJoiningCircle] = useState(false)
 
   useEffect(() => {
-    // Check for stored invite code
-    const storedCode = localStorage.getItem('pagepass_invite_code')
+    // Check for stored invite code (multiple possible keys for backward compatibility)
+    const storedCode = localStorage.getItem('pendingCircleJoin') || localStorage.getItem('pagepass_invite_code')
     const storedName = localStorage.getItem('pagepass_invite_circle_name')
 
     if (storedCode) {
@@ -98,9 +98,10 @@ export default function OnboardingWelcome() {
         })
         .eq('id', user.id)
 
-      // Clear stored invite
+      // Clear stored invite (all possible keys)
       localStorage.removeItem('pagepass_invite_code')
       localStorage.removeItem('pagepass_invite_circle_name')
+      localStorage.removeItem('pendingCircleJoin')
 
       // Redirect to circle
       router.push(`/circles/${circleId}`)

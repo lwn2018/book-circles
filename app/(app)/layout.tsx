@@ -24,6 +24,11 @@ export default async function AppLayout({
     .eq('id', user.id)
     .single()
 
+  // Redirect to onboarding if not completed
+  if (profile && !profile.onboarding_completed) {
+    redirect('/onboarding/avatar')
+  }
+
   // Get user's circles for Add Book button
   const { data: memberships } = await supabase
     .from('circle_members')
