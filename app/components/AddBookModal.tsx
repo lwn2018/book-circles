@@ -193,18 +193,17 @@ export default function AddBookModal({
       // Use retail price from metadata, or default to $20 CAD
       const retailPrice = fullMetadata?.retail_price_cad || 20.0
 
-      // Create the book with full metadata
-      const { data: book, error: bookError} = await supabase
-        .from('books')
-        .insert({
+      // Create the book via API route (handles auth server-side)
+      const response = await fetch('/api/books/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title: title.trim(),
           author: author.trim() || null,
           isbn: isbn.trim() || fullMetadata?.isbn13 || null,
           isbn10: fullMetadata?.isbn10 || null,
           cover_url: finalCoverUrl,
           cover_source: fullMetadata?.cover_source || null,
-          owner_id: userId,
-          status: 'available',
           retail_price_cad: retailPrice,
           format: fullMetadata?.format || null,
           page_count: fullMetadata?.page_count || null,
@@ -213,42 +212,22 @@ export default function AddBookModal({
           description: fullMetadata?.description || null,
           language: fullMetadata?.language || null,
           metadata_sources: fullMetadata?.metadata_sources || [],
-          metadata_updated_at: fullMetadata?.metadata_updated_at || new Date().toISOString()
-          // Don't set circle_id - we use book_circle_visibility instead
+          metadata_updated_at: fullMetadata?.metadata_updated_at || new Date().toISOString(),
+          selectedCircles,
+          userCircles,
+          source: bookSource
         })
-        .select()
-        .single()
-
-      if (bookError) throw bookError
-
-      // Log gamification event (spec requirement)
-      await logEvent(userId, 'book_added', {
-        book_id: book.id,
-        source: bookSource,
-        retail_price_cad: retailPrice
       })
 
-      // Create visibility entries for ALL circles the user is in
-      // Visible (is_visible=true) for selected circles
-      // Hidden (is_visible=false) for unselected circles
-      const visibilityEntries = userCircles.map(circle => ({
-        book_id: book.id,
-        circle_id: circle.id,
-        is_visible: selectedCircles.includes(circle.id)
-      }))
-
-      if (visibilityEntries.length > 0) {
-        const { error: visError } = await supabase
-          .from('book_circle_visibility')
-          .insert(visibilityEntries)
-
-        if (visError) {
-          console.error('Failed to set visibility:', visError)
-          // Don't block book creation if visibility fails
-        }
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to add book')
       }
 
-      // Track book added
+      const book = result.book
+
+      // Track book added (client-side analytics)
       trackEvent.bookAdded(book.id, bookSource, !!finalCoverUrl, selectedCircles)
 
       router.refresh()

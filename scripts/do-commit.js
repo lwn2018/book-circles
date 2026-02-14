@@ -5,11 +5,10 @@ console.log('Adding files...');
 execSync(`git -C ${dir} add -A`, { stdio: 'inherit' });
 
 console.log('Committing...');
-const result = execSync(`git -C ${dir} commit -m "fix: AddBookModal rendering as black bar - use Portal
+const result = execSync(`git -C ${dir} commit -m "fix: use API route for Add Book to fix RLS 403 error
 
-The modal was inside a transform container in the header,
-which breaks position:fixed. Using createPortal to render
-at document.body level fixes this."`, { encoding: 'utf8' });
+Client-side Supabase insert was failing RLS check.
+Created /api/books/add route that handles auth server-side."`, { encoding: 'utf8' });
 console.log(result);
 
 console.log('Pushing...');
