@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { formatPhoneNumber } from '@/lib/formatPhone'
 
 type User = {
   id: string
@@ -199,7 +200,7 @@ export default function SettingsForm({ user }: { user: User }) {
                   <input
                     type="tel"
                     value={contactPhone}
-                    onChange={(e) => setContactPhone(e.target.value)}
+                    onChange={(e) => setContactPhone(formatPhoneNumber(e.target.value))}
                     className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="(555) 123-4567"
                   />

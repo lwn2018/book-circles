@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import ProgressBar from '../components/ProgressBar'
+import { formatPhoneNumber } from '@/lib/formatPhone'
 
 export default function OnboardingProfile() {
   const router = useRouter()
@@ -181,7 +182,7 @@ export default function OnboardingProfile() {
                     <input
                       type="tel"
                       value={phoneValue}
-                      onChange={(e) => setPhoneValue(e.target.value)}
+                      onChange={(e) => setPhoneValue(formatPhoneNumber(e.target.value))}
                       placeholder="(555) 123-4567"
                       className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       onClick={(e) => e.stopPropagation()}
@@ -204,7 +205,7 @@ export default function OnboardingProfile() {
                     <input
                       type="tel"
                       value={phoneValue}
-                      onChange={(e) => setPhoneValue(e.target.value)}
+                      onChange={(e) => setPhoneValue(formatPhoneNumber(e.target.value))}
                       placeholder="(555) 123-4567"
                       className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       onClick={(e) => e.stopPropagation()}
