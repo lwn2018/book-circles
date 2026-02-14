@@ -303,24 +303,6 @@ export default function AvatarSection({
         </div>
       </div>
 
-      {/* Upload Photo Button (separate from avatar display) */}
-      <div className="mb-4">
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading || saving}
-          className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {uploading ? 'Uploading...' : '📷 Upload Photo'}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-      </div>
-
       {/* Preset Avatar Options */}
       <div className="mb-6">
         <h3 className="text-sm font-medium text-gray-700 mb-3">

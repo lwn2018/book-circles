@@ -62,17 +62,6 @@ export default function Avatar({
     return colors[Math.abs(hash) % colors.length]
   }
 
-  // Render uploaded photo
-  if (avatarType === 'upload' && avatarUrl) {
-    return (
-      <img
-        src={avatarUrl}
-        alt={userName}
-        className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
-      />
-    )
-  }
-
   // Render preset emoji
   if (avatarType === 'preset' && avatarId) {
     const preset = PRESET_AVATARS.find(p => p.id === avatarId)
