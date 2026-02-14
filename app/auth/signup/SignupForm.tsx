@@ -11,7 +11,9 @@ export default function SignupForm() {
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [inviteCode, setInviteCode] = useState('')
+  const [circleCode, setCircleCode] = useState('')
   const [inviteInfo, setInviteInfo] = useState<any>(null)
+  const [circleInfo, setCircleInfo] = useState<any>(null)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,10 +22,18 @@ export default function SignupForm() {
   const supabase = createClient()
 
   useEffect(() => {
+    // Check for user invite code
     const code = searchParams.get('invite')
     if (code) {
       setInviteCode(code.toUpperCase())
       validateInvite(code)
+    }
+
+    // Check for circle invite code
+    const cCode = searchParams.get('circleCode')
+    if (cCode) {
+      setCircleCode(cCode.toUpperCase())
+      validateCircleCode(cCode)
     }
   }, [searchParams])
 
@@ -36,6 +46,22 @@ export default function SignupForm() {
       }
     } catch (err) {
       console.error('Failed to validate invite:', err)
+    }
+  }
+
+  const validateCircleCode = async (code: string) => {
+    try {
+      const { data: circle } = await supabase
+        .from('circles')
+        .select('id, name')
+        .eq('invite_code', code.toUpperCase())
+        .single()
+      
+      if (circle) {
+        setCircleInfo(circle)
+      }
+    } catch (err) {
+      console.error('Failed to validate circle code:', err)
     }
   }
 
@@ -74,15 +100,21 @@ export default function SignupForm() {
         inviter_id = invite?.created_by
       }
 
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Store circle code in localStorage to persist through email confirmation
+      if (circleCode) {
+        localStorage.setItem('pendingCircleJoin', circleCode)
+      }
+
+      const { data: authData, error: authError} = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName,
-            signup_source: inviteCode ? 'invite' : 'direct',
+            signup_source: inviteCode ? 'invite' : (circleCode ? 'circle_invite' : 'direct'),
             invite_code: inviteCode || null,
-            invited_by: inviter_id
+            invited_by: inviter_id,
+            pending_circle_code: circleCode || null
           },
         },
       })
@@ -129,6 +161,13 @@ export default function SignupForm() {
           <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm">
             <p className="font-semibold">✉️ You've been invited!</p>
             <p className="mt-1">Invited by {inviteInfo.creatorName}</p>
+          </div>
+        )}
+
+        {circleInfo && (
+          <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+            <p className="font-semibold">📚 You've been invited to join a book circle!</p>
+            <p className="mt-1 font-medium">{circleInfo.name}</p>
           </div>
         )}
         

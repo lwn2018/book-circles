@@ -72,13 +72,22 @@ export async function middleware(req: NextRequest) {
     '/handoff', // Handoff confirmation pages
   ]
 
+  // Public paths that don't require auth (even if under protected routes)
+  const publicPaths = [
+    '/circles/join', // Allow non-authenticated users to view circle invite pages
+  ]
+
+  const isPublicPath = publicPaths.some(path => 
+    req.nextUrl.pathname.startsWith(path)
+  )
+
   // Check if current path starts with any protected route
   const isProtectedRoute = protectedRoutes.some(route => 
     req.nextUrl.pathname.startsWith(route)
   )
 
-  // If trying to access protected route without session, redirect to signin
-  if (isProtectedRoute && !session) {
+  // If trying to access protected route without session (and not a public path), redirect to signin
+  if (isProtectedRoute && !session && !isPublicPath) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/auth/signin'
     redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname)

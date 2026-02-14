@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import PendingCircleJoinHandler from './PendingCircleJoinHandler'
 
 export default async function CirclesTab() {
   const supabase = await createServerSupabaseClient()
@@ -43,6 +44,9 @@ export default async function CirclesTab() {
 
   return (
     <div>
+      {/* Handle pending circle join from signup flow */}
+      <PendingCircleJoinHandler />
+      
       <div className="mb-6">
         <h1 className="text-3xl font-bold">My Circles</h1>
         <p className="text-gray-600 mt-1">

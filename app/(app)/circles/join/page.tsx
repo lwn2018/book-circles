@@ -25,8 +25,8 @@ function JoinCircleForm() {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      setError('You must be signed in')
-      setLoading(false)
+      // Redirect to signup with circle code preserved
+      router.push(`/auth/signup?circleCode=${inviteCode}`)
       return
     }
 
