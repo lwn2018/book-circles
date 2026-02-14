@@ -17,6 +17,8 @@ type AppHeaderProps = {
     email: string
     full_name?: string | null
     avatar_url?: string | null
+    avatar_type?: string | null
+    avatar_id?: string | null
   }
   userCircles: Circle[]
 }
@@ -27,6 +29,8 @@ const normalizeUser = (user: AppHeaderProps['user']) => ({
   email: user.email,
   full_name: user.full_name ?? undefined,
   avatar_url: user.avatar_url ?? undefined,
+  avatar_type: user.avatar_type ?? undefined,
+  avatar_id: user.avatar_id ?? undefined,
 })
 
 export default function AppHeader({ user, userCircles }: AppHeaderProps) {

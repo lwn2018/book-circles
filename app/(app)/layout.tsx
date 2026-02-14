@@ -50,7 +50,9 @@ export default async function AppLayout({
           id: user.id,
           email: user.email || '',
           full_name: profile?.full_name,
-          avatar_url: profile?.avatar_url
+          avatar_url: profile?.avatar_url,
+          avatar_type: profile?.avatar_type,
+          avatar_id: profile?.avatar_id
         }}
         userCircles={circles as any}
       />

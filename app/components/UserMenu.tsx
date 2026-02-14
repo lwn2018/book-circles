@@ -3,12 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { signOut } from '@/app/actions/auth'
+import Avatar from './Avatar'
 
 type User = {
   id: string
   email: string
   full_name?: string
   avatar_url?: string
+  avatar_type?: string
+  avatar_id?: string
 }
 
 export default function UserMenu({ user }: { user: User }) {
@@ -18,10 +21,6 @@ export default function UserMenu({ user }: { user: User }) {
     await signOut()
   }
 
-  const initials = user.full_name
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : user.email?.slice(0, 2).toUpperCase() || '??'
-
   return (
     <div className="relative">
       <button
@@ -29,13 +28,14 @@ export default function UserMenu({ user }: { user: User }) {
         className="flex items-center gap-2 hover:bg-gray-100 rounded-lg px-3 py-2"
       >
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
-          {user.avatar_url ? (
-            <img src={user.avatar_url} alt={user.full_name || 'User'} className="w-8 h-8 rounded-full" />
-          ) : (
-            initials
-          )}
-        </div>
+        <Avatar
+          avatarType={user.avatar_type as any}
+          avatarId={user.avatar_id}
+          avatarUrl={user.avatar_url}
+          userName={user.full_name || user.email}
+          userId={user.id}
+          size="sm"
+        />
         
         {/* Name */}
         <span className="text-sm font-medium hidden sm:block">
