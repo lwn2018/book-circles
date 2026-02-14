@@ -164,16 +164,27 @@ export default function SignupForm() {
           </div>
         )}
 
-        {circleInfo && (
+        {circleCode && (
           <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <p className="font-semibold text-green-900 mb-2">📚 You've been invited to join a book circle!</p>
-            <p className="text-green-800 font-medium mb-2">{circleInfo.name}</p>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-green-700">Circle Code:</span>
-              <span className="font-mono font-semibold text-green-900 bg-white px-2 py-1 rounded">
-                {circleCode}
-              </span>
-            </div>
+            {circleInfo ? (
+              <>
+                <p className="text-green-800 font-medium mb-2">{circleInfo.name}</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-green-700">Circle Code:</span>
+                  <span className="font-mono font-semibold text-green-900 bg-white px-2 py-1 rounded">
+                    {circleCode}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-green-700">Circle Code:</span>
+                <span className="font-mono font-semibold text-green-900 bg-white px-2 py-1 rounded">
+                  {circleCode}
+                </span>
+              </div>
+            )}
           </div>
         )}
         
