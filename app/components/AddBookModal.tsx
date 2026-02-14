@@ -19,13 +19,13 @@ export default function AddBookModal({
 }: { 
   userId: string
   userCircles: Circle[]
-  onClose: () => void
+  onClose: (success?: boolean, bookTitle?: string) => void
 }) {
-  const handleClose = () => {
+  const handleClose = (success?: boolean, bookTitle?: string) => {
     if (quaggaRef.current) {
       quaggaRef.current.stop()
     }
-    onClose()
+    onClose(success, bookTitle)
   }
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
@@ -231,7 +231,7 @@ export default function AddBookModal({
       trackEvent.bookAdded(book.id, bookSource, !!finalCoverUrl, selectedCircles)
 
       router.refresh()
-      handleClose()
+      handleClose(true, title.trim())
     } catch (err: any) {
       setError(err.message || 'Failed to add book')
       setLoading(false)
