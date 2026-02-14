@@ -6,7 +6,7 @@ export default function InviteLink({ inviteCode }: { inviteCode: string }) {
   const [copied, setCopied] = useState(false)
 
   const copyInviteLink = () => {
-    const url = `${window.location.origin}/circles/join?code=${inviteCode}`
+    const url = `${window.location.origin}/join?code=${inviteCode}`
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
