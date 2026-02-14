@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BookCover from '@/app/components/BookCover'
+import { phoneToSmsLink } from '@/lib/formatPhone'
 
 type HandoffCardProps = {
   handoff: any
@@ -23,9 +24,9 @@ export default function HandoffCard({ handoff, userId }: HandoffCardProps) {
   const book = handoff.books
 
   // Show contact info only to receiver and only for the giver's contact
-  const showContact = isReceiver && handoff.giver.contact_preference_type !== 'none'
-  const contactType = handoff.giver.contact_preference_type
-  const contactValue = handoff.giver.contact_preference_value
+  const contactEmail = handoff.giver.contact_email
+  const contactPhone = handoff.giver.contact_phone
+  const showContact = isReceiver && (contactEmail || contactPhone)
 
   const handleConfirm = async () => {
     setConfirming(true)
@@ -101,14 +102,29 @@ export default function HandoffCard({ handoff, userId }: HandoffCardProps) {
               <span className="font-medium">{otherPerson.full_name}</span>
             </p>
 
-            {showContact && contactValue && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-2">
-                <p className="text-xs text-blue-700 font-medium mb-1">
+            {showContact && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3 mt-2">
+                <p className="text-xs text-blue-700 font-medium mb-2">
                   Contact {handoff.giver.full_name}:
                 </p>
-                <p className="text-sm text-blue-900">
-                  {contactType === 'phone' ? '📱' : '📧'} {contactValue}
-                </p>
+                <div className="space-y-1">
+                  {contactEmail && (
+                    <a 
+                      href={`mailto:${contactEmail}`}
+                      className="block text-sm text-blue-900 hover:underline"
+                    >
+                      📧 {contactEmail}
+                    </a>
+                  )}
+                  {contactPhone && (
+                    <a 
+                      href={phoneToSmsLink(contactPhone)}
+                      className="block text-sm text-blue-900 hover:underline"
+                    >
+                      📱 {contactPhone}
+                    </a>
+                  )}
+                </div>
               </div>
             )}
 

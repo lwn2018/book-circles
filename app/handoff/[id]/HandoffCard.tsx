@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { confirmHandoff } from '@/lib/handoff-actions'
 import { useRouter } from 'next/navigation'
+import { phoneToSmsLink } from '@/lib/formatPhone'
 
 type HandoffCardProps = {
   handoff: {
@@ -23,6 +24,8 @@ type HandoffCardProps = {
     full_name: string
     contact_preference_type: string | null
     contact_preference_value: string | null
+    contact_email?: string | null
+    contact_phone?: string | null
   }
 }
 
@@ -196,17 +199,29 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
           </p>
           
           {/* Show contact info ONLY for receiver and ONLY during active handoff */}
-          {otherPerson.contact_preference_type && 
-           otherPerson.contact_preference_type !== 'none' && 
-           otherPerson.contact_preference_value && (
+          {(otherPerson.contact_email || otherPerson.contact_phone) && (
             <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
-              <p className="text-sm font-medium text-blue-900 mb-1">
+              <p className="text-sm font-medium text-blue-900 mb-2">
                 Contact {otherPerson.full_name}:
               </p>
-              <p className="text-sm text-blue-700">
-                {otherPerson.contact_preference_type === 'phone' ? '📞 ' : '📧 '}
-                {otherPerson.contact_preference_value}
-              </p>
+              <div className="space-y-1">
+                {otherPerson.contact_email && (
+                  <a 
+                    href={`mailto:${otherPerson.contact_email}`}
+                    className="block text-sm text-blue-700 hover:underline"
+                  >
+                    📧 {otherPerson.contact_email}
+                  </a>
+                )}
+                {otherPerson.contact_phone && (
+                  <a 
+                    href={phoneToSmsLink(otherPerson.contact_phone)}
+                    className="block text-sm text-blue-700 hover:underline"
+                  >
+                    📱 {otherPerson.contact_phone}
+                  </a>
+                )}
+              </div>
             </div>
           )}
         </div>
