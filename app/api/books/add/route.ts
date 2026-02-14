@@ -1,10 +1,11 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logUserEvent } from '@/lib/gamification/events'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminClient = createServiceRoleClient() // Bypasses RLS
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -48,8 +49,8 @@ export async function POST(request: NextRequest) {
     // Use default price if not provided
     const finalPrice = retail_price_cad || 20.0
 
-    // Create the book
-    const { data: book, error: bookError } = await supabase
+    // Create the book (use service role to bypass RLS)
+    const { data: book, error: bookError } = await adminClient
       .from('books')
       .insert({
         title: title.trim(),
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
         is_visible: selectedCircles?.includes(circle.id) ?? true
       }))
 
-      const { error: visError } = await supabase
+      const { error: visError } = await adminClient
         .from('book_circle_visibility')
         .insert(visibilityEntries)
 

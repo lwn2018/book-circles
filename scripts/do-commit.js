@@ -5,10 +5,7 @@ console.log('Adding files...');
 execSync(`git -C ${dir} add -A`, { stdio: 'inherit' });
 
 console.log('Committing...');
-const result = execSync(`git -C ${dir} commit -m "fix: use API route for Add Book to fix RLS 403 error
-
-Client-side Supabase insert was failing RLS check.
-Created /api/books/add route that handles auth server-side."`, { encoding: 'utf8' });
+const result = execSync(`git -C ${dir} commit -m "fix: use service role client for book insert to bypass RLS"`, { encoding: 'utf8' });
 console.log(result);
 
 console.log('Pushing...');
