@@ -11,13 +11,17 @@ type User = {
   avatar_url: string
   contact_preference_type: string | null
   contact_preference_value: string
+  contact_email?: string | null
+  contact_phone?: string | null
   default_browse_view: string
 }
 
 export default function SettingsForm({ user }: { user: User }) {
   const [fullName, setFullName] = useState(user.full_name || '')
-  const [contactPrefType, setContactPrefType] = useState(user.contact_preference_type || 'none')
-  const [contactPrefValue, setContactPrefValue] = useState(user.contact_preference_value || '')
+  const [contactEmail, setContactEmail] = useState(user.contact_email || '')
+  const [contactPhone, setContactPhone] = useState(user.contact_phone || '')
+  const [shareEmail, setShareEmail] = useState(!!(user.contact_email))
+  const [sharePhone, setSharePhone] = useState(!!(user.contact_phone))
   const [defaultBrowseView, setDefaultBrowseView] = useState(user.default_browse_view || 'card')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -34,9 +38,15 @@ export default function SettingsForm({ user }: { user: User }) {
     setMessage('')
 
     try {
-      // Validate contact preference
-      if (contactPrefType !== 'none' && !contactPrefValue.trim()) {
-        setMessage('❌ Please enter your contact information or select "Don\'t share"')
+      // Validate contact preferences
+      if (shareEmail && !contactEmail.trim()) {
+        setMessage('❌ Please enter your email address or uncheck "Share email"')
+        setLoading(false)
+        return
+      }
+
+      if (sharePhone && !contactPhone.trim()) {
+        setMessage('❌ Please enter your phone number or uncheck "Share phone"')
         setLoading(false)
         return
       }
@@ -46,8 +56,8 @@ export default function SettingsForm({ user }: { user: User }) {
         .from('profiles')
         .update({ 
           full_name: fullName,
-          contact_preference_type: contactPrefType,
-          contact_preference_value: contactPrefType === 'none' ? null : contactPrefValue,
+          contact_email: shareEmail ? contactEmail.trim() : null,
+          contact_phone: sharePhone ? contactPhone.trim() : null,
           default_browse_view: defaultBrowseView
         })
         .eq('id', user.id)
@@ -150,62 +160,57 @@ export default function SettingsForm({ user }: { user: User }) {
               How should circle members reach you for book pickups?
             </label>
             <p className="text-xs text-gray-500 mb-3">
-              This is only shown to people during an active handoff. Not visible on your profile.
+              This is only shown to people during an active handoff. Not visible on your profile. You can select multiple methods.
             </p>
             
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  value="phone"
-                  checked={contactPrefType === 'phone'}
-                  onChange={(e) => setContactPrefType(e.target.value)}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm">Phone number</span>
-              </label>
+            <div className="space-y-4">
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={shareEmail}
+                    onChange={(e) => setShareEmail(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium">Email</span>
+                </label>
+                {shareEmail && (
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="you@example.com"
+                  />
+                )}
+              </div>
 
-              {contactPrefType === 'phone' && (
-                <input
-                  type="tel"
-                  value={contactPrefValue}
-                  onChange={(e) => setContactPrefValue(e.target.value)}
-                  className="ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="(555) 123-4567"
-                />
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={sharePhone}
+                    onChange={(e) => setSharePhone(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium">Phone (call or text)</span>
+                </label>
+                {sharePhone && (
+                  <input
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="(555) 123-4567"
+                  />
+                )}
+              </div>
+
+              {!shareEmail && !sharePhone && (
+                <p className="text-sm text-gray-500 italic">
+                  ℹ️ No contact methods selected. Circle members won't be able to reach you for book handoffs.
+                </p>
               )}
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  value="email"
-                  checked={contactPrefType === 'email'}
-                  onChange={(e) => setContactPrefType(e.target.value)}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm">Email</span>
-              </label>
-
-              {contactPrefType === 'email' && (
-                <input
-                  type="email"
-                  value={contactPrefValue}
-                  onChange={(e) => setContactPrefValue(e.target.value)}
-                  className="ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="you@example.com"
-                />
-              )}
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  value="none"
-                  checked={contactPrefType === 'none'}
-                  onChange={(e) => setContactPrefType(e.target.value)}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm">Don't share contact info</span>
-              </label>
             </div>
           </div>
 

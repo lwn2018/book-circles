@@ -76,28 +76,19 @@ export default function OnboardingProfile() {
       // Pre-fill email with auth email if not provided
       const finalEmail = emailValue.trim() || user.email || ''
 
-      // Build contact preference
-      let contactType: 'email' | 'phone' | 'text' | 'none' = 'none'
-      let contactValue = ''
-
-      if (contactMethods.includes('email')) {
-        contactType = 'email'
-        contactValue = finalEmail
-      } else if (contactMethods.includes('text')) {
-        contactType = 'text'
-        contactValue = phoneValue.trim()
-      } else if (contactMethods.includes('phone')) {
-        contactType = 'phone'
-        contactValue = phoneValue.trim()
-      }
+      // Build contact preferences (can have both email and phone)
+      const contactEmail = contactMethods.includes('email') ? finalEmail : null
+      const contactPhone = (contactMethods.includes('phone') || contactMethods.includes('text')) 
+        ? phoneValue.trim() 
+        : null
 
       // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
           full_name: fullName.trim(),
-          contact_preference_type: contactType,
-          contact_preference_value: contactValue
+          contact_email: contactEmail,
+          contact_phone: contactPhone
         })
         .eq('id', user.id)
 

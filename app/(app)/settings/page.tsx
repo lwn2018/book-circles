@@ -63,6 +63,8 @@ export default async function Settings() {
             avatar_url: profile?.avatar_url || '',
             contact_preference_type: profile?.contact_preference_type || null,
             contact_preference_value: profile?.contact_preference_value || '',
+            contact_email: profile?.contact_email || null,
+            contact_phone: profile?.contact_phone || null,
             default_browse_view: profile?.default_browse_view || 'card'
           }}
         />
