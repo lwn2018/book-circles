@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import BookCoverPlaceholder from '@/app/components/BookCoverPlaceholder'
 
 type Circle = {
   id: string
@@ -17,6 +18,7 @@ type ParsedBook = {
   myRating?: number
   dateRead?: string
   bookshelves?: string
+  exclusiveShelf?: string // 'read', 'currently-reading', 'to-read', or custom
   coverUrl?: string
   selectedCircles: string[]
   selected: boolean
@@ -33,14 +35,15 @@ export default function GoodreadsImporter({
   const [books, setBooks] = useState<ParsedBook[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showCuration, setShowCuration] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
   
-  // Filters
-  const [ratingFilter, setRatingFilter] = useState(false) // 4+ stars
-  const [dateFilter, setDateFilter] = useState(false) // Last 3 years
-  const [ownedFilter, setOwnedFilter] = useState(false) // Books marked as owned
+  // Shelf filters (pills)
+  type ShelfFilter = 'owned' | 'read' | 'to-read' | 'all'
+  const [activeShelf, setActiveShelf] = useState<ShelfFilter>('owned')
   
   const router = useRouter()
   const supabase = createClient()
@@ -77,7 +80,8 @@ export default function GoodreadsImporter({
       const isbn13Idx = headers.findIndex(h => h.toLowerCase() === 'isbn13')
       const ratingIdx = headers.findIndex(h => h.toLowerCase() === 'my rating')
       const dateReadIdx = headers.findIndex(h => h.toLowerCase() === 'date read')
-      const bookshelvesIdx = headers.findIndex(h => h.toLowerCase().includes('bookshel') || h.toLowerCase().includes('exclusive shelf'))
+      const bookshelvesIdx = headers.findIndex(h => h.toLowerCase() === 'bookshelves')
+      const exclusiveShelfIdx = headers.findIndex(h => h.toLowerCase() === 'exclusive shelf')
 
       if (titleIdx === -1) {
         setError('CSV must have a "Title" column')
@@ -115,6 +119,10 @@ export default function GoodreadsImporter({
         const myRating = ratingIdx !== -1 ? parseInt(values[ratingIdx]?.replace(/"/g, '')) : undefined
         const dateRead = dateReadIdx !== -1 ? values[dateReadIdx]?.replace(/"/g, '') : undefined
         const bookshelves = bookshelvesIdx !== -1 ? values[bookshelvesIdx]?.replace(/"/g, '').toLowerCase() : undefined
+        const exclusiveShelf = exclusiveShelfIdx !== -1 ? values[exclusiveShelfIdx]?.replace(/"/g, '').toLowerCase() : undefined
+
+        // Check if book is owned (in bookshelves or explicit "owned" shelf)
+        const isOwned = bookshelves?.includes('owned') || bookshelves?.includes('own')
 
         if (title) {
           parsedBooks.push({
@@ -124,8 +132,9 @@ export default function GoodreadsImporter({
             myRating,
             dateRead,
             bookshelves,
+            exclusiveShelf,
             selectedCircles: userCircles.map(c => c.id),
-            selected: false // None selected by default for curation
+            selected: isOwned || false // Pre-select owned books
           })
         }
       }
@@ -145,30 +154,42 @@ export default function GoodreadsImporter({
     }
   }
 
-  // Filter books based on active filters
+  // Filter books based on shelf filter
   const filteredBooks = useMemo(() => {
-    let result = books
+    if (activeShelf === 'all') return books
+    
+    return books.filter(book => {
+      const shelf = book.exclusiveShelf || ''
+      const shelves = book.bookshelves || ''
+      
+      switch (activeShelf) {
+        case 'owned':
+          return shelves.includes('owned') || shelves.includes('own')
+        case 'read':
+          return shelf === 'read' || shelves.includes('read')
+        case 'to-read':
+          return shelf === 'to-read' || shelves.includes('to-read')
+        default:
+          return true
+      }
+    })
+  }, [books, activeShelf])
 
-    if (ratingFilter) {
-      result = result.filter(b => b.myRating && b.myRating >= 4)
-    }
-
-    if (dateFilter) {
-      const threeYearsAgo = new Date()
-      threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3)
-      result = result.filter(b => {
-        if (!b.dateRead) return false
-        const bookDate = new Date(b.dateRead)
-        return bookDate >= threeYearsAgo
-      })
-    }
-
-    if (ownedFilter) {
-      result = result.filter(b => b.bookshelves?.includes('owned') || b.bookshelves?.includes('own'))
-    }
-
-    return result
-  }, [books, ratingFilter, dateFilter, ownedFilter])
+  // Count books per shelf for filter pills
+  const shelfCounts = useMemo(() => {
+    const counts = { owned: 0, read: 0, 'to-read': 0, all: books.length }
+    
+    books.forEach(book => {
+      const shelf = book.exclusiveShelf || ''
+      const shelves = book.bookshelves || ''
+      
+      if (shelves.includes('owned') || shelves.includes('own')) counts.owned++
+      if (shelf === 'read' || shelves.includes('read')) counts.read++
+      if (shelf === 'to-read' || shelves.includes('to-read')) counts['to-read']++
+    })
+    
+    return counts
+  }, [books])
 
   const selectedCount = filteredBooks.filter(b => b.selected).length
 
@@ -216,11 +237,15 @@ export default function GoodreadsImporter({
     if (selectedBooks.length === 0) return
 
     setImporting(true)
+    setImportProgress({ current: 0, total: selectedBooks.length })
     setError('')
     let successCount = 0
     let errorCount = 0
 
-    for (const book of selectedBooks) {
+    for (let i = 0; i < selectedBooks.length; i++) {
+      const book = selectedBooks[i]
+      setImportProgress({ current: i + 1, total: selectedBooks.length })
+      
       try {
         const { data: newBook, error: bookError} = await supabase
           .from('books')
@@ -257,9 +282,14 @@ export default function GoodreadsImporter({
     }
 
     setImporting(false)
-    setSuccess(`✅ Imported ${successCount} books!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`)
+    setImportProgress({ current: 0, total: 0 })
+    
+    // Show toast notification
+    const message = `✅ Imported ${successCount} book${successCount !== 1 ? 's' : ''}!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`
+    setToast(message)
     
     setTimeout(() => {
+      setToast(null)
       router.push('/library')
       router.refresh()
     }, 2000)
@@ -307,65 +337,73 @@ export default function GoodreadsImporter({
       )}
 
       {/* Curation Step */}
-      {showCuration && filteredBooks.length > 0 && (
+      {showCuration && books.length > 0 && (
         <>
           <div className="mb-4">
             <h3 className="font-semibold mb-3">Select Books to Import</h3>
             
-            {/* Filters */}
+            {/* Shelf Filter Pills */}
             <div className="flex flex-wrap gap-2 mb-4">
-              <label className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition ${
-                ratingFilter ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}>
-                <input
-                  type="checkbox"
-                  checked={ratingFilter}
-                  onChange={(e) => setRatingFilter(e.target.checked)}
-                  className="sr-only"
-                />
-                4+ Stars Only
-              </label>
+              <button
+                onClick={() => setActiveShelf('owned')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  activeShelf === 'owned' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📚 Owned ({shelfCounts.owned})
+              </button>
               
-              <label className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition ${
-                dateFilter ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}>
-                <input
-                  type="checkbox"
-                  checked={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.checked)}
-                  className="sr-only"
-                />
-                Last 3 Years
-              </label>
+              <button
+                onClick={() => setActiveShelf('read')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  activeShelf === 'read' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                ✅ Read ({shelfCounts.read})
+              </button>
               
-              <label className={`px-3 py-1.5 rounded-full text-sm cursor-pointer transition ${
-                ownedFilter ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}>
-                <input
-                  type="checkbox"
-                  checked={ownedFilter}
-                  onChange={(e) => setOwnedFilter(e.target.checked)}
-                  className="sr-only"
-                />
-                Books I Own
-              </label>
+              <button
+                onClick={() => setActiveShelf('to-read')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  activeShelf === 'to-read' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📖 To-Read ({shelfCounts['to-read']})
+              </button>
+              
+              <button
+                onClick={() => setActiveShelf('all')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  activeShelf === 'all' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                All ({shelfCounts.all})
+              </button>
             </div>
 
             {/* Bulk actions */}
             <div className="flex items-center justify-between mb-3">
               <div className="text-sm text-gray-600">
-                {selectedCount} book{selectedCount !== 1 ? 's' : ''} ready to share
+                <span className="font-semibold">{selectedCount}</span> book{selectedCount !== 1 ? 's' : ''} selected
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={selectAllVisible}
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm text-blue-600 hover:underline font-medium"
                 >
                   Select all visible
                 </button>
                 <button
                   onClick={deselectAll}
-                  className="text-sm text-gray-600 hover:underline"
+                  className="text-sm text-gray-500 hover:underline"
                 >
                   Deselect all
                 </button>
@@ -373,31 +411,56 @@ export default function GoodreadsImporter({
             </div>
           </div>
 
-          {/* Books List */}
-          <div className="h-96 overflow-y-auto border rounded-lg mb-4">
-            {filteredBooks.map((book, index) => (
-              <label
-                key={index}
-                className={`flex items-start gap-3 p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 transition ${
-                  book.selected ? 'bg-blue-50' : ''
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={book.selected}
-                  onChange={() => toggleBookSelection(index)}
-                  className="mt-1 w-4 h-4"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm">{book.title}</div>
-                  <div className="text-xs text-gray-600">{book.author}</div>
-                  <div className="flex gap-2 mt-1 text-xs text-gray-500">
-                    {book.myRating && <span>⭐ {book.myRating}/5</span>}
-                    {book.dateRead && <span>📅 {book.dateRead}</span>}
+          {/* Books Grid */}
+          <div className="max-h-[500px] overflow-y-auto border rounded-lg p-3 mb-4">
+            {filteredBooks.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No books in this shelf</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {filteredBooks.map((book, index) => (
+                  <div
+                    key={index}
+                    onClick={() => toggleBookSelection(index)}
+                    className={`relative cursor-pointer rounded-lg overflow-hidden transition-all ${
+                      book.selected 
+                        ? 'ring-2 ring-blue-600 ring-offset-1' 
+                        : 'hover:ring-2 hover:ring-gray-300'
+                    }`}
+                  >
+                    {/* Book Cover */}
+                    <div className="aspect-[2/3] relative">
+                      <BookCoverPlaceholder
+                        title={book.title}
+                        author={book.author}
+                        isbn={book.isbn}
+                        className="w-full h-full"
+                      />
+                      
+                      {/* Selection Checkbox Overlay */}
+                      <div className={`absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center transition ${
+                        book.selected 
+                          ? 'bg-blue-600' 
+                          : 'bg-white/80 border border-gray-300'
+                      }`}>
+                        {book.selected && (
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Title (truncated) */}
+                    <div className="p-1.5 bg-white">
+                      <p className="text-xs font-medium truncate">{book.title}</p>
+                      <p className="text-xs text-gray-500 truncate">{book.author}</p>
+                    </div>
                   </div>
-                </div>
-              </label>
-            ))}
+                ))}
+              </div>
+            )}
           </div>
 
           <button
@@ -458,14 +521,39 @@ export default function GoodreadsImporter({
             })}
           </div>
 
-          <button
-            onClick={handleImport}
-            disabled={importing}
-            className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-          >
-            {importing ? 'Importing...' : `Import ${books.filter(b => b.selected && b.selectedCircles.length > 0).length} Books`}
-          </button>
+          {/* Import Button with Progress */}
+          {importing ? (
+            <div className="w-full">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">Importing books...</span>
+                <span className="text-sm font-medium">
+                  {importProgress.current} / {importProgress.total}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-green-600 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleImport}
+              disabled={importing}
+              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              Import {books.filter(b => b.selected && b.selectedCircles.length > 0).length} Books
+            </button>
+          )}
         </>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg max-w-md text-center animate-fade-in">
+          {toast}
+        </div>
       )}
     </div>
   )
