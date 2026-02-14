@@ -79,9 +79,9 @@ export default function SignupForm() {
     }
 
     try {
-      // Validate invite code if provided
+      // Validate invite code if provided (but skip if this is a circle invite)
       let inviter_id = null
-      if (inviteCode) {
+      if (inviteCode && !circleCode) {
         const response = await fetch(`/api/invite/validate?code=${inviteCode}`)
         const data = await response.json()
         
@@ -219,7 +219,7 @@ export default function SignupForm() {
                 type="text"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                onBlur={() => inviteCode && validateInvite(inviteCode)}
+                onBlur={() => !circleCode && inviteCode && validateInvite(inviteCode)}
                 placeholder="ABCD1234"
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase ${circleCode ? 'bg-gray-50' : ''}`}
                 maxLength={8}
