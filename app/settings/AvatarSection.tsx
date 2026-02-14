@@ -234,6 +234,8 @@ export default function AvatarSection({
 
   // Get current avatar preview
   const getCurrentAvatar = () => {
+    console.log('[Settings Avatar] Rendering:', { avatarType, selectedPreset, currentAvatarUrl, uploadedPreview })
+    
     if (avatarType === 'upload' && uploadedPreview) {
       return (
         <img
@@ -256,6 +258,7 @@ export default function AvatarSection({
 
     if (avatarType === 'preset' && selectedPreset) {
       const preset = PRESET_AVATARS.find(p => p.id === selectedPreset)
+      console.log('[Settings Avatar] Preset lookup:', { selectedPreset, preset })
       if (preset) {
         return (
           <div className={`w-full h-full rounded-full ${preset.color} flex items-center justify-center`}>
@@ -266,6 +269,7 @@ export default function AvatarSection({
     }
 
     // Default initials
+    console.log('[Settings Avatar] Falling back to initials')
     return (
       <div
         className="w-full h-full rounded-full flex items-center justify-center font-semibold text-white text-4xl"
@@ -296,30 +300,26 @@ export default function AvatarSection({
       <div className="flex justify-center mb-6">
         <div className="relative w-32 h-32">
           {getCurrentAvatar()}
-          
-          {/* Upload Button Overlay */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading || saving}
-            className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 rounded-full transition-all flex items-center justify-center group disabled:cursor-not-allowed"
-          >
-            <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity">
-              📷
-            </span>
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
         </div>
       </div>
 
-      <p className="text-sm text-gray-600 text-center mb-4">
-        Click the avatar to upload a photo
-      </p>
+      {/* Upload Photo Button (separate from avatar display) */}
+      <div className="mb-4">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading || saving}
+          className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {uploading ? 'Uploading...' : '📷 Upload Photo'}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+      </div>
 
       {/* Preset Avatar Options */}
       <div className="mb-6">

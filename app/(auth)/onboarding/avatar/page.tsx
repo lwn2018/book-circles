@@ -163,6 +163,8 @@ export default function OnboardingAvatar() {
       }
 
       // Update profile
+      console.log('[Onboarding Avatar] Saving:', { avatarType, selectedPreset, avatarUrl, userId: user.id })
+      
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -172,8 +174,12 @@ export default function OnboardingAvatar() {
         })
         .eq('id', user.id)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        console.error('[Onboarding Avatar] Save failed:', updateError)
+        throw updateError
+      }
 
+      console.log('[Onboarding Avatar] Saved successfully!')
       router.push('/onboarding/profile')
     } catch (err: any) {
       setError(err.message || 'Failed to save avatar')
