@@ -39,8 +39,9 @@ export async function POST(request: NextRequest) {
       coversBySource: {
         google: 0,
         isbndb: 0,
-        openlibrary: 0
-      },
+        openlibrary: 0,
+        placeholder: 0
+      } as Record<string, number>,
       pricesFound: 0,
       descriptionsFound: 0,
       errors: [] as string[],
