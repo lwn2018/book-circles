@@ -221,11 +221,11 @@ export default function AddBookModal({
 
       if (bookError) throw bookError
 
-      // Log gamification event
+      // Log gamification event (spec requirement)
       await logEvent(userId, 'book_added', {
         book_id: book.id,
         source: bookSource,
-        retail_price: retailPrice
+        retail_price_cad: retailPrice
       })
 
       // Create visibility entries for ALL circles the user is in

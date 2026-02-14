@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
+import { logUserEvent } from '@/lib/gamification/events'
 
 /**
  * Track a purchase click before redirecting to Amazon
@@ -69,6 +70,13 @@ export async function POST(request: NextRequest) {
       console.error('Failed to log purchase click:', insertError)
       // Don't block the user - still return the URL
     }
+
+    // Log affiliate_click event (spec requirement)
+    await logUserEvent(user.id, 'affiliate_click', {
+      book_id: book_id || undefined,
+      context: click_context as 'unavailable' | 'post_read' | 'browse' | 'gift',
+      previously_borrowed
+    })
 
     // Return the Amazon URL
     return NextResponse.json({ 

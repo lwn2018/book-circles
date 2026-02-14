@@ -2,6 +2,7 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail, handoffInitiatedEmailOwner, handoffInitiatedEmailBorrower } from '@/lib/send-email'
 import { analytics } from '@/lib/analytics'
+import { logUserEvent } from '@/lib/gamification/events'
 
 export async function POST(
   request: NextRequest,
@@ -175,12 +176,18 @@ export async function POST(
       })
     }
 
-    // Track borrow accepted
+    // Track borrow accepted (analytics)
     await analytics.track('borrow_accepted', {
       bookId,
       borrowerId: user.id,
       ownerId: book.owner_id,
       handoffId
+    })
+
+    // Log event for gamification (user_events table)
+    await logUserEvent(user.id, 'borrow_confirmed', {
+      book_id: bookId,
+      borrower_id: user.id
     })
 
     return NextResponse.json({

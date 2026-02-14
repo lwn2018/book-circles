@@ -189,6 +189,14 @@ export async function confirmHandoff(
           days_held: daysHeld,
           retail_price: retailPrice
         })
+
+        // Log return_confirmed event (spec requirement)
+        await logUserEvent(handoff.giver_id, 'return_confirmed', {
+          book_id: handoff.book_id,
+          returner_id: handoff.giver_id,
+          retail_price_cad: retailPrice,
+          total_chain_length: 1 // TODO: Calculate actual chain length from borrow_history
+        })
       } else {
         // Pagepass - set new borrower
         const { error: updateError } = await adminClient
@@ -285,9 +293,19 @@ export async function confirmHandoff(
         ])
       }
 
-      // Track handoff confirmed (skipped - analytics doesn't work in server actions)
-      // TODO: Move to client-side tracking
-      // await analytics.track('handoff_confirmed', { ... })
+      // Log handoff_confirmed event (spec requirement) for BOTH parties
+      await logUserEvent(handoff.giver_id, 'handoff_confirmed', {
+        book_id: handoff.book_id,
+        from_user_id: handoff.giver_id,
+        to_user_id: handoff.receiver_id,
+        retail_price_cad: retailPrice
+      })
+      await logUserEvent(handoff.receiver_id, 'handoff_confirmed', {
+        book_id: handoff.book_id,
+        from_user_id: handoff.giver_id,
+        to_user_id: handoff.receiver_id,
+        retail_price_cad: retailPrice
+      })
 
       // Log to activity ledger (use service role)
       await adminClient

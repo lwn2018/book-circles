@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { analytics } from '@/lib/analytics'
+import { logUserEvent } from '@/lib/gamification/events'
 
 // Get book details + queue info for request confirmation
 export async function GET(
@@ -193,12 +194,18 @@ export async function POST(
         read: false
       })
 
-    // Track borrow request
+    // Track borrow request (analytics)
     await analytics.track('borrow_requested', {
       bookId,
       ownerId: book.owner_id,
       queuePosition: nextPosition,
       isAvailable: book.status === 'available'
+    })
+
+    // Log event for gamification (user_events table)
+    await logUserEvent(user.id, 'borrow_requested', {
+      book_id: bookId,
+      circle_id: undefined // TODO: Get circle context if available
     })
 
     return NextResponse.json({

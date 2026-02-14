@@ -2,6 +2,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { logUserEvent } from './gamification/events'
 
 async function getSupabase() {
   const cookieStore = await cookies()
@@ -113,6 +114,11 @@ export async function leaveCircle(circleId: string, userId: string) {
   if (removeError) {
     return { error: `Failed to leave circle: ${removeError.message}` }
   }
+
+  // Log circle_left event (spec requirement)
+  await logUserEvent(userId, 'circle_left', {
+    circle_id: circleId
+  })
 
   return { 
     success: true,

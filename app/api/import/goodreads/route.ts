@@ -131,11 +131,11 @@ export async function POST(request: NextRequest) {
             .insert(visibilityEntries)
         }
 
-        // Log gamification event
+        // Log gamification event (spec requirement)
         await logUserEvent(userId, 'book_added', {
           book_id: book.id,
           source: 'goodreads',
-          retail_price: retailPrice
+          retail_price_cad: retailPrice
         })
 
         imported++
@@ -157,6 +157,12 @@ export async function POST(request: NextRequest) {
       })
       .eq('user_id', userId)
       .eq('file_url', fileUrl)
+
+    // Log goodreads_imported event (spec requirement)
+    await logUserEvent(userId, 'goodreads_imported', {
+      books_imported_count: imported,
+      books_available_count: imported // All imported books are set to available
+    })
 
     // Get user's email
     const { data: { user } } = await supabase.auth.admin.getUserById(userId)

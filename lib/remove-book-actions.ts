@@ -3,6 +3,7 @@
 import { createServerSupabaseClient } from './supabase-server'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from './notifications'
+import { logUserEvent } from './gamification/events'
 
 /**
  * Check if a book can be removed and return detailed status
@@ -129,6 +130,11 @@ export async function removeBookPermanently(bookId: string) {
     console.error('Error deleting book:', deleteError)
     return { error: 'Failed to remove book. Please try again.' }
   }
+
+  // Log book_removed event (spec requirement)
+  await logUserEvent(user.id, 'book_removed', {
+    book_id: bookId
+  })
 
   // Send notifications to queued users (if any)
   if (queuedUsers && queuedUsers.length > 0) {

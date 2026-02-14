@@ -6,16 +6,32 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export type EventType =
+  // Book lifecycle
   | 'book_added'
+  | 'book_removed'
   | 'book_lent'
   | 'book_borrowed'
   | 'book_returned'
   | 'book_passed'
   | 'book_gifted'
+  // Handoff flow (spec events)
+  | 'borrow_requested'
+  | 'borrow_confirmed'
+  | 'handoff_confirmed'
+  | 'return_confirmed'
+  // Circle events
   | 'circle_created'
   | 'circle_joined'
+  | 'circle_left'
+  // User/invite events
   | 'user_invited'
   | 'invite_converted'
+  // Feature events
+  | 'off_shelf_toggled'
+  | 'gift_given'
+  | 'gift_received'
+  | 'affiliate_click'
+  | 'goodreads_imported'
 
 export type EventMetadata = {
   book_id?: string
@@ -24,13 +40,31 @@ export type EventMetadata = {
   from_user_id?: string
   to_user_id?: string
   circle_id?: string
+  // Price tracking (spec requirement)
   retail_price?: number
-  days_held?: number
-  source?: string
-  invite_source?: string
+  retail_price_cad?: number
+  // Source tracking
+  source?: string // manual, goodreads, barcode
+  invite_source?: string // invite_link, code
   method?: string
+  // User references
   inviter_user_id?: string
   invitee_user_id?: string
+  returner_id?: string
+  recipient_id?: string
+  giver_id?: string
+  // Chain tracking
+  total_chain_length?: number
+  days_held?: number
+  // Off-shelf
+  new_status?: 'on' | 'off'
+  // Affiliate tracking
+  context?: 'unavailable' | 'post_read' | 'browse' | 'gift'
+  previously_borrowed?: boolean
+  // Goodreads import stats
+  books_imported_count?: number
+  books_available_count?: number
+  // Allow additional fields
   [key: string]: any
 }
 

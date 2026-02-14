@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { fetchBookCover } from '@/lib/fetch-book-cover'
+import { logEvent } from '@/lib/gamification/log-event-action'
 
 export default function AddBookForm({ circleId, userId }: { circleId: string; userId: string }) {
   const [title, setTitle] = useState('')
@@ -16,6 +17,7 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
   const [lookupStatus, setLookupStatus] = useState('')
   const [titleSearchResults, setTitleSearchResults] = useState<any[]>([])
   const [showTitleDropdown, setShowTitleDropdown] = useState(false)
+  const [bookSource, setBookSource] = useState<'barcode' | 'search' | 'manual'>('manual')
   const scannerRef = useRef<HTMLDivElement>(null)
   const quaggaRef = useRef<any>(null)
   const titleSearchTimer = useRef<NodeJS.Timeout | null>(null)
@@ -34,6 +36,7 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
         setTitle(data.title || '')
         setAuthor(data.author || '')
         setCoverUrl(data.coverUrl || '')
+        setBookSource('barcode')
         setLookupStatus(`✓ Found via ${data.source}`)
         setTimeout(() => setLookupStatus(''), 3000)
       } else {
@@ -114,6 +117,7 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
     setAuthor(result.author || '')
     setIsbn(result.isbn || '')
     setCoverUrl(result.coverUrl || '')
+    setBookSource('search')
     setTitleSearchResults([])
     setShowTitleDropdown(false)
   }
@@ -261,6 +265,13 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
         .from('book_circle_visibility')
         .insert(visibilityEntries)
     }
+
+    // Log book_added event (spec requirement)
+    await logEvent(userId, 'book_added', {
+      book_id: newBook.id,
+      source: bookSource,
+      retail_price_cad: 20.0 // Default, no metadata lookup in this form
+    })
 
     // Reset form
     setTitle('')

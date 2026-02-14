@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
+import { logUserEvent } from './gamification/events'
 
 type GiftToggleResult = {
   success?: boolean
@@ -260,6 +261,18 @@ export async function completeGiftTransfer(
         read: false
       }
     ])
+
+    // Log gift_given event for previous owner (spec requirement)
+    await logUserEvent(previousOwnerId, 'gift_given', {
+      book_id: bookId,
+      recipient_id: newOwnerId
+    })
+
+    // Log gift_received event for new owner (spec requirement)
+    await logUserEvent(newOwnerId, 'gift_received', {
+      book_id: bookId,
+      giver_id: previousOwnerId
+    })
 
     // 9. Notify cleared queue members
     if (queueMembers && queueMembers.length > 0) {

@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
+import { logUserEvent } from './gamification/events'
 
 type ToggleResult = {
   success?: boolean
@@ -85,6 +86,12 @@ export async function toggleBookShelfStatus(
           }
         })
 
+        // Log off_shelf_toggled event (spec requirement)
+        await logUserEvent(user.id, 'off_shelf_toggled', {
+          book_id: bookId,
+          new_status: 'off'
+        })
+
         revalidatePath('/library')
         revalidatePath(`/circles/[id]`, 'page')
         return { success: true }
@@ -166,6 +173,12 @@ export async function toggleBookShelfStatus(
             was_off_shelf_for_days: offShelfDuration,
             queue_resumed: queueCount > 0
           }
+        })
+
+        // Log off_shelf_toggled event (spec requirement)
+        await logUserEvent(user.id, 'off_shelf_toggled', {
+          book_id: bookId,
+          new_status: 'on'
         })
 
         revalidatePath('/library')
