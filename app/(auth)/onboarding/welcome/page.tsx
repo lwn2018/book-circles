@@ -103,8 +103,8 @@ export default function OnboardingWelcome() {
       localStorage.removeItem('pagepass_invite_circle_name')
       localStorage.removeItem('pendingCircleJoin')
 
-      // Redirect to circle
-      router.push(`/circles/${circleId}`)
+      // Redirect to circle (use window.location to force full page reload with fresh data)
+      window.location.href = `/circles/${circleId}`
     } catch (err: any) {
       console.error('Failed to join circle:', err)
       alert('Failed to join circle. Please try again.')
@@ -129,7 +129,8 @@ export default function OnboardingWelcome() {
         })
         .eq('id', user.id)
 
-      router.push('/circles')
+      // Force full page reload to fetch fresh profile data
+      window.location.href = '/circles'
     } catch (err) {
       console.error('Failed to complete onboarding:', err)
       alert('Something went wrong. Please try again.')
