@@ -151,13 +151,19 @@ export default function GoodreadsImporter({
 
   const saveToStoredLibrary = async (parsedBooks: ParsedBook[]) => {
     try {
-      await fetch('/api/goodreads/library', {
+      console.log('[GoodreadsImporter] Saving', parsedBooks.length, 'books to stored library...')
+      const response = await fetch('/api/goodreads/library', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ books: parsedBooks })
       })
+      const result = await response.json()
+      console.log('[GoodreadsImporter] Save result:', response.status, result)
+      if (!response.ok) {
+        console.error('[GoodreadsImporter] Save failed:', result.error)
+      }
     } catch (err) {
-      console.error('Failed to save to stored library:', err)
+      console.error('[GoodreadsImporter] Failed to save to stored library:', err)
     }
   }
 
