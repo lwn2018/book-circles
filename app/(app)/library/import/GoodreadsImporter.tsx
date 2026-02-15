@@ -213,7 +213,7 @@ export default function GoodreadsImporter({
         await saveToStoredLibrary(parsedBooks)
         setHasStoredLibrary(true)
         setShowCuration(true)
-        setSuccess(`Found ${parsedBooks.length} books! Select which ones to import.`)
+        // Don't show duplicate success message - the blue info box handles this
       }
     } catch (err: any) {
       setError(`Failed to parse CSV: ${err.message}`)
@@ -371,6 +371,19 @@ export default function GoodreadsImporter({
     )
   }
 
+  // Show prominent loading state while parsing CSV
+  if (parsing) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
+          <p className="text-lg font-medium text-blue-800">Reading your Goodreads library...</p>
+          <p className="text-sm text-gray-500 mt-2">This may take a moment for large libraries</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       {hasStoredLibrary && !showCuration && (
@@ -405,14 +418,6 @@ export default function GoodreadsImporter({
           </label>
           <input type="file" accept=".csv" onChange={handleFileChange} disabled={parsing}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50" />
-          {parsing && (
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                <span className="text-sm font-medium text-blue-800">Reading your Goodreads library...</span>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -430,7 +435,7 @@ export default function GoodreadsImporter({
               </div>
             )}
             
-            {importedCount === 0 && books.length >= 50 && (
+            {importedCount === 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
                 <p className="text-blue-800"><strong>We found {books.length} books!</strong> Start with 20-30 — you can add more later.</p>
               </div>
