@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import BookCoverPlaceholder from '@/app/components/BookCoverPlaceholder'
 
 type Circle = {
   id: string
@@ -336,7 +335,19 @@ export default function GoodreadsImporter({
       {showCuration && books.length > 0 && (
         <>
           <div className="mb-4">
-            <h3 className="font-semibold mb-3">Select Books to Import</h3>
+            <h3 className="font-semibold mb-2">Select Books to Import</h3>
+            
+            {/* Guidance message for large libraries */}
+            {books.length >= 50 ? (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
+                <p className="text-blue-800">
+                  <strong>We found {books.length} books!</strong> You probably don't want to share all of them at once. 
+                  We recommend starting with 20-30 books your friends would actually want to borrow — you can always add more later.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 mb-3">Use the filters to find the ones worth sharing.</p>
+            )}
             
             {/* Shelf Filter Pills */}
             <div className="flex flex-wrap gap-2 mb-4">
@@ -407,52 +418,49 @@ export default function GoodreadsImporter({
             </div>
           </div>
 
-          {/* Books Grid */}
-          <div className="max-h-[500px] overflow-y-auto border rounded-lg p-3 mb-4">
+          {/* Compact Book List (no covers - faster scanning, no API calls) */}
+          <div className="max-h-[400px] overflow-y-auto border rounded-lg mb-4">
             {filteredBooks.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No books in this shelf</p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+              <div className="divide-y divide-gray-100">
                 {filteredBooks.map((book, index) => (
                   <div
                     key={index}
                     onClick={() => toggleBookSelection(index)}
-                    className={`relative cursor-pointer rounded-lg overflow-hidden transition-all ${
+                    className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
                       book.selected 
-                        ? 'ring-2 ring-blue-600 ring-offset-1' 
-                        : 'hover:ring-2 hover:ring-gray-300'
+                        ? 'bg-blue-50' 
+                        : 'hover:bg-gray-50'
                     }`}
                   >
-                    {/* Book Cover */}
-                    <div className="aspect-[2/3] relative">
-                      <BookCoverPlaceholder
-                        title={book.title}
-                        author={book.author}
-                        isbn={book.isbn}
-                        className="w-full h-full"
-                      />
-                      
-                      {/* Selection Checkbox Overlay */}
-                      <div className={`absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center transition ${
-                        book.selected 
-                          ? 'bg-blue-600' 
-                          : 'bg-white/80 border border-gray-300'
-                      }`}>
-                        {book.selected && (
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
+                    {/* Checkbox */}
+                    <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${
+                      book.selected 
+                        ? 'bg-blue-600 border-blue-600' 
+                        : 'border-gray-300'
+                    }`}>
+                      {book.selected && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
                     </div>
                     
-                    {/* Title (truncated) */}
-                    <div className="p-1.5 bg-white">
-                      <p className="text-xs font-medium truncate">{book.title}</p>
+                    {/* Title & Author */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{book.title}</p>
                       <p className="text-xs text-gray-500 truncate">{book.author}</p>
                     </div>
+                    
+                    {/* Star Rating */}
+                    {book.myRating && book.myRating > 0 && (
+                      <div className="flex-shrink-0 text-xs text-amber-500">
+                        {'★'.repeat(book.myRating)}{'☆'.repeat(5 - book.myRating)}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

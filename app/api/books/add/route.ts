@@ -1,6 +1,7 @@
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logUserEvent } from '@/lib/gamification/events'
+import { fetchBookCover } from '@/lib/fetch-book-cover'
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,6 +50,23 @@ export async function POST(request: NextRequest) {
     // Use default price if not provided
     const finalPrice = retail_price_cad || 20.0
 
+    // Fetch cover from Google Books if not provided (for Goodreads imports)
+    let finalCoverUrl = cover_url || null
+    let finalCoverSource = cover_source || null
+    
+    if (!finalCoverUrl && (isbn || isbn10)) {
+      try {
+        const coverResult = await fetchBookCover(isbn || isbn10)
+        if (coverResult) {
+          finalCoverUrl = coverResult.url
+          finalCoverSource = coverResult.source
+        }
+      } catch (err) {
+        console.log('Cover fetch failed for ISBN:', isbn || isbn10, err)
+        // Continue without cover - not a blocking error
+      }
+    }
+
     // Create the book (use service role to bypass RLS)
     const { data: book, error: bookError } = await adminClient
       .from('books')
@@ -57,8 +75,8 @@ export async function POST(request: NextRequest) {
         author: author?.trim() || null,
         isbn: isbn?.trim() || null,
         isbn10: isbn10 || null,
-        cover_url: cover_url || null,
-        cover_source: cover_source || null,
+        cover_url: finalCoverUrl,
+        cover_source: finalCoverSource,
         owner_id: user.id,
         status: 'available',
         retail_price_cad: finalPrice,
