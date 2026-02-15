@@ -41,8 +41,8 @@ export async function createNotification(notification: NotificationData) {
         type: notification.type,
         title: notification.title,
         message: notification.message,
-        link: notification.link || null,
-        data: notification.data || {}
+        action_url: notification.link || null,  // Bell expects action_url, not link
+        metadata: notification.data || {}       // Bell might expect metadata, not data
       })
       .select()
       .single()
