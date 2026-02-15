@@ -72,6 +72,12 @@ export default function GoodreadsImporter({
     loadOwnedBooks()
   }, [])
 
+  // Normalize string for matching (lowercase, remove punctuation, collapse spaces)
+  const normalizeForMatch = (str: string | null | undefined): string => {
+    if (!str) return ''
+    return str.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim()
+  }
+
   const loadOwnedBooks = async () => {
     try {
       // Fetch user's existing books to check for duplicates
@@ -80,15 +86,18 @@ export default function GoodreadsImporter({
         .select('title, author, isbn, isbn13')
         .eq('owner_id', userId)
       
+      console.log('[GoodreadsImporter] Loaded owned books:', userBooks?.length)
+      
       if (userBooks) {
         const owned = new Set<string>()
         userBooks.forEach(book => {
-          // Create lookup keys for matching
-          if (book.isbn13) owned.add(book.isbn13.toLowerCase())
-          if (book.isbn) owned.add(book.isbn.toLowerCase())
-          // Also add title+author combo for books without ISBN
-          const titleAuthor = `${book.title?.toLowerCase()}|${book.author?.toLowerCase()}`
+          // Create lookup keys for matching - use normalized versions
+          if (book.isbn13) owned.add(book.isbn13.toLowerCase().replace(/[^0-9x]/gi, ''))
+          if (book.isbn) owned.add(book.isbn.toLowerCase().replace(/[^0-9x]/gi, ''))
+          // Also add normalized title+author combo
+          const titleAuthor = `${normalizeForMatch(book.title)}|${normalizeForMatch(book.author)}`
           owned.add(titleAuthor)
+          console.log('[GoodreadsImporter] Added to owned:', titleAuthor)
         })
         setOwnedBooks(owned)
       }
@@ -302,10 +311,20 @@ export default function GoodreadsImporter({
   const importedCount = books.filter(b => b.imported).length
 
   const isBookOwned = (book: ParsedBook): boolean => {
-    if (book.isbn13 && ownedBooks.has(book.isbn13.toLowerCase())) return true
-    if (book.isbn && ownedBooks.has(book.isbn.toLowerCase())) return true
-    const titleAuthor = `${book.title?.toLowerCase()}|${book.author?.toLowerCase()}`
-    return ownedBooks.has(titleAuthor)
+    // Check ISBN matches (normalized - digits only)
+    if (book.isbn13) {
+      const normalizedIsbn13 = book.isbn13.toLowerCase().replace(/[^0-9x]/gi, '')
+      if (ownedBooks.has(normalizedIsbn13)) return true
+    }
+    if (book.isbn) {
+      const normalizedIsbn = book.isbn.toLowerCase().replace(/[^0-9x]/gi, '')
+      if (ownedBooks.has(normalizedIsbn)) return true
+    }
+    // Check normalized title+author match
+    const titleAuthor = `${normalizeForMatch(book.title)}|${normalizeForMatch(book.author)}`
+    const isOwned = ownedBooks.has(titleAuthor)
+    if (isOwned) console.log('[GoodreadsImporter] Found owned book:', titleAuthor)
+    return isOwned
   }
 
   const alreadyOwnedCount = useMemo(() => books.filter(b => !b.imported && isBookOwned(b)).length, [books, ownedBooks])
