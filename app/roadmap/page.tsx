@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import BetaFeedbackButton from '../components/BetaFeedbackButton'
 
 export const metadata: Metadata = {
   title: 'Roadmap | PagePass',
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
 export default function RoadmapPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <BetaFeedbackButton />
       <div className="max-w-3xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
