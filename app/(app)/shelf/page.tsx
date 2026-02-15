@@ -196,6 +196,7 @@ export default async function MyShelfTab() {
                             bookId={book.id}
                             bookTitle={book.title}
                             status={book.status}
+                            ownerName={book.owner?.full_name}
                           />
                         </div>
                       </div>

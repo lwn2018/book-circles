@@ -8,10 +8,12 @@ interface DoneReadingButtonProps {
   bookId: string
   bookTitle: string
   status: string
+  ownerName?: string
 }
 
-export default function DoneReadingButton({ bookId, bookTitle, status }: DoneReadingButtonProps) {
+export default function DoneReadingButton({ bookId, bookTitle, status, ownerName }: DoneReadingButtonProps) {
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState<{ receiverName: string } | null>(null)
   const router = useRouter()
 
   // Don't show button if handoff already in progress
@@ -22,8 +24,9 @@ export default function DoneReadingButton({ bookId, bookTitle, status }: DoneRea
   const handleDoneReading = async () => {
     if (loading) return
 
+    // Single confirmation
     const confirmed = confirm(
-      `Ready to pass on "${bookTitle}"?\n\nWe'll notify the next person or owner to arrange the handoff.`
+      `Ready to return "${bookTitle}"?\n\nWe'll notify ${ownerName || 'the owner'} to arrange the handoff.`
     )
 
     if (!confirmed) return
@@ -39,22 +42,28 @@ export default function DoneReadingButton({ bookId, bookTitle, status }: DoneRea
         return
       }
 
-      if (result.success && result.handoffId) {
-        // Show success message
-        const message = result.isPagepass
-          ? `Nice! ${result.receiverName} is next — we'll notify you both to arrange the handoff.`
-          : `We'll let ${result.receiverName} know you're ready to return "${bookTitle}".`
+      if (result.success) {
+        // Show inline success - no popup, no navigation
+        setSuccess({ receiverName: result.receiverName || ownerName || 'the owner' })
+        setLoading(false)
         
-        alert(message)
-        
-        // Navigate to handoff card
-        router.push(`/handoff/${result.handoffId}`)
+        // Refresh to show pending handoff section
+        router.refresh()
       }
     } catch (error: any) {
       console.error('Done reading error:', error)
       alert('Something went wrong. Please try again.')
       setLoading(false)
     }
+  }
+
+  // Show success state instead of button
+  if (success) {
+    return (
+      <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+        ✓ {success.receiverName} notified! Check Pending Handoffs above when ready.
+      </div>
+    )
   }
 
   return (
