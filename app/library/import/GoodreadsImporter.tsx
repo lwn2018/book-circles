@@ -62,6 +62,10 @@ export default function GoodreadsImporter({
   type ShelfFilter = 'owned' | 'read' | 'to-read' | 'all'
   const [activeShelf, setActiveShelf] = useState<ShelfFilter>('owned')
   
+  // Additional filters
+  const [minRating, setMinRating] = useState<number>(0) // 0 = all ratings
+  const [authorFilter, setAuthorFilter] = useState('')
+  
   const router = useRouter()
   const supabase = createClient()
 
@@ -225,27 +229,46 @@ export default function GoodreadsImporter({
     }
   }
 
-  // Filter books based on shelf filter
+  // Filter books based on all filters
   const filteredBooks = useMemo(() => {
-    if (activeShelf === 'all') return books
-    
     return books.filter(book => {
-      const shelf = book.exclusiveShelf || ''
-      const shelves = book.bookshelves || ''
-      const shelfList = shelves.split(',').map(s => s.trim().toLowerCase())
-      
-      switch (activeShelf) {
-        case 'owned':
-          return shelfList.some(s => s === 'owned' || s === 'own')
-        case 'read':
-          return shelf === 'read' || shelfList.some(s => s === 'read')
-        case 'to-read':
-          return shelf === 'to-read' || shelfList.some(s => s === 'to-read')
-        default:
-          return true
+      // Shelf filter
+      if (activeShelf !== 'all') {
+        const shelf = book.exclusiveShelf || ''
+        const shelves = book.bookshelves || ''
+        const shelfList = shelves.split(',').map(s => s.trim().toLowerCase())
+        
+        const matchesShelf = (() => {
+          switch (activeShelf) {
+            case 'owned':
+              return shelfList.some(s => s === 'owned' || s === 'own')
+            case 'read':
+              return shelf === 'read' || shelfList.some(s => s === 'read')
+            case 'to-read':
+              return shelf === 'to-read' || shelfList.some(s => s === 'to-read')
+            default:
+              return true
+          }
+        })()
+        
+        if (!matchesShelf) return false
       }
+      
+      // Rating filter (0 = all ratings including unrated)
+      if (minRating > 0) {
+        if (!book.myRating || book.myRating < minRating) return false
+      }
+      
+      // Author filter (case-insensitive partial match)
+      if (authorFilter.trim()) {
+        const searchTerm = authorFilter.toLowerCase().trim()
+        const bookAuthor = (book.author || '').toLowerCase()
+        if (!bookAuthor.includes(searchTerm)) return false
+      }
+      
+      return true
     })
-  }, [books, activeShelf])
+  }, [books, activeShelf, minRating, authorFilter])
 
   // Count books per shelf for filter pills
   const shelfCounts = useMemo(() => {
@@ -534,6 +557,35 @@ export default function GoodreadsImporter({
               >
                 All ({shelfCounts.all})
               </button>
+            </div>
+
+            {/* Star Rating Filter */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="text-sm text-gray-600">Min rating:</span>
+              {[0, 3, 4, 5].map(rating => (
+                <button
+                  key={rating}
+                  onClick={() => setMinRating(rating)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+                    minRating === rating 
+                      ? 'bg-amber-500 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {rating === 0 ? 'All' : '★'.repeat(rating) + '+'}
+                </button>
+              ))}
+            </div>
+
+            {/* Author Search */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Filter by author name..."
+                value={authorFilter}
+                onChange={(e) => setAuthorFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
 
             {/* Bulk actions */}
