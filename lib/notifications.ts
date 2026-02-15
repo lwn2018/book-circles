@@ -33,6 +33,8 @@ export async function createNotification(notification: NotificationData) {
     // Use service role to bypass RLS for notification inserts
     const adminClient = createServiceRoleClient()
 
+    console.log('[createNotification] Creating for user:', notification.userId, 'type:', notification.type)
+
     // Insert notification
     const { data: createdNotification, error } = await adminClient
       .from('notifications')
@@ -42,15 +44,17 @@ export async function createNotification(notification: NotificationData) {
         title: notification.title,
         message: notification.message,
         action_url: notification.link || null,  // Bell expects action_url, not link
-        metadata: notification.data || {}       // Bell might expect metadata, not data
+        read: false
       })
       .select()
       .single()
 
     if (error) {
-      console.error('Failed to create notification:', error)
+      console.error('[createNotification] Failed:', error)
       return null
     }
+
+    console.log('[createNotification] Success, id:', createdNotification?.id)
 
     // Send email if requested
     if (notification.sendEmail && notification.emailTemplate && notification.emailParams) {
