@@ -57,9 +57,9 @@ export async function POST(request: NextRequest) {
     if (!finalCoverUrl && (isbn || isbn10)) {
       try {
         const coverResult = await fetchBookCover(isbn || isbn10)
-        if (coverResult) {
-          finalCoverUrl = coverResult.url
-          finalCoverSource = coverResult.source
+        if (coverResult?.coverUrl) {
+          finalCoverUrl = coverResult.coverUrl
+          finalCoverSource = coverResult.source || null
         }
       } catch (err) {
         console.log('Cover fetch failed for ISBN:', isbn || isbn10, err)
