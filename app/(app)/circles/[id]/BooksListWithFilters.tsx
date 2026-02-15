@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import BooksList from './BooksList'
 import BooksListView from './BooksListView'
 import FilterBar from './FilterBar'
+import RequestConfirmationDialog from '@/app/components/RequestConfirmationDialog'
 
 type Book = {
   id: string
@@ -47,6 +48,7 @@ export default function BooksListWithFilters({
   const [searchFilter, setSearchFilter] = useState('')
   const [toast, setToast] = useState<{message: string; type: 'success' | 'info'} | null>(null)
   const [sessionModifiedBooks, setSessionModifiedBooks] = useState<Set<string>>(new Set())
+  const [requestingBookId, setRequestingBookId] = useState<string | null>(null)
   
   // Update local state when server data changes (on navigation)
   useEffect(() => {
@@ -262,13 +264,7 @@ export default function BooksListWithFilters({
                   {/* Action button */}
                   {!isOwner && book.status === 'available' && (
                     <button
-                      onClick={() => {
-                        // Find the book in the main list to use the full handler
-                        const fullBook = books.find(b => b.id === book.id)
-                        if (fullBook) {
-                          window.location.href = `#book-${book.id}` // Scroll to book in main list
-                        }
-                      }}
+                      onClick={() => setRequestingBookId(book.id)}
                       className="w-full text-xs px-2 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 active:bg-blue-800"
                     >
                       Borrow
@@ -276,9 +272,7 @@ export default function BooksListWithFilters({
                   )}
                   {!isOwner && book.status === 'borrowed' && !isBorrower && !inQueue && (
                     <button
-                      onClick={() => {
-                        window.location.href = `#book-${book.id}`
-                      }}
+                      onClick={() => setRequestingBookId(book.id)}
                       className="w-full text-xs px-2 py-1.5 bg-purple-600 text-white rounded hover:bg-purple-700 active:bg-purple-800"
                     >
                       Join Queue
@@ -401,6 +395,33 @@ export default function BooksListWithFilters({
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg max-w-md text-center animate-fade-in">
           {toast.message}
         </div>
+      )}
+
+      {/* Request/Borrow Confirmation Dialog for New Books carousel */}
+      {requestingBookId && (
+        <RequestConfirmationDialog
+          bookId={requestingBookId}
+          onClose={() => setRequestingBookId(null)}
+          onSuccess={(result) => {
+            setRequestingBookId(null)
+            
+            if (result.action === 'borrow') {
+              updateBookStatus(
+                requestingBookId,
+                {
+                  status: 'in_transit',
+                  current_borrower_id: userId,
+                  current_borrower: { full_name: 'You' }
+                },
+                result.message
+              )
+            } else {
+              // Request/queue action
+              setToast({ message: result.message, type: 'success' })
+              setTimeout(() => setToast(null), 4000)
+            }
+          }}
+        />
       )}
     </div>
   )
