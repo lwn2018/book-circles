@@ -5,17 +5,21 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminClient = createServiceRoleClient() // Bypass RLS to ensure we can read
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    const { data: books, error } = await supabase
+    // Use admin client to bypass RLS (same as POST)
+    const { data: books, error } = await adminClient
       .from('goodreads_library')
       .select('*')
       .eq('user_id', user.id)
       .order('title')
+
+    console.log('[goodreads/library GET] user:', user.id, 'books found:', books?.length, 'error:', error)
 
     if (error) {
       console.error('Failed to load goodreads library:', error)
