@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -10,6 +10,7 @@ type Circle = {
 }
 
 type ParsedBook = {
+  id?: string // Stored goodreads_library ID
   title: string
   author: string
   isbn?: string
@@ -17,10 +18,25 @@ type ParsedBook = {
   myRating?: number
   dateRead?: string
   bookshelves?: string
-  exclusiveShelf?: string // 'read', 'currently-reading', 'to-read', or custom
-  coverUrl?: string
+  exclusiveShelf?: string
   selectedCircles: string[]
   selected: boolean
+  imported?: boolean // Already imported to PagePass
+  importedBookId?: string
+}
+
+type StoredBook = {
+  id: string
+  title: string
+  author: string | null
+  isbn: string | null
+  isbn13: string | null
+  my_rating: number | null
+  date_read: string | null
+  bookshelves: string | null
+  exclusive_shelf: string | null
+  imported_book_id: string | null
+  imported_at: string | null
 }
 
 export default function GoodreadsImporter({ 
@@ -39,6 +55,8 @@ export default function GoodreadsImporter({
   const [success, setSuccess] = useState('')
   const [showCuration, setShowCuration] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [hasStoredLibrary, setHasStoredLibrary] = useState(false)
+  const [loadingStored, setLoadingStored] = useState(true)
   
   // Shelf filters (pills)
   type ShelfFilter = 'owned' | 'read' | 'to-read' | 'all'
@@ -46,6 +64,57 @@ export default function GoodreadsImporter({
   
   const router = useRouter()
   const supabase = createClient()
+
+  // Load existing stored library on mount
+  useEffect(() => {
+    loadStoredLibrary()
+  }, [])
+
+  const loadStoredLibrary = async () => {
+    try {
+      const response = await fetch('/api/goodreads/library')
+      if (response.ok) {
+        const { books: storedBooks } = await response.json()
+        if (storedBooks && storedBooks.length > 0) {
+          setHasStoredLibrary(true)
+          // Convert stored format to ParsedBook format
+          const parsed: ParsedBook[] = storedBooks.map((b: StoredBook) => ({
+            id: b.id,
+            title: b.title,
+            author: b.author || 'Unknown',
+            isbn: b.isbn || undefined,
+            isbn13: b.isbn13 || undefined,
+            myRating: b.my_rating || undefined,
+            dateRead: b.date_read || undefined,
+            bookshelves: b.bookshelves || undefined,
+            exclusiveShelf: b.exclusive_shelf || undefined,
+            selectedCircles: [],
+            selected: false,
+            imported: !!b.imported_book_id,
+            importedBookId: b.imported_book_id || undefined
+          }))
+          setBooks(parsed)
+          setShowCuration(true)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load stored library:', err)
+    } finally {
+      setLoadingStored(false)
+    }
+  }
+
+  const saveToStoredLibrary = async (parsedBooks: ParsedBook[]) => {
+    try {
+      await fetch('/api/goodreads/library', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ books: parsedBooks })
+      })
+    } catch (err) {
+      console.error('Failed to save to stored library:', err)
+    }
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -144,6 +213,9 @@ export default function GoodreadsImporter({
       if (parsedBooks.length === 0) {
         setError('No valid books found in CSV')
       } else {
+        // Save full library for "Import more" feature
+        await saveToStoredLibrary(parsedBooks)
+        setHasStoredLibrary(true)
         setShowCuration(true)
         setSuccess(`Found ${parsedBooks.length} books! Select which ones to import.`)
       }
@@ -194,7 +266,8 @@ export default function GoodreadsImporter({
     return counts
   }, [books])
 
-  const selectedCount = filteredBooks.filter(b => b.selected).length
+  const selectedCount = filteredBooks.filter(b => b.selected && !b.imported).length
+  const importedCount = books.filter(b => b.imported).length
 
   const toggleBookSelection = (index: number) => {
     setBooks(prev => {
@@ -209,8 +282,10 @@ export default function GoodreadsImporter({
     setBooks(prev => {
       const updated = [...prev]
       filteredBooks.forEach(book => {
-        const index = prev.indexOf(book)
-        updated[index].selected = true
+        if (!book.imported) { // Skip already imported books
+          const index = prev.indexOf(book)
+          updated[index].selected = true
+        }
       })
       return updated
     })
@@ -236,7 +311,8 @@ export default function GoodreadsImporter({
   }
 
   const handleImport = async () => {
-    const selectedBooks = books.filter(b => b.selected && b.selectedCircles.length > 0)
+    // Filter out already-imported books
+    const selectedBooks = books.filter(b => b.selected && !b.imported && b.selectedCircles.length > 0)
     if (selectedBooks.length === 0) return
 
     setImporting(true)
@@ -269,6 +345,27 @@ export default function GoodreadsImporter({
           throw new Error(errorData.error || 'Failed to add book')
         }
 
+        const result = await response.json()
+        
+        // Mark as imported in stored library
+        if (book.id && result.book?.id) {
+          await fetch('/api/goodreads/library', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              goodreadsId: book.id,
+              importedBookId: result.book.id
+            })
+          })
+        }
+
+        // Update local state to show as imported
+        setBooks(prev => prev.map(b => 
+          b.title === book.title && b.author === book.author
+            ? { ...b, imported: true, selected: false }
+            : b
+        ))
+
         successCount++
       } catch (err: any) {
         console.error('Failed to import book:', book.title, err?.message || err)
@@ -290,23 +387,54 @@ export default function GoodreadsImporter({
     }, 2000)
   }
 
+  // Show loading state
+  if (loadingStored) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center py-8 text-gray-500">
+          <div className="animate-pulse">Loading your Goodreads library...</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      {/* Mobile guidance */}
-      <details className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <summary className="font-medium text-blue-900 cursor-pointer">
-          📱 Doing this on your phone? Here's how
-        </summary>
-        <div className="mt-2 text-sm text-blue-800">
-          <p>For the best experience, we recommend using a desktop computer to import your Goodreads library.</p>
-          <p className="mt-2">Mobile import instructions coming soon!</p>
+      {/* Show existing library option if they have one */}
+      {hasStoredLibrary && !showCuration && (
+        <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+          <h3 className="font-semibold text-green-900 mb-2">📚 Your Goodreads Library</h3>
+          <p className="text-sm text-green-800 mb-3">
+            We have your Goodreads library saved. You can import more books without re-uploading the CSV!
+          </p>
+          <button
+            onClick={() => setShowCuration(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
+          >
+            Import More Books
+          </button>
+          <p className="text-xs text-green-700 mt-2">Or upload a new CSV below to refresh your library.</p>
         </div>
-      </details>
+      )}
 
-      {/* File Upload */}
+      {/* Mobile guidance */}
+      {!showCuration && (
+        <details className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <summary className="font-medium text-blue-900 cursor-pointer">
+            📱 Doing this on your phone? Here's how
+          </summary>
+          <div className="mt-2 text-sm text-blue-800">
+            <p>For the best experience, we recommend using a desktop computer to import your Goodreads library.</p>
+            <p className="mt-2">Mobile import instructions coming soon!</p>
+          </div>
+        </details>
+      )}
+
+      {/* File Upload - only show when not in curation */}
+      {!showCuration && (
       <div className="mb-6">
         <label className="block text-sm font-medium mb-2">
-          Upload Goodreads CSV
+          {hasStoredLibrary ? 'Upload New Goodreads CSV (optional)' : 'Upload Goodreads CSV'}
         </label>
         <input
           type="file"
@@ -318,6 +446,7 @@ export default function GoodreadsImporter({
           <p className="text-sm text-gray-600 mt-2">Parsing CSV...</p>
         )}
       </div>
+      )}
 
       {/* Messages */}
       {error && (
@@ -337,15 +466,26 @@ export default function GoodreadsImporter({
           <div className="mb-4">
             <h3 className="font-semibold mb-2">Select Books to Import</h3>
             
+            {/* Show imported count if coming back */}
+            {importedCount > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm">
+                <p className="text-green-800">
+                  ✅ <strong>{importedCount} book{importedCount !== 1 ? 's' : ''} already imported</strong> (shown greyed out below). 
+                  Select more books to add to your library!
+                </p>
+              </div>
+            )}
+            
             {/* Guidance message for large libraries */}
-            {books.length >= 50 ? (
+            {importedCount === 0 && books.length >= 50 && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
                 <p className="text-blue-800">
                   <strong>We found {books.length} books!</strong> You probably don't want to share all of them at once. 
                   We recommend starting with 20-30 books your friends would actually want to borrow — you can always add more later.
                 </p>
               </div>
-            ) : (
+            )}
+            {importedCount === 0 && books.length < 50 && (
               <p className="text-sm text-gray-600 mb-3">Use the filters to find the ones worth sharing.</p>
             )}
             
@@ -429,14 +569,23 @@ export default function GoodreadsImporter({
                 {filteredBooks.map((book, index) => (
                   <div
                     key={index}
-                    onClick={() => toggleBookSelection(index)}
-                    className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
-                      book.selected 
-                        ? 'bg-blue-50' 
-                        : 'hover:bg-gray-50'
+                    onClick={() => !book.imported && toggleBookSelection(index)}
+                    className={`flex items-center gap-3 px-3 py-2 transition-colors ${
+                      book.imported 
+                        ? 'bg-gray-100 opacity-60 cursor-not-allowed' 
+                        : book.selected 
+                          ? 'bg-blue-50 cursor-pointer' 
+                          : 'hover:bg-gray-50 cursor-pointer'
                     }`}
                   >
-                    {/* Checkbox */}
+                    {/* Checkbox or Imported Badge */}
+                    {book.imported ? (
+                      <div className="flex-shrink-0 w-5 h-5 rounded bg-green-500 flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    ) : (
                     <div className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition ${
                       book.selected 
                         ? 'bg-blue-600 border-blue-600' 
@@ -448,11 +597,15 @@ export default function GoodreadsImporter({
                         </svg>
                       )}
                     </div>
+                    )}
                     
                     {/* Title & Author */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{book.title}</p>
-                      <p className="text-xs text-gray-500 truncate">{book.author}</p>
+                      <p className={`font-medium text-sm truncate ${book.imported ? 'text-gray-500' : ''}`}>{book.title}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {book.author}
+                        {book.imported && <span className="ml-2 text-green-600">• Already imported</span>}
+                      </p>
                     </div>
                     
                     {/* Star Rating */}
