@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient, createServiceRoleClient } from './supabase-server'
 import { createNotification } from './notifications'
+import { sendEmail, handoffInitiatedEmailOwner, handoffInitiatedEmailBorrower } from './send-email'
 
 export async function initiateDoneReading(bookId: string) {
   const supabase = await createServerSupabaseClient()
@@ -13,19 +14,30 @@ export async function initiateDoneReading(bookId: string) {
   }
 
   try {
-    // Get the book details
+    // Get the book details with owner email
     const { data: book, error: bookError } = await supabase
       .from('books')
       .select(`
         *,
         owner:owner_id (
           id,
-          full_name
+          full_name,
+          email
         )
       `)
       .eq('id', bookId)
       .eq('current_borrower_id', user.id)
       .single()
+    
+    // Get current user's profile for name and email
+    const { data: giverProfile } = await supabase
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', user.id)
+      .single()
+    
+    const giverName = giverProfile?.full_name || user.user_metadata?.full_name || 'Someone'
+    const giverEmail = giverProfile?.email || user.email
 
     if (bookError || !book) {
       console.error('Book fetch error:', bookError)
@@ -101,6 +113,20 @@ export async function initiateDoneReading(bookId: string) {
     const receiverName = nextInQueue ? nextInQueue.user.full_name : book.owner.full_name
     const receiverId = nextInQueue ? nextInQueue.user_id : book.owner_id
 
+    // Get receiver's email
+    let receiverEmail: string | null = null
+    if (nextInQueue) {
+      const { data: receiverProfile } = await adminClient
+        .from('profiles')
+        .select('email')
+        .eq('id', nextInQueue.user_id)
+        .single()
+      receiverEmail = receiverProfile?.email || null
+    } else {
+      receiverEmail = (book.owner as any).email || null
+    }
+
+    // Bell notifications for both parties
     await Promise.all([
       // Notify giver (current borrower)
       createNotification({
@@ -118,11 +144,44 @@ export async function initiateDoneReading(bookId: string) {
         userId: receiverId,
         type: 'book_ready',
         title: '📬 Book Ready for Pickup',
-        message: `Time to pick up "${book.title}" from ${user.user_metadata?.full_name || 'a circle member'}!`,
+        message: `Time to pick up "${book.title}" from ${giverName}!`,
         link: `/handoff/${handoff.id}`,
         data: { handoffId: handoff.id, bookId }
       })
     ])
+
+    // Email notifications for both parties
+    const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://pagepass.app'}/handoff/${handoff.id}`
+    
+    // Email to giver (borrower returning the book)
+    if (giverEmail) {
+      const emailTemplate = handoffInitiatedEmailOwner(
+        giverName,
+        receiverName,
+        book.title,
+        handoffUrl
+      )
+      await sendEmail({
+        to: giverEmail,
+        subject: `Time to hand off "${book.title}" to ${receiverName}!`,
+        html: emailTemplate.html
+      })
+    }
+    
+    // Email to receiver (owner or next in queue)
+    if (receiverEmail) {
+      const emailTemplate = handoffInitiatedEmailBorrower(
+        giverName,
+        receiverName,
+        book.title,
+        handoffUrl
+      )
+      await sendEmail({
+        to: receiverEmail,
+        subject: `Time to pick up "${book.title}" from ${giverName}!`,
+        html: emailTemplate.html
+      })
+    }
 
     return { 
       success: true, 
