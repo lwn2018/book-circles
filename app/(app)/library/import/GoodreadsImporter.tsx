@@ -82,24 +82,30 @@ export default function GoodreadsImporter({
   const loadOwnedBooks = async () => {
     try {
       // Fetch user's existing books to check for duplicates
-      const { data: userBooks } = await supabase
+      const { data: userBooks, error } = await supabase
         .from('books')
-        .select('title, author, isbn, isbn13')
+        .select('title, author, isbn, isbn10')
         .eq('owner_id', userId)
+      
+      if (error) {
+        console.error('[GoodreadsImporter] Error loading owned books:', error)
+        return
+      }
       
       console.log('[GoodreadsImporter] Loaded owned books:', userBooks?.length)
       
-      if (userBooks) {
+      if (userBooks && userBooks.length > 0) {
         const owned = new Set<string>()
         userBooks.forEach(book => {
-          // Create lookup keys for matching - use normalized versions
-          if (book.isbn13) owned.add(book.isbn13.toLowerCase().replace(/[^0-9x]/gi, ''))
+          // Create lookup keys for matching - use normalized versions (digits only)
           if (book.isbn) owned.add(book.isbn.toLowerCase().replace(/[^0-9x]/gi, ''))
+          if (book.isbn10) owned.add(book.isbn10.toLowerCase().replace(/[^0-9x]/gi, ''))
           // Also add normalized title+author combo
           const titleAuthor = `${normalizeForMatch(book.title)}|${normalizeForMatch(book.author)}`
           owned.add(titleAuthor)
           console.log('[GoodreadsImporter] Added to owned:', titleAuthor)
         })
+        console.log('[GoodreadsImporter] Owned books set size:', owned.size)
         setOwnedBooks(owned)
       }
     } catch (err) {
@@ -329,6 +335,7 @@ export default function GoodreadsImporter({
 
   const isBookOwned = (book: ParsedBook): boolean => {
     // Check ISBN matches (normalized - digits only)
+    // Goodreads CSV has isbn and isbn13, our DB has isbn and isbn10
     if (book.isbn13) {
       const normalizedIsbn13 = book.isbn13.toLowerCase().replace(/[^0-9x]/gi, '')
       if (ownedBooks.has(normalizedIsbn13)) return true
@@ -340,7 +347,7 @@ export default function GoodreadsImporter({
     // Check normalized title+author match
     const titleAuthor = `${normalizeForMatch(book.title)}|${normalizeForMatch(book.author)}`
     const isOwned = ownedBooks.has(titleAuthor)
-    if (isOwned) console.log('[GoodreadsImporter] Found owned book:', titleAuthor)
+    if (isOwned) console.log('[GoodreadsImporter] Found owned book by title/author:', titleAuthor)
     return isOwned
   }
 
