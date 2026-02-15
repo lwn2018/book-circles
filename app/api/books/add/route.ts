@@ -1,7 +1,7 @@
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { logUserEvent } from '@/lib/gamification/events'
-import { fetchBookCover } from '@/lib/fetch-book-cover'
+import { fetchBookMetadata } from '@/lib/bookMetadata'
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,20 +50,38 @@ export async function POST(request: NextRequest) {
     // Use default price if not provided
     const finalPrice = retail_price_cad || 20.0
 
-    // Fetch cover from Google Books if not provided (for Goodreads imports)
+    // Fetch metadata from cascade (Google → ISBNdb → Open Library) if not provided
     let finalCoverUrl = cover_url || null
     let finalCoverSource = cover_source || null
+    let finalDescription = description || null
+    let finalRetailPrice = retail_price_cad || null
+    let additionalMetadata: any = {}
     
     if (!finalCoverUrl && (isbn || isbn10)) {
       try {
-        const coverResult = await fetchBookCover(isbn || isbn10)
-        if (coverResult?.coverUrl) {
-          finalCoverUrl = coverResult.coverUrl
-          finalCoverSource = coverResult.source || null
+        const metadata = await fetchBookMetadata(isbn || isbn10 || '')
+        if (metadata.cover_url) {
+          finalCoverUrl = metadata.cover_url
+          finalCoverSource = metadata.cover_source || null
+        }
+        if (!finalDescription && metadata.description) {
+          finalDescription = metadata.description
+        }
+        if (!finalRetailPrice && metadata.retail_price_cad) {
+          finalRetailPrice = metadata.retail_price_cad
+        }
+        // Capture additional metadata from cascade
+        additionalMetadata = {
+          format: metadata.format,
+          page_count: metadata.page_count,
+          publish_date: metadata.publish_date,
+          publisher: metadata.publisher,
+          language: metadata.language,
+          metadata_sources: metadata.metadata_sources
         }
       } catch (err) {
-        console.log('Cover fetch failed for ISBN:', isbn || isbn10, err)
-        // Continue without cover - not a blocking error
+        console.log('Metadata fetch failed for ISBN:', isbn || isbn10, err)
+        // Continue without metadata - not a blocking error
       }
     }
 
@@ -79,14 +97,14 @@ export async function POST(request: NextRequest) {
         cover_source: finalCoverSource,
         owner_id: user.id,
         status: 'available',
-        retail_price_cad: finalPrice,
-        format: format || null,
-        page_count: page_count || null,
-        publish_date: publish_date || null,
-        publisher: publisher || null,
-        description: description || null,
-        language: language || null,
-        metadata_sources: metadata_sources || [],
+        retail_price_cad: finalRetailPrice || finalPrice,
+        format: format || additionalMetadata.format || null,
+        page_count: page_count || additionalMetadata.page_count || null,
+        publish_date: publish_date || additionalMetadata.publish_date || null,
+        publisher: publisher || additionalMetadata.publisher || null,
+        description: finalDescription || null,
+        language: language || additionalMetadata.language || null,
+        metadata_sources: metadata_sources?.length ? metadata_sources : (additionalMetadata.metadata_sources || []),
         metadata_updated_at: metadata_updated_at || new Date().toISOString()
       })
       .select()
