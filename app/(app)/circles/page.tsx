@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import PendingCircleJoinHandler from './PendingCircleJoinHandler'
+import FounderBanner from '../../components/FounderBanner'
 
 export default async function CirclesTab() {
   const supabase = await createServerSupabaseClient()
@@ -46,6 +47,9 @@ export default async function CirclesTab() {
     <div>
       {/* Handle pending circle join from signup flow */}
       <PendingCircleJoinHandler />
+      
+      {/* Founder tester banner (dismissible) */}
+      <FounderBanner userId={user.id} />
       
       <div className="mb-6">
         <h1 className="text-3xl font-bold">My Circles</h1>

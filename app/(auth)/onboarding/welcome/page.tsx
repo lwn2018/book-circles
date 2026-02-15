@@ -147,14 +147,36 @@ export default function OnboardingWelcome() {
         {/* Illustration/Mascot Placeholder */}
         <div className="text-8xl mb-6">📚</div>
 
-        <h1 className="text-3xl font-bold mb-4">Welcome to PagePass!</h1>
+        <h1 className="text-3xl font-bold mb-4">Welcome to PagePass</h1>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 text-left">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 text-left space-y-4">
           <p className="text-gray-800 leading-relaxed">
-            I'd like to <strong>personally thank you</strong> for giving PagePass a try. 
-            It's been a <strong>labor of love</strong> building this, and I'm so glad you're here.
+            I built this because my wife had books on her shelf she didn't even recognize — they'd been lent so many times, nobody remembered whose they were.
           </p>
-          <p className="text-right mt-4 text-gray-700 font-medium">— Mathieu</p>
+          <p className="text-gray-800 leading-relaxed">
+            Sound familiar?
+          </p>
+          <p className="text-gray-800 leading-relaxed">
+            PagePass is a simple way to share books with people you trust and always know where they are. You're one of the first people to use it, and your fingerprints are going to be all over what this becomes.
+          </p>
+          <p className="text-gray-800 leading-relaxed">
+            <strong>Here's how to get started:</strong> add a few books, join a circle, and lend something. If anything feels off — confusing, slow, or just wrong — tell me. There's a feedback button on every screen, and I read every single message.
+          </p>
+          <p className="text-gray-800 leading-relaxed">
+            Thank you for being here early.
+          </p>
+          <p className="text-right mt-4 text-gray-900 font-medium">— Mathieu</p>
+          
+          <div className="pt-4 border-t border-blue-200">
+            <a 
+              href="https://pagepass.notion.site/roadmap" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              See what's coming → Roadmap
+            </a>
+          </div>
         </div>
 
         {inviteCode && circleId ? (
