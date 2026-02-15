@@ -11,8 +11,8 @@ export default async function MyShelfTab() {
     redirect('/auth/signin')
   }
 
-  // Get pending handoffs where user is the giver
-  const { data: pendingHandoffs } = await supabase
+  // Get pending handoffs where user is the giver (outgoing)
+  const { data: pendingHandoffsOutgoing } = await supabase
     .from('handoff_confirmations')
     .select(`
       *,
@@ -27,6 +27,25 @@ export default async function MyShelfTab() {
       )
     `)
     .eq('giver_id', user.id)
+    .is('both_confirmed_at', null)
+    .order('created_at', { ascending: false })
+
+  // Get pending handoffs where user is the receiver (incoming)
+  const { data: pendingHandoffsIncoming } = await supabase
+    .from('handoff_confirmations')
+    .select(`
+      *,
+      book:book_id (
+        id,
+        title,
+        cover_url
+      ),
+      giver:giver_id (
+        id,
+        full_name
+      )
+    `)
+    .eq('receiver_id', user.id)
     .is('both_confirmed_at', null)
     .order('created_at', { ascending: false })
 
@@ -80,12 +99,49 @@ export default async function MyShelfTab() {
 
   return (
     <div>
-      {/* Pending Handoffs */}
-      {pendingHandoffs && pendingHandoffs.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h2 className="text-lg font-bold mb-3">📬 Pending Handoffs ({pendingHandoffs.length})</h2>
+      {/* Incoming Handoffs - Books coming TO this user */}
+      {pendingHandoffsIncoming && pendingHandoffsIncoming.length > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <h2 className="text-lg font-bold mb-3">📥 Incoming Books ({pendingHandoffsIncoming.length})</h2>
           <div className="space-y-3">
-            {pendingHandoffs.map((handoff: any) => (
+            {pendingHandoffsIncoming.map((handoff: any) => (
+              <Link
+                key={handoff.id}
+                href={`/handoff/${handoff.id}`}
+                className="flex items-center gap-3 p-3 bg-white rounded border border-green-300 hover:border-green-400 transition-colors"
+              >
+                {handoff.book.cover_url ? (
+                  <img 
+                    src={handoff.book.cover_url} 
+                    alt={handoff.book.title}
+                    className="w-12 h-16 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
+                    <span className="text-xl">📚</span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className="font-semibold">{handoff.book.title}</p>
+                  <p className="text-sm text-gray-600">
+                    Pick up from {handoff.giver.full_name}
+                  </p>
+                </div>
+                <div className="text-green-600 font-medium">
+                  Confirm →
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Outgoing Handoffs - Books this user is giving away */}
+      {pendingHandoffsOutgoing && pendingHandoffsOutgoing.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <h2 className="text-lg font-bold mb-3">📤 Pending Handoffs ({pendingHandoffsOutgoing.length})</h2>
+          <div className="space-y-3">
+            {pendingHandoffsOutgoing.map((handoff: any) => (
               <Link
                 key={handoff.id}
                 href={`/handoff/${handoff.id}`}
@@ -105,7 +161,7 @@ export default async function MyShelfTab() {
                 <div className="flex-1">
                   <p className="font-semibold">{handoff.book.title}</p>
                   <p className="text-sm text-gray-600">
-                    Waiting for handoff with {handoff.receiver.full_name}
+                    Hand off to {handoff.receiver.full_name}
                   </p>
                 </div>
                 <div className="text-blue-600 font-medium">
