@@ -245,7 +245,7 @@ export default function BooksListWithFilters({
                       <span className="text-3xl sm:text-4xl">📚</span>
                     </div>
                   )}
-                  <p className="text-xs font-medium mt-2 truncate">{book.title}</p>
+                  <p className="text-xs font-medium mt-2 line-clamp-2 leading-tight">{book.title}</p>
                   {book.author && (
                     <p className="text-xs text-gray-600 truncate mb-2">{book.author}</p>
                   )}

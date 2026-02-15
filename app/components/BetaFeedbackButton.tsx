@@ -77,11 +77,11 @@ export default function BetaFeedbackButton() {
 
   return (
     <>
-      {/* Feedback Button - Bottom Left */}
+      {/* Feedback Button - Bottom Right */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 left-4 z-40 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 active:bg-blue-800 transition"
-        aria-label="Send feedback"
+        className="fixed bottom-20 right-4 z-40 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 active:bg-blue-800 transition"
+        aria-label="Report issue"
       >
         <svg 
           className="w-5 h-5" 
@@ -93,7 +93,7 @@ export default function BetaFeedbackButton() {
             strokeLinecap="round" 
             strokeLinejoin="round" 
             strokeWidth={2} 
-            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" 
+            d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" 
           />
         </svg>
       </button>
