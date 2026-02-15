@@ -398,7 +398,7 @@ export default function BooksListWithFilters({
 
       {/* Toast notification */}
       {toast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg max-w-md text-center animate-fade-in">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg max-w-md text-center animate-fade-in">
           {toast.message}
         </div>
       )}
