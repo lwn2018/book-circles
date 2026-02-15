@@ -749,7 +749,7 @@ export default function GoodreadsImporter({
               {importProgress.total >= 5 && (
                 <div className="text-center">
                   <p className="text-sm text-blue-700 mb-3">
-                    This might take a minute. Why not explore while you wait?
+                    Your books are importing — it might take a minute, but you can explore while you wait…
                   </p>
                   <div className="flex justify-center gap-3">
                     <a
