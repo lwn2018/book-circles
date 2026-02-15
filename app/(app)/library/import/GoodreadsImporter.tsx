@@ -60,7 +60,7 @@ export default function GoodreadsImporter({
   const [loadingStored, setLoadingStored] = useState(true)
   const [ownedBooks, setOwnedBooks] = useState<Set<string>>(new Set())
   
-  type ShelfFilter = 'owned' | 'read' | 'to-read' | 'all'
+  type ShelfFilter = 'read' | 'to-read' | 'all'
   const [activeShelf, setActiveShelf] = useState<ShelfFilter>('all')
   const [minRating, setMinRating] = useState<number>(0)
   const [authorFilter, setAuthorFilter] = useState('')
@@ -300,7 +300,6 @@ export default function GoodreadsImporter({
         
         const matchesShelf = (() => {
           switch (activeShelf) {
-            case 'owned': return shelfList.some(s => s === 'owned' || s === 'own')
             case 'read': return shelf === 'read' || shelfList.some(s => s === 'read')
             case 'to-read': return shelf === 'to-read' || shelfList.some(s => s === 'to-read')
             default: return true
@@ -318,12 +317,11 @@ export default function GoodreadsImporter({
   }, [books, activeShelf, minRating, authorFilter])
 
   const shelfCounts = useMemo(() => {
-    const counts = { owned: 0, read: 0, 'to-read': 0, all: books.length }
+    const counts = { read: 0, 'to-read': 0, all: books.length }
     books.forEach(book => {
       const shelf = book.exclusiveShelf || ''
       const shelves = book.bookshelves || ''
       const shelfList = shelves.split(',').map(s => s.trim().toLowerCase())
-      if (shelfList.some(s => s === 'owned' || s === 'own')) counts.owned++
       if (shelf === 'read' || shelfList.some(s => s === 'read')) counts.read++
       if (shelf === 'to-read' || shelfList.some(s => s === 'to-read')) counts['to-read']++
     })
@@ -538,10 +536,10 @@ export default function GoodreadsImporter({
             )}
             
             <div className="flex flex-wrap gap-2 mb-4">
-              {(['owned', 'read', 'to-read', 'all'] as const).map(shelf => (
+              {(['all', 'read', 'to-read'] as const).map(shelf => (
                 <button key={shelf} onClick={() => setActiveShelf(shelf)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition ${activeShelf === shelf ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-                  {shelf === 'owned' ? '📚 Owned' : shelf === 'read' ? '✅ Read' : shelf === 'to-read' ? '📖 To-Read' : 'All'} ({shelfCounts[shelf]})
+                  {shelf === 'read' ? '✅ Read' : shelf === 'to-read' ? '📖 To-Read' : '📚 All'} ({shelfCounts[shelf]})
                 </button>
               ))}
             </div>
