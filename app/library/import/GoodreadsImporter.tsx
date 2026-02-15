@@ -734,7 +734,7 @@ export default function GoodreadsImporter({
           {importing ? (
             <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-blue-800">📚 Importing your books...</span>
+                <span className="text-sm font-medium text-blue-800">📚 Importing your books…</span>
                 <span className="text-sm font-medium text-blue-600">
                   {importProgress.current} / {importProgress.total}
                 </span>
@@ -749,7 +749,7 @@ export default function GoodreadsImporter({
               {importProgress.total >= 5 && (
                 <div className="text-center">
                   <p className="text-sm text-blue-700 mb-3">
-                    Your books are importing — it might take a minute, but you can explore while you wait…
+                    This can take a moment. We'll add them to your library as they come in — feel free to keep exploring.
                   </p>
                   <div className="flex justify-center gap-3">
                     <a
@@ -762,16 +762,10 @@ export default function GoodreadsImporter({
                       href="/library"
                       className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50"
                     >
-                      My Library
-                    </a>
-                    <a
-                      href="/shelf"
-                      className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50"
-                    >
-                      My Shelf
+                      Go to My Library
                     </a>
                   </div>
-                  <p className="text-xs text-blue-600 mt-3">
+                  <p className="text-xs text-blue-600 mt-3 italic">
                     Your books will appear in your library when done!
                   </p>
                 </div>
