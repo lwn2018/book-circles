@@ -49,6 +49,7 @@ export default function GoodreadsImporter({
   const [file, setFile] = useState<File | null>(null)
   const [books, setBooks] = useState<ParsedBook[]>([])
   const [parsing, setParsing] = useState(false)
+  const [parseStatus, setParseStatus] = useState('')
   const [importing, setImporting] = useState(false)
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0 })
   const [error, setError] = useState('')
@@ -167,6 +168,7 @@ export default function GoodreadsImporter({
     setError('')
     setSuccess('')
     setParsing(true)
+    setParseStatus('Reading file...')
 
     // Ensure loading state is visible for at least 1.5 seconds
     const startTime = Date.now()
@@ -175,6 +177,9 @@ export default function GoodreadsImporter({
     try {
       const text = await selectedFile.text()
       const lines = text.split('\n')
+      const totalLines = lines.length - 1 // Minus header
+      setParseStatus(`Found ${totalLines} entries, parsing...`)
+      await new Promise(resolve => setTimeout(resolve, 50)) // Let UI update
       
       if (lines.length < 2) {
         setError('CSV file is empty or invalid')
@@ -250,9 +255,20 @@ export default function GoodreadsImporter({
         setError('No valid books found in CSV')
         setParsing(false)
       } else {
+        setParseStatus(`Found ${parsedBooks.length} books! Saving...`)
+        await new Promise(resolve => setTimeout(resolve, 50))
+        
         // Save to library while still showing loading state
         await saveToStoredLibrary(parsedBooks)
         setHasStoredLibrary(true)
+        
+        setParseStatus(`Checking against your library...`)
+        await new Promise(resolve => setTimeout(resolve, 50))
+        
+        // Ensure ownedBooks is loaded before showing curation
+        // (it loads on mount, but might not be done yet)
+        console.log('[GoodreadsImporter] ownedBooks size before curation:', ownedBooks.size)
+        
         setShowCuration(true)
         
         // Ensure loading state shows for at least 1.5 seconds total
@@ -261,6 +277,7 @@ export default function GoodreadsImporter({
           await new Promise(resolve => setTimeout(resolve, 1500 - elapsed))
         }
         setParsing(false)
+        setParseStatus('')
       }
     } catch (err: any) {
       setError(`Failed to parse CSV: ${err.message}`)
@@ -443,7 +460,7 @@ export default function GoodreadsImporter({
       <div className="bg-white rounded-lg shadow p-6">
         <div className="text-center py-12">
           <div className="inline-block animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
-          <p className="text-lg font-medium text-blue-800">Reading your Goodreads library...</p>
+          <p className="text-lg font-medium text-blue-800">{parseStatus || 'Reading your Goodreads library...'}</p>
           <p className="text-sm text-gray-500 mt-2">This may take a moment for large libraries</p>
         </div>
       </div>
