@@ -35,15 +35,16 @@ export async function createNotification(notification: NotificationData) {
 
     console.log('[createNotification] Creating for user:', notification.userId, 'type:', notification.type)
 
-    // Insert notification
+    // Insert notification - match the schema used by working borrow route
     const { data: createdNotification, error } = await adminClient
       .from('notifications')
       .insert({
         user_id: notification.userId,
         type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        action_url: notification.link || null,  // Bell expects action_url, not link
+        message: notification.message,  // Include title in message if provided
+        action_url: notification.link || null,
+        book_id: notification.data?.bookId || notification.data?.book_id || null,
+        sender_id: notification.data?.senderId || null,
         read: false
       })
       .select()
