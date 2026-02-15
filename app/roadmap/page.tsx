@@ -5,57 +5,15 @@ export const metadata: Metadata = {
   description: 'See what\'s coming to PagePass',
 }
 
-// Simple static roadmap data - edit this directly to update
-const roadmapData = {
-  comingSoon: [
-    {
-      title: 'Book Recommendations',
-      description: 'Get personalized suggestions based on what your circle is reading.',
-    },
-    {
-      title: 'Reading Stats',
-      description: 'Track how many books you\'ve lent, borrowed, and shared over time.',
-    },
-  ],
-  exploring: [
-    {
-      title: 'Wishlist Sharing',
-      description: 'Let circle members know what books you\'d love to borrow.',
-    },
-    {
-      title: 'Reading Challenges',
-      description: 'Set goals with your circle and track progress together.',
-    },
-  ],
-  shipped: [
-    {
-      title: 'Goodreads Import',
-      description: 'Import your existing library from Goodreads with one click.',
-      date: 'Feb 2026',
-    },
-    {
-      title: 'Two-Way Handoff Confirmation',
-      description: 'Both parties confirm when a book changes hands.',
-      date: 'Feb 2026',
-    },
-    {
-      title: 'Circle Invites',
-      description: 'Invite friends with a simple link.',
-      date: 'Feb 2026',
-    },
-  ],
-}
-
 export default function RoadmapPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Roadmap</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">What's Next for PagePass</h1>
           <p className="text-lg text-gray-600">
-            Here's what we're building. Have ideas?{' '}
-            <span className="text-gray-500">Use the feedback button in the app.</span>
+            You're one of the first 18 people to use PagePass. That means your feedback is literally shaping what gets built next. Here's where we're headed.
           </p>
         </div>
 
@@ -65,55 +23,78 @@ export default function RoadmapPage() {
             <span className="text-2xl">🚀</span> Coming Soon
           </h2>
           <div className="space-y-4">
-            {roadmapData.comingSoon.map((item, i) => (
-              <div key={i} className="bg-white rounded-lg border border-green-200 p-5 shadow-sm">
-                <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                <p className="text-gray-600 text-sm">{item.description}</p>
-              </div>
-            ))}
+            <div className="bg-white rounded-lg border border-green-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Find us in the App Store</h3>
+              <p className="text-gray-600 text-sm">No more "add to home screen." PagePass is coming to the App Store and Google Play so you can download it like any other app.</p>
+            </div>
+            <div className="bg-white rounded-lg border border-green-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Real push notifications</h3>
+              <p className="text-gray-600 text-sm">Get notified instantly when someone borrows your book, when a handoff is ready, or when a book you're waiting for becomes available. No more checking the app to find out.</p>
+            </div>
+            <div className="bg-white rounded-lg border border-green-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Your badge collection</h3>
+              <p className="text-gray-600 text-sm">You've already started earning badges (check your notifications). Soon you'll be able to see your full collection and choose which badge to show off next to your name.</p>
+            </div>
+            <div className="bg-white rounded-lg border border-green-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Dark mode</h3>
+              <p className="text-gray-600 text-sm">For the late-night readers among us.</p>
+            </div>
           </div>
         </section>
 
-        {/* Exploring */}
+        {/* On the Horizon */}
         <section className="mb-10">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-2xl">🔍</span> Exploring
+            <span className="text-2xl">🔭</span> On the Horizon
           </h2>
           <div className="space-y-4">
-            {roadmapData.exploring.map((item, i) => (
-              <div key={i} className="bg-white rounded-lg border border-yellow-200 p-5 shadow-sm">
-                <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                <p className="text-gray-600 text-sm">{item.description}</p>
-              </div>
-            ))}
+            <div className="bg-white rounded-lg border border-yellow-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Your sharing stats</h3>
+              <p className="text-gray-600 text-sm">See how many books you've shared, how much value your circle has put into motion, and which book in your circle has traveled the farthest.</p>
+            </div>
+            <div className="bg-white rounded-lg border border-yellow-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Barcode scanner</h3>
+              <p className="text-gray-600 text-sm">Add books to your library by scanning the barcode on the back cover. Point, scan, done.</p>
+            </div>
+            <div className="bg-white rounded-lg border border-yellow-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Sign in with Google or Apple</h3>
+              <p className="text-gray-600 text-sm">Faster login for when you don't want to remember another password.</p>
+            </div>
+            <div className="bg-white rounded-lg border border-yellow-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Monthly recognition</h3>
+              <p className="text-gray-600 text-sm">The most generous lender in each circle gets a little spotlight every month. Because sharing deserves celebrating.</p>
+            </div>
           </div>
         </section>
 
-        {/* Shipped */}
+        {/* Dreaming Big */}
         <section className="mb-10">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-2xl">✅</span> Shipped
+            <span className="text-2xl">✨</span> Dreaming Big
           </h2>
           <div className="space-y-4">
-            {roadmapData.shipped.map((item, i) => (
-              <div key={i} className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                  {item.date && (
-                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                      {item.date}
-                    </span>
-                  )}
-                </div>
-                <p className="text-gray-600 text-sm">{item.description}</p>
-              </div>
-            ))}
+            <div className="bg-white rounded-lg border border-purple-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Your Year in Books</h3>
+              <p className="text-gray-600 text-sm">An annual summary of your sharing year — how many books you lent, how many you borrowed, how far your books traveled, and the circles that made it happen. Think Spotify Wrapped, but for the books on your shelf.</p>
+            </div>
+            <div className="bg-white rounded-lg border border-purple-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Support local bookstores</h3>
+              <p className="text-gray-600 text-sm">We'd love to help you buy from independent Canadian bookstores when you discover something you want to keep. We're exploring how to make that happen.</p>
+            </div>
+            <div className="bg-white rounded-lg border border-purple-200 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-1">Cover Artist</h3>
+              <p className="text-gray-600 text-sm">Spot a book with a missing cover? Submit one. Earn a badge. Help make PagePass more beautiful for everyone.</p>
+            </div>
           </div>
         </section>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500 mt-12">
-          <p>Last updated: February 2026</p>
+        <div className="text-center text-gray-600 mt-12 p-6 bg-white rounded-lg border border-gray-200">
+          <p>
+            Something missing? Something you'd love to see?{' '}
+            <span className="font-medium">Tap the feedback button</span> and tell us.
+          </p>
+          <p className="mt-2 text-gray-500">This is your app too.</p>
         </div>
       </div>
     </div>
