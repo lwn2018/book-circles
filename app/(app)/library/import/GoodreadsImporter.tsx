@@ -57,9 +57,10 @@ export default function GoodreadsImporter({
   const [toast, setToast] = useState<string | null>(null)
   const [hasStoredLibrary, setHasStoredLibrary] = useState(false)
   const [loadingStored, setLoadingStored] = useState(true)
+  const [ownedBooks, setOwnedBooks] = useState<Set<string>>(new Set())
   
   type ShelfFilter = 'owned' | 'read' | 'to-read' | 'all'
-  const [activeShelf, setActiveShelf] = useState<ShelfFilter>('owned')
+  const [activeShelf, setActiveShelf] = useState<ShelfFilter>('all')
   const [minRating, setMinRating] = useState<number>(0)
   const [authorFilter, setAuthorFilter] = useState('')
   
@@ -68,7 +69,33 @@ export default function GoodreadsImporter({
 
   useEffect(() => {
     loadStoredLibrary()
+    loadOwnedBooks()
   }, [])
+
+  const loadOwnedBooks = async () => {
+    try {
+      // Fetch user's existing books to check for duplicates
+      const { data: userBooks } = await supabase
+        .from('books')
+        .select('title, author, isbn, isbn13')
+        .eq('owner_id', userId)
+      
+      if (userBooks) {
+        const owned = new Set<string>()
+        userBooks.forEach(book => {
+          // Create lookup keys for matching
+          if (book.isbn13) owned.add(book.isbn13.toLowerCase())
+          if (book.isbn) owned.add(book.isbn.toLowerCase())
+          // Also add title+author combo for books without ISBN
+          const titleAuthor = `${book.title?.toLowerCase()}|${book.author?.toLowerCase()}`
+          owned.add(titleAuthor)
+        })
+        setOwnedBooks(owned)
+      }
+    } catch (err) {
+      console.error('Failed to load owned books:', err)
+    }
+  }
 
   const loadStoredLibrary = async () => {
     try {
@@ -132,7 +159,8 @@ export default function GoodreadsImporter({
     setSuccess('')
     setParsing(true)
 
-    // Small delay to let React render the loading state before synchronous parsing
+    // Ensure loading state is visible for at least 1.5 seconds
+    const startTime = Date.now()
     await new Promise(resolve => setTimeout(resolve, 100))
 
     try {
@@ -208,6 +236,12 @@ export default function GoodreadsImporter({
       }
 
       setBooks(parsedBooks)
+      
+      // Ensure loading state shows for at least 1.5 seconds
+      const elapsed = Date.now() - startTime
+      if (elapsed < 1500) {
+        await new Promise(resolve => setTimeout(resolve, 1500 - elapsed))
+      }
       setParsing(false)
       
       if (parsedBooks.length === 0) {
@@ -265,6 +299,15 @@ export default function GoodreadsImporter({
 
   const selectedCount = filteredBooks.filter(b => b.selected && !b.imported).length
   const importedCount = books.filter(b => b.imported).length
+
+  const isBookOwned = (book: ParsedBook): boolean => {
+    if (book.isbn13 && ownedBooks.has(book.isbn13.toLowerCase())) return true
+    if (book.isbn && ownedBooks.has(book.isbn.toLowerCase())) return true
+    const titleAuthor = `${book.title?.toLowerCase()}|${book.author?.toLowerCase()}`
+    return ownedBooks.has(titleAuthor)
+  }
+
+  const alreadyOwnedCount = useMemo(() => books.filter(b => !b.imported && isBookOwned(b)).length, [books, ownedBooks])
 
   const toggleBookSelection = (index: number) => {
     setBooks(prev => {
@@ -432,15 +475,21 @@ export default function GoodreadsImporter({
           <div className="mb-4">
             <h3 className="font-semibold mb-2">Select Books to Import</h3>
             
-            {importedCount > 0 && (
+            {(importedCount > 0 || alreadyOwnedCount > 0) && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm">
-                <p className="text-green-800">✅ <strong>{importedCount} book{importedCount !== 1 ? 's' : ''} already imported</strong> (greyed out below)</p>
+                {importedCount > 0 && (
+                  <p className="text-green-800">✅ <strong>{importedCount} book{importedCount !== 1 ? 's' : ''} already imported</strong> from this list</p>
+                )}
+                {alreadyOwnedCount > 0 && (
+                  <p className="text-blue-800 mt-1">📚 <strong>{alreadyOwnedCount} book{alreadyOwnedCount !== 1 ? 's' : ''} already in your library</strong></p>
+                )}
+                <p className="text-gray-600 mt-1 text-xs">(greyed out below)</p>
               </div>
             )}
             
-            {importedCount === 0 && (
+            {importedCount === 0 && alreadyOwnedCount === 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
-                <p className="text-blue-800"><strong>We found {books.length} books!</strong> Start with 20-30 — you can add more later.</p>
+                <p className="text-blue-800"><strong>We found {books.length} books!</strong> Start with 20-30 — we'll save this import so you can return to it later and add more books.</p>
               </div>
             )}
             
@@ -481,9 +530,9 @@ export default function GoodreadsImporter({
             ) : (
               <div className="divide-y divide-gray-100">
                 {filteredBooks.map((book, index) => (
-                  <div key={index} onClick={() => !book.imported && toggleBookSelection(index)}
-                    className={`flex items-center gap-3 px-3 py-2 ${book.imported ? 'bg-gray-100 opacity-60 cursor-not-allowed' : book.selected ? 'bg-blue-50 cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}`}>
-                    {book.imported ? (
+                  <div key={index} onClick={() => !book.imported && !isBookOwned(book) && toggleBookSelection(index)}
+                    className={`flex items-center gap-3 px-3 py-2 ${book.imported || isBookOwned(book) ? 'bg-gray-100 opacity-60 cursor-not-allowed' : book.selected ? 'bg-blue-50 cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'}`}>
+                    {book.imported || isBookOwned(book) ? (
                       <div className="w-5 h-5 rounded bg-green-500 flex items-center justify-center">
                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -495,8 +544,12 @@ export default function GoodreadsImporter({
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium text-sm truncate ${book.imported ? 'text-gray-500' : ''}`}>{book.title}</p>
-                      <p className="text-xs text-gray-500 truncate">{book.author}{book.imported && <span className="ml-2 text-green-600">• Imported</span>}</p>
+                      <p className={`font-medium text-sm truncate ${book.imported || isBookOwned(book) ? 'text-gray-500' : ''}`}>{book.title}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {book.author}
+                        {book.imported && <span className="ml-2 text-green-600">• Imported</span>}
+                        {!book.imported && isBookOwned(book) && <span className="ml-2 text-blue-600">• Already in library</span>}
+                      </p>
                     </div>
                     {book.myRating && book.myRating > 0 && <div className="text-xs text-amber-500">{'★'.repeat(book.myRating)}</div>}
                   </div>
