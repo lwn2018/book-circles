@@ -58,16 +58,11 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
     setLoading(false)
 
       if (result.bothConfirmed) {
-        // Both confirmed! Show success animation
+        // Both confirmed! Show success screen with navigation options
         setLoading(false)
         setConfirmed(true)
         setShowSuccess(true)
-        
-        // Redirect after animation completes (book flies to shelf)
-        setTimeout(() => {
-          router.push('/shelf')
-          router.refresh()
-        }, 1800) // 1.8s matches the 1.5s animation + small buffer
+        // No auto-redirect - let user choose where to go
       } else {
         // Just this person confirmed - refresh to show updated state
         setLoading(false)
