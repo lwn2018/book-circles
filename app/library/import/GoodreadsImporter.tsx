@@ -161,14 +161,15 @@ export default function GoodreadsImporter({
     return books.filter(book => {
       const shelf = book.exclusiveShelf || ''
       const shelves = book.bookshelves || ''
+      const shelfList = shelves.split(',').map(s => s.trim().toLowerCase())
       
       switch (activeShelf) {
         case 'owned':
-          return shelves.includes('owned') || shelves.includes('own')
+          return shelfList.some(s => s === 'owned' || s === 'own')
         case 'read':
-          return shelf === 'read' || shelves.includes('read')
+          return shelf === 'read' || shelfList.some(s => s === 'read')
         case 'to-read':
-          return shelf === 'to-read' || shelves.includes('to-read')
+          return shelf === 'to-read' || shelfList.some(s => s === 'to-read')
         default:
           return true
       }
@@ -183,9 +184,12 @@ export default function GoodreadsImporter({
       const shelf = book.exclusiveShelf || ''
       const shelves = book.bookshelves || ''
       
-      if (shelves.includes('owned') || shelves.includes('own')) counts.owned++
-      if (shelf === 'read' || shelves.includes('read')) counts.read++
-      if (shelf === 'to-read' || shelves.includes('to-read')) counts['to-read']++
+      // Use word boundary matching to avoid "currently-reading" matching "read"
+      const shelfList = shelves.split(',').map(s => s.trim().toLowerCase())
+      
+      if (shelfList.some(s => s === 'owned' || s === 'own')) counts.owned++
+      if (shelf === 'read' || shelfList.some(s => s === 'read')) counts.read++
+      if (shelf === 'to-read' || shelfList.some(s => s === 'to-read')) counts['to-read']++
     })
     
     return counts
@@ -247,36 +251,28 @@ export default function GoodreadsImporter({
       setImportProgress({ current: i + 1, total: selectedBooks.length })
       
       try {
-        const { data: newBook, error: bookError} = await supabase
-          .from('books')
-          .insert({
+        // Use the API route which handles RLS bypass
+        const response = await fetch('/api/books/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             title: book.title,
             author: book.author,
             isbn: book.isbn,
-            owner_id: userId,
-            status: 'available'
-            // Don't set circle_id - we use book_circle_visibility instead
+            selectedCircles: book.selectedCircles,
+            userCircles: userCircles,
+            source: 'goodreads'
           })
-          .select()
-          .single()
+        })
 
-        if (bookError) throw bookError
-
-        const visibilityEntries = book.selectedCircles.map(circleId => ({
-          book_id: newBook.id,
-          circle_id: circleId,
-          is_visible: true
-        }))
-
-        const { error: visError } = await supabase
-          .from('book_circle_visibility')
-          .insert(visibilityEntries)
-
-        if (visError) throw visError
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to add book')
+        }
 
         successCount++
-      } catch (err) {
-        console.error('Failed to import book:', book.title, err)
+      } catch (err: any) {
+        console.error('Failed to import book:', book.title, err?.message || err)
         errorCount++
       }
     }
