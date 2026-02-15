@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Save parsed Goodreads CSV (upsert - won't duplicate)
+// POST - Save parsed Goodreads CSV (replace all - simpler and more reliable)
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
@@ -50,21 +50,57 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No books provided' }, { status: 400 })
     }
 
-    // Prepare records for upsert
-    const records = books.map(book => ({
-      user_id: user.id,
-      title: book.title,
-      author: book.author || null,
-      isbn: book.isbn || null,
-      isbn13: book.isbn13 || null,
-      my_rating: book.myRating || null,
-      date_read: book.dateRead || null,
-      bookshelves: book.bookshelves || null,
-      exclusive_shelf: book.exclusiveShelf || null,
-      updated_at: new Date().toISOString()
-    }))
+    console.log('[goodreads/library POST] Saving', books.length, 'books for user', user.id)
 
-    // Upsert in batches of 100
+    // First, get existing records to preserve imported_book_id
+    const { data: existing } = await adminClient
+      .from('goodreads_library')
+      .select('title, author, imported_book_id, imported_at')
+      .eq('user_id', user.id)
+
+    // Create lookup map for previously imported books
+    const importedMap = new Map<string, { imported_book_id: string, imported_at: string }>()
+    if (existing) {
+      existing.forEach(e => {
+        if (e.imported_book_id) {
+          const key = `${e.title?.toLowerCase()}|${e.author?.toLowerCase()}`
+          importedMap.set(key, { imported_book_id: e.imported_book_id, imported_at: e.imported_at })
+        }
+      })
+    }
+
+    // Delete all existing records for this user
+    const { error: deleteError } = await adminClient
+      .from('goodreads_library')
+      .delete()
+      .eq('user_id', user.id)
+
+    if (deleteError) {
+      console.error('[goodreads/library POST] Delete error:', deleteError)
+      return NextResponse.json({ error: 'Failed to clear existing library' }, { status: 500 })
+    }
+
+    // Prepare records, preserving import status
+    const records = books.map(book => {
+      const key = `${book.title?.toLowerCase()}|${(book.author || '').toLowerCase()}`
+      const imported = importedMap.get(key)
+      return {
+        user_id: user.id,
+        title: book.title,
+        author: book.author || null,
+        isbn: book.isbn || null,
+        isbn13: book.isbn13 || null,
+        my_rating: book.myRating || null,
+        date_read: book.dateRead || null,
+        bookshelves: book.bookshelves || null,
+        exclusive_shelf: book.exclusiveShelf || null,
+        imported_book_id: imported?.imported_book_id || null,
+        imported_at: imported?.imported_at || null,
+        updated_at: new Date().toISOString()
+      }
+    })
+
+    // Insert in batches of 100
     let savedCount = 0
     const batchSize = 100
     
@@ -73,30 +109,16 @@ export async function POST(request: NextRequest) {
       
       const { error } = await adminClient
         .from('goodreads_library')
-        .upsert(batch, { 
-          onConflict: 'user_id,isbn13',
-          ignoreDuplicates: false 
-        })
+        .insert(batch)
 
       if (error) {
-        console.error('Batch upsert error:', error)
-        // Try individual inserts for this batch (handle title+author unique constraint)
-        for (const record of batch) {
-          try {
-            await adminClient.from('goodreads_library').upsert(record, {
-              onConflict: 'user_id,title,author',
-              ignoreDuplicates: true
-            })
-            savedCount++
-          } catch (e) {
-            // Skip duplicates
-          }
-        }
+        console.error('[goodreads/library POST] Batch insert error:', error)
       } else {
         savedCount += batch.length
       }
     }
 
+    console.log('[goodreads/library POST] Saved', savedCount, 'books')
     return NextResponse.json({ saved: savedCount })
   } catch (err: any) {
     console.error('Goodreads library POST error:', err)
