@@ -237,20 +237,21 @@ export default function GoodreadsImporter({
 
       setBooks(parsedBooks)
       
-      // Ensure loading state shows for at least 1.5 seconds
-      const elapsed = Date.now() - startTime
-      if (elapsed < 1500) {
-        await new Promise(resolve => setTimeout(resolve, 1500 - elapsed))
-      }
-      setParsing(false)
-      
       if (parsedBooks.length === 0) {
         setError('No valid books found in CSV')
+        setParsing(false)
       } else {
+        // Save to library while still showing loading state
         await saveToStoredLibrary(parsedBooks)
         setHasStoredLibrary(true)
         setShowCuration(true)
-        // Don't show duplicate success message - the blue info box handles this
+        
+        // Ensure loading state shows for at least 1.5 seconds total
+        const elapsed = Date.now() - startTime
+        if (elapsed < 1500) {
+          await new Promise(resolve => setTimeout(resolve, 1500 - elapsed))
+        }
+        setParsing(false)
       }
     } catch (err: any) {
       setError(`Failed to parse CSV: ${err.message}`)
