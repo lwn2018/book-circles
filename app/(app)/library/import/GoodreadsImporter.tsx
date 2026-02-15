@@ -132,6 +132,9 @@ export default function GoodreadsImporter({
     setSuccess('')
     setParsing(true)
 
+    // Small delay to let React render the loading state before synchronous parsing
+    await new Promise(resolve => setTimeout(resolve, 100))
+
     try {
       const text = await selectedFile.text()
       const lines = text.split('\n')
