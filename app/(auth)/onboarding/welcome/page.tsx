@@ -169,9 +169,7 @@ export default function OnboardingWelcome() {
           
           <div className="pt-4 border-t border-blue-200">
             <a 
-              href="https://pagepass.notion.site/roadmap" 
-              target="_blank" 
-              rel="noopener noreferrer"
+              href="/roadmap" 
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
               See what's coming → Roadmap

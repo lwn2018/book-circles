@@ -56,9 +56,7 @@ export default function FounderBanner({ userId }: { userId: string }) {
         <span className="font-medium">You're a founding tester.</span>{' '}
         Your feedback shapes what PagePass becomes.{' '}
         <a 
-          href="https://pagepass.notion.site/roadmap" 
-          target="_blank" 
-          rel="noopener noreferrer"
+          href="/roadmap" 
           className="text-blue-600 hover:text-blue-700 font-medium"
         >
           See the roadmap →
