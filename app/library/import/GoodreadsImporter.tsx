@@ -732,19 +732,50 @@ export default function GoodreadsImporter({
 
           {/* Import Button with Progress */}
           {importing ? (
-            <div className="w-full">
+            <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">Importing books...</span>
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium text-blue-800">📚 Importing your books...</span>
+                <span className="text-sm font-medium text-blue-600">
                   {importProgress.current} / {importProgress.total}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="w-full bg-blue-200 rounded-full h-3 mb-4">
                 <div 
-                  className="bg-green-600 h-3 rounded-full transition-all duration-300"
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-300"
                   style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
                 />
               </div>
+              
+              {importProgress.total >= 5 && (
+                <div className="text-center">
+                  <p className="text-sm text-blue-700 mb-3">
+                    This might take a minute. Why not explore while you wait?
+                  </p>
+                  <div className="flex justify-center gap-3">
+                    <a
+                      href="/circles"
+                      className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50"
+                    >
+                      Browse Circles
+                    </a>
+                    <a
+                      href="/library"
+                      className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50"
+                    >
+                      My Library
+                    </a>
+                    <a
+                      href="/shelf"
+                      className="px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50"
+                    >
+                      My Shelf
+                    </a>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-3">
+                    Your books will appear in your library when done!
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <button
