@@ -403,9 +403,16 @@ export default function GoodreadsImporter({
           <label className="block text-sm font-medium mb-2">
             {hasStoredLibrary ? 'Upload New CSV (optional)' : 'Upload Goodreads CSV'}
           </label>
-          <input type="file" accept=".csv" onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-          {parsing && <p className="text-sm text-gray-600 mt-2">Parsing CSV...</p>}
+          <input type="file" accept=".csv" onChange={handleFileChange} disabled={parsing}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50" />
+          {parsing && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                <span className="text-sm font-medium text-blue-800">Reading your Goodreads library...</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
