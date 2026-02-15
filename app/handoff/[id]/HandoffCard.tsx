@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { confirmHandoff } from '@/lib/handoff-actions'
 import { useRouter } from 'next/navigation'
 import { phoneToSmsLink } from '@/lib/formatPhone'
@@ -37,9 +37,39 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
   const [showSuccess, setShowSuccess] = useState(false)
   const router = useRouter()
 
-  const otherConfirmed = role === 'giver' 
-    ? !!handoff.receiver_confirmed_at 
-    : !!handoff.giver_confirmed_at
+  const [otherConfirmed, setOtherConfirmed] = useState(
+    role === 'giver' ? !!handoff.receiver_confirmed_at : !!handoff.giver_confirmed_at
+  )
+
+  // Poll for updates when waiting for other person to confirm
+  useEffect(() => {
+    if (!confirmed || otherConfirmed || showSuccess) return // Only poll when waiting
+
+    const checkStatus = async () => {
+      try {
+        const response = await fetch(`/api/handoff/${handoff.id}/status`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.bothConfirmed) {
+            setOtherConfirmed(true)
+            setShowSuccess(true)
+          } else if (data.otherConfirmed) {
+            setOtherConfirmed(true)
+          }
+        }
+      } catch (e) {
+        console.error('Failed to check handoff status:', e)
+      }
+    }
+
+    // Check every 5 seconds
+    const interval = setInterval(checkStatus, 5000)
+    
+    // Also check immediately
+    checkStatus()
+
+    return () => clearInterval(interval)
+  }, [confirmed, otherConfirmed, showSuccess, handoff.id])
 
   const handleConfirm = async () => {
     setLoading(true)
