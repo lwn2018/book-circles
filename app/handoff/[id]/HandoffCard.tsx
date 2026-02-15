@@ -244,8 +244,26 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
       )}
 
       {confirmed && (
-        <div className="text-center text-sm text-gray-500">
-          Waiting for {otherPerson.full_name} to confirm
+        <div className="text-center">
+          <p className="text-sm text-gray-500 mb-6">
+            Waiting for {otherPerson.full_name} to confirm
+          </p>
+          
+          {/* Navigation buttons - so user isn't stuck */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => router.push('/shelf')}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              Go to My Shelf
+            </button>
+            <button
+              onClick={() => router.push('/circles')}
+              className="w-full px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+            >
+              Browse Circles
+            </button>
+          </div>
         </div>
       )}
     </div>
