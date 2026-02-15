@@ -1,39 +1,146 @@
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
-// GET - Load user's stored Goodreads library
+// Parse Goodreads CSV content into book objects
+function parseGoodreadsCSV(csvContent: string): Array<{
+  title: string
+  author: string
+  isbn: string | null
+  isbn13: string | null
+  myRating: number | null
+  dateRead: string | null
+  bookshelves: string | null
+  exclusiveShelf: string | null
+}> {
+  const lines = csvContent.split('\n')
+  if (lines.length < 2) return []
+
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+  const titleIdx = headers.findIndex(h => h.toLowerCase() === 'title')
+  const authorIdx = headers.findIndex(h => h.toLowerCase() === 'author')
+  const isbnIdx = headers.findIndex(h => h.toLowerCase() === 'isbn')
+  const isbn13Idx = headers.findIndex(h => h.toLowerCase() === 'isbn13')
+  const ratingIdx = headers.findIndex(h => h.toLowerCase() === 'my rating')
+  const dateReadIdx = headers.findIndex(h => h.toLowerCase() === 'date read')
+  const bookshelvesIdx = headers.findIndex(h => h.toLowerCase() === 'bookshelves')
+  const exclusiveShelfIdx = headers.findIndex(h => h.toLowerCase() === 'exclusive shelf')
+
+  if (titleIdx === -1) return []
+
+  const books: ReturnType<typeof parseGoodreadsCSV> = []
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line) continue
+
+    // Parse CSV line handling quoted values
+    const values: string[] = []
+    let current = ''
+    let inQuotes = false
+    
+    for (const char of line) {
+      if (char === '"') {
+        inQuotes = !inQuotes
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.trim())
+        current = ''
+      } else {
+        current += char
+      }
+    }
+    values.push(current.trim())
+
+    const title = values[titleIdx]?.replace(/"/g, '') || ''
+    if (!title) continue
+
+    // Strip Goodreads ISBN formatting: ="0123456789" -> 0123456789
+    const cleanIsbn = (val: string | undefined) => {
+      if (!val) return null
+      return val.replace(/"/g, '').replace(/^=/, '').trim() || null
+    }
+
+    books.push({
+      title,
+      author: values[authorIdx]?.replace(/"/g, '') || 'Unknown',
+      isbn: cleanIsbn(values[isbnIdx]),
+      isbn13: cleanIsbn(values[isbn13Idx]),
+      myRating: ratingIdx !== -1 ? parseInt(values[ratingIdx]?.replace(/"/g, '')) || null : null,
+      dateRead: dateReadIdx !== -1 ? values[dateReadIdx]?.replace(/"/g, '') || null : null,
+      bookshelves: bookshelvesIdx !== -1 ? values[bookshelvesIdx]?.replace(/"/g, '').toLowerCase() || null : null,
+      exclusiveShelf: exclusiveShelfIdx !== -1 ? values[exclusiveShelfIdx]?.replace(/"/g, '').toLowerCase() || null : null
+    })
+  }
+
+  return books
+}
+
+// Generate dedup key for a book (ISBN or title::author)
+function getBookKey(book: { isbn?: string | null, isbn13?: string | null, title: string, author: string }): string {
+  if (book.isbn13) return book.isbn13.toLowerCase()
+  if (book.isbn) return book.isbn.toLowerCase()
+  return `${book.title.toLowerCase()}::${book.author.toLowerCase()}`
+}
+
+// GET - Load user's stored Goodreads library (from CSV in storage)
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
-    const adminClient = createServiceRoleClient() // Bypass RLS to ensure we can read
+    const adminClient = createServiceRoleClient()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Use admin client to bypass RLS (same as POST)
-    const { data: books, error } = await adminClient
-      .from('goodreads_library')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('title')
+    // Check if user has a stored CSV
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('goodreads_csv_path, goodreads_imported_isbns')
+      .eq('id', user.id)
+      .single()
 
-    console.log('[goodreads/library GET] user:', user.id, 'books found:', books?.length, 'error:', error)
-
-    if (error) {
-      console.error('Failed to load goodreads library:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!profile?.goodreads_csv_path) {
+      return NextResponse.json({ books: [], hasStoredCSV: false })
     }
 
-    return NextResponse.json({ books: books || [] })
+    // Download CSV from storage
+    const { data: fileData, error: downloadError } = await adminClient.storage
+      .from('goodreads-imports')
+      .download(profile.goodreads_csv_path)
+
+    if (downloadError || !fileData) {
+      console.error('[goodreads/library GET] Download error:', downloadError)
+      return NextResponse.json({ books: [], hasStoredCSV: false })
+    }
+
+    // Parse CSV
+    const csvContent = await fileData.text()
+    const allBooks = parseGoodreadsCSV(csvContent)
+
+    // Get imported ISBNs set
+    const importedSet = new Set(profile.goodreads_imported_isbns || [])
+
+    // Mark which books are already imported
+    const books = allBooks.map(book => ({
+      ...book,
+      imported: importedSet.has(getBookKey(book))
+    }))
+
+    console.log('[goodreads/library GET] Returning', books.length, 'books,', importedSet.size, 'already imported')
+
+    return NextResponse.json({ 
+      books, 
+      hasStoredCSV: true,
+      totalBooks: books.length,
+      importedCount: books.filter(b => b.imported).length
+    })
   } catch (err: any) {
     console.error('Goodreads library GET error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
 
-// POST - Save parsed Goodreads CSV (replace all - simpler and more reliable)
+// POST - Upload new CSV to storage
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
@@ -44,114 +151,111 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    const { books } = await request.json()
-    
-    if (!Array.isArray(books) || books.length === 0) {
-      return NextResponse.json({ error: 'No books provided' }, { status: 400 })
+    const formData = await request.formData()
+    const file = formData.get('file') as File | null
+
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    console.log('[goodreads/library POST] Saving', books.length, 'books for user', user.id)
+    // Validate it's a CSV
+    if (!file.name.endsWith('.csv')) {
+      return NextResponse.json({ error: 'File must be a CSV' }, { status: 400 })
+    }
 
-    // First, get existing records to preserve imported_book_id
-    const { data: existing } = await adminClient
-      .from('goodreads_library')
-      .select('title, author, imported_book_id, imported_at')
-      .eq('user_id', user.id)
+    // Check file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 })
+    }
 
-    // Create lookup map for previously imported books
-    const importedMap = new Map<string, { imported_book_id: string, imported_at: string }>()
-    if (existing) {
-      existing.forEach(e => {
-        if (e.imported_book_id) {
-          const key = `${e.title?.toLowerCase()}|${e.author?.toLowerCase()}`
-          importedMap.set(key, { imported_book_id: e.imported_book_id, imported_at: e.imported_at })
-        }
+    // Validate CSV content
+    const csvContent = await file.text()
+    const books = parseGoodreadsCSV(csvContent)
+    
+    if (books.length === 0) {
+      return NextResponse.json({ 
+        error: "This doesn't look like a Goodreads export. Make sure you're uploading the CSV file from Goodreads." 
+      }, { status: 400 })
+    }
+
+    // Upload to storage (overwrites existing)
+    const storagePath = `${user.id}/${user.id}.csv`
+    
+    const { error: uploadError } = await adminClient.storage
+      .from('goodreads-imports')
+      .upload(storagePath, csvContent, {
+        contentType: 'text/csv',
+        upsert: true
       })
+
+    if (uploadError) {
+      console.error('[goodreads/library POST] Upload error:', uploadError)
+      return NextResponse.json({ error: 'Failed to store CSV' }, { status: 500 })
     }
 
-    // Delete all existing records for this user
-    const { error: deleteError } = await adminClient
-      .from('goodreads_library')
-      .delete()
-      .eq('user_id', user.id)
+    // Update profile with path
+    const { error: updateError } = await adminClient
+      .from('profiles')
+      .update({ goodreads_csv_path: storagePath })
+      .eq('id', user.id)
 
-    if (deleteError) {
-      console.error('[goodreads/library POST] Delete error:', deleteError)
-      return NextResponse.json({ error: 'Failed to clear existing library' }, { status: 500 })
+    if (updateError) {
+      console.error('[goodreads/library POST] Profile update error:', updateError)
     }
 
-    // Prepare records, preserving import status
-    const records = books.map(book => {
-      const key = `${book.title?.toLowerCase()}|${(book.author || '').toLowerCase()}`
-      const imported = importedMap.get(key)
-      return {
-        user_id: user.id,
-        title: book.title,
-        author: book.author || null,
-        isbn: book.isbn || null,
-        isbn13: book.isbn13 || null,
-        my_rating: book.myRating || null,
-        date_read: book.dateRead || null,
-        bookshelves: book.bookshelves || null,
-        exclusive_shelf: book.exclusiveShelf || null,
-        imported_book_id: imported?.imported_book_id || null,
-        imported_at: imported?.imported_at || null,
-        updated_at: new Date().toISOString()
-      }
+    console.log('[goodreads/library POST] Stored CSV with', books.length, 'books')
+
+    return NextResponse.json({ 
+      success: true, 
+      booksFound: books.length 
     })
-
-    // Insert in batches of 100
-    let savedCount = 0
-    const batchSize = 100
-    
-    for (let i = 0; i < records.length; i += batchSize) {
-      const batch = records.slice(i, i + batchSize)
-      
-      const { error } = await adminClient
-        .from('goodreads_library')
-        .insert(batch)
-
-      if (error) {
-        console.error('[goodreads/library POST] Batch insert error:', error)
-      } else {
-        savedCount += batch.length
-      }
-    }
-
-    console.log('[goodreads/library POST] Saved', savedCount, 'books')
-    return NextResponse.json({ saved: savedCount })
   } catch (err: any) {
     console.error('Goodreads library POST error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
 
-// PATCH - Mark a book as imported
+// PATCH - Mark books as imported (add to imported ISBNs array)
 export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminClient = createServiceRoleClient()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    const { goodreadsId, importedBookId } = await request.json()
+    const { importedKeys } = await request.json()
 
-    const { error } = await supabase
-      .from('goodreads_library')
-      .update({ 
-        imported_book_id: importedBookId,
-        imported_at: new Date().toISOString()
-      })
-      .eq('id', goodreadsId)
-      .eq('user_id', user.id)
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!Array.isArray(importedKeys) || importedKeys.length === 0) {
+      return NextResponse.json({ error: 'No keys provided' }, { status: 400 })
     }
 
-    return NextResponse.json({ success: true })
+    // Get current imported ISBNs
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('goodreads_imported_isbns')
+      .eq('id', user.id)
+      .single()
+
+    const currentImported = new Set(profile?.goodreads_imported_isbns || [])
+    
+    // Add new keys
+    importedKeys.forEach((key: string) => currentImported.add(key))
+
+    // Update profile
+    const { error: updateError } = await adminClient
+      .from('profiles')
+      .update({ goodreads_imported_isbns: Array.from(currentImported) })
+      .eq('id', user.id)
+
+    if (updateError) {
+      console.error('[goodreads/library PATCH] Update error:', updateError)
+      return NextResponse.json({ error: updateError.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, totalImported: currentImported.size })
   } catch (err: any) {
     console.error('Goodreads library PATCH error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
