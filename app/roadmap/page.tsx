@@ -37,10 +37,6 @@ export default function RoadmapPage() {
               <h3 className="font-semibold text-gray-900 mb-1">Your badge collection</h3>
               <p className="text-gray-600 text-sm">You've already started earning badges (check your notifications). Soon you'll be able to see your full collection and choose which badge to show off next to your name.</p>
             </div>
-            <div className="bg-white rounded-lg border border-green-200 p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-1">Dark mode</h3>
-              <p className="text-gray-600 text-sm">For the late-night readers among us.</p>
-            </div>
           </div>
         </section>
 
