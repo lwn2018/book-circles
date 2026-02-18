@@ -100,6 +100,7 @@ export default async function MyShelfTab() {
       )
     `)
     .eq('current_borrower_id', user.id)
+    .eq('status', 'borrowed')
     .order('due_date', { ascending: true })
   
   if (borrowedError) {

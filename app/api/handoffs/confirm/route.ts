@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         console.log('[confirm] Initial borrow - setting status to borrowed')
         const { error: bookError } = await adminClient
           .from('books')
-          .update({ status: 'borrowed' })
+          .update({ status: 'borrowed', borrowed_at: now })
           .eq('id', updated.book_id)
 
         if (bookError) {
