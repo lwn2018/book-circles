@@ -48,8 +48,8 @@ export default function BatchHandoffGroup({
   isGiver 
 }: BatchHandoffGroupProps) {
   const [confirming, setConfirming] = useState(false)
+  const [confirmingIndividual, setConfirmingIndividual] = useState<string | null>(null)
   const [confirmationStatus, setConfirmationStatus] = useState<Record<string, 'pending' | 'success' | 'error'>>({})
-  const [expanded, setExpanded] = useState(false)
   const [showIndividual, setShowIndividual] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -63,6 +63,64 @@ export default function BatchHandoffGroup({
   const showContact = !isGiver && handoffs[0].giver.contact_preference_type !== 'none'
   const contactType = handoffs[0].giver.contact_preference_type
   const contactValue = handoffs[0].giver.contact_preference_value
+
+  // Confirm a single handoff
+  const confirmSingleHandoff = async (handoff: Handoff) => {
+    setConfirmingIndividual(handoff.id)
+    const field = isGiver ? 'giver_confirmed_at' : 'receiver_confirmed_at'
+    const now = new Date().toISOString()
+
+    try {
+      // Update handoff confirmation
+      const { error: updateError } = await supabase
+        .from('handoff_confirmations')
+        .update({ [field]: now })
+        .eq('id', handoff.id)
+
+      if (updateError) throw updateError
+
+      // Check if both have confirmed
+      const { data: updated } = await supabase
+        .from('handoff_confirmations')
+        .select('giver_confirmed_at, receiver_confirmed_at, book_id')
+        .eq('id', handoff.id)
+        .single()
+
+      if (updated && updated.giver_confirmed_at && updated.receiver_confirmed_at) {
+        // Both confirmed - finalize handoff
+        await supabase
+          .from('handoff_confirmations')
+          .update({ both_confirmed_at: now })
+          .eq('id', handoff.id)
+
+        await supabase
+          .from('books')
+          .update({ status: 'borrowed' })
+          .eq('id', updated.book_id)
+
+        // Log to activity ledger
+        await supabase
+          .from('activity_ledger')
+          .insert({
+            user_id: userId,
+            action: isGiver ? 'handoff_given' : 'handoff_received',
+            book_id: handoff.book_id,
+            metadata: {
+              book_title: handoff.books.title,
+              other_person: otherPerson.full_name
+            }
+          })
+      }
+
+      setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'success' }))
+      setConfirmingIndividual(null)
+      router.refresh()
+    } catch (error) {
+      console.error(`Failed to confirm handoff ${handoff.id}:`, error)
+      setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'error' }))
+      setConfirmingIndividual(null)
+    }
+  }
 
   const handleConfirmAll = async () => {
     setConfirming(true)
@@ -149,8 +207,11 @@ export default function BatchHandoffGroup({
     }
   }
 
+  // Count remaining unconfirmed handoffs
+  const remainingHandoffs = handoffs.filter(h => confirmationStatus[h.id] !== 'success')
+
   if (showIndividual) {
-    // Render individual cards
+    // Render individual cards WITH action buttons
     return (
       <div className="space-y-4">
         <button
@@ -159,35 +220,81 @@ export default function BatchHandoffGroup({
         >
           ← Back to batch view
         </button>
-        {handoffs.map(handoff => (
-          <div key={handoff.id} className="bg-white border border-gray-200 rounded-lg p-4">
-            {/* Individual handoff card content (simplified) */}
-            <div className="flex gap-4">
-              <BookCover
-                coverUrl={handoff.books.cover_url}
-                title={handoff.books.title}
-                author={handoff.books.author}
-                isbn={handoff.books.isbn}
-                className="w-20 h-28 object-cover rounded shadow-sm flex-shrink-0"
-              />
-              <div className="flex-1">
-                <h3 className="font-semibold">{handoff.books.title}</h3>
-                {handoff.books.author && (
-                  <p className="text-sm text-gray-600">{handoff.books.author}</p>
-                )}
-                {handoff.books.gift_on_borrow && (
-                  <p className="text-sm text-pink-600 mt-1">🎁 Yours to keep</p>
-                )}
-                {confirmationStatus[handoff.id] === 'success' && (
-                  <p className="text-sm text-green-600 mt-2">✓ Confirmed</p>
-                )}
-                {confirmationStatus[handoff.id] === 'error' && (
-                  <p className="text-sm text-red-600 mt-2">✗ Failed</p>
-                )}
+        
+        <h3 className="text-lg font-semibold">
+          📥 Incoming Books ({handoffs.length})
+        </h3>
+        
+        {handoffs.map(handoff => {
+          const isConfirmed = confirmationStatus[handoff.id] === 'success'
+          const isConfirmingThis = confirmingIndividual === handoff.id
+          const hasError = confirmationStatus[handoff.id] === 'error'
+          
+          return (
+            <div 
+              key={handoff.id} 
+              className={`bg-white border rounded-lg p-4 ${
+                isConfirmed ? 'border-green-300 bg-green-50' : 'border-gray-200'
+              }`}
+            >
+              <div className="flex gap-4">
+                <BookCover
+                  coverUrl={handoff.books.cover_url}
+                  title={handoff.books.title}
+                  author={handoff.books.author}
+                  isbn={handoff.books.isbn}
+                  className="w-20 h-28 object-cover rounded shadow-sm flex-shrink-0"
+                />
+                <div className="flex-1">
+                  <h3 className="font-semibold">{handoff.books.title}</h3>
+                  {handoff.books.author && (
+                    <p className="text-sm text-gray-600">{handoff.books.author}</p>
+                  )}
+                  {handoff.books.gift_on_borrow && (
+                    <p className="text-sm text-pink-600 mt-1">🎁 Yours to keep</p>
+                  )}
+                  
+                  {/* Action buttons */}
+                  {isConfirmed ? (
+                    <p className="text-sm text-green-600 mt-3 font-medium">✓ Confirmed</p>
+                  ) : hasError ? (
+                    <div className="mt-3">
+                      <p className="text-sm text-red-600 mb-2">✗ Failed - try again</p>
+                      <button
+                        onClick={() => confirmSingleHandoff(handoff)}
+                        disabled={isConfirmingThis}
+                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {isConfirmingThis ? 'Confirming...' : isGiver ? 'I gave it' : 'I got it'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => confirmSingleHandoff(handoff)}
+                      disabled={isConfirmingThis}
+                      className="mt-3 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {isConfirmingThis ? 'Confirming...' : isGiver ? 'I gave it' : 'I got it'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+          )
+        })}
+        
+        {/* Show "Confirm remaining" button if some are unconfirmed */}
+        {remainingHandoffs.length > 1 && (
+          <div className="pt-2 border-t border-gray-200">
+            <button
+              onClick={handleConfirmAll}
+              disabled={confirming}
+              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
+            >
+              {confirming ? 'Confirming...' : `Confirm all ${remainingHandoffs.length} remaining`}
+            </button>
           </div>
-        ))}
+        )}
       </div>
     )
   }

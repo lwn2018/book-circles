@@ -122,8 +122,8 @@ export async function POST(
           type: 'handoff_initiated',
           book_id: bookId,
           sender_id: user.id,
-          message: `Time to hand off "${book.title}"!`,
-          action_url: `/handoff/${handoffId}`,
+          message: `Time to hand off "${book.title}" to ${borrowerName}!`,
+          action_url: `/shelf`,
           read: false
         },
         {
@@ -132,7 +132,7 @@ export async function POST(
           book_id: bookId,
           sender_id: book.owner_id,
           message: `Time to pick up "${book.title}" from ${ownerName}!`,
-          action_url: `/handoff/${handoffId}`,
+          action_url: `/shelf`,
           read: false
         }
       ])
