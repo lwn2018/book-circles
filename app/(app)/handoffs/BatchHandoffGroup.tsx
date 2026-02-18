@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import BookCover from '@/app/components/BookCover'
-import { v4 as uuidv4 } from 'uuid'
+import { createClient } from '@/lib/supabase'
 
 type Handoff = {
   id: string
@@ -42,26 +42,59 @@ type BatchHandoffGroupProps = {
 }
 
 export default function BatchHandoffGroup({ 
-  handoffs, 
+  handoffs: initialHandoffs, 
   userId, 
   isGiver 
 }: BatchHandoffGroupProps) {
+  const [handoffs, setHandoffs] = useState(initialHandoffs)
   const [confirming, setConfirming] = useState(false)
   const [confirmingIndividual, setConfirmingIndividual] = useState<string | null>(null)
   const [confirmationStatus, setConfirmationStatus] = useState<Record<string, 'pending' | 'success' | 'error'>>({})
   const [showIndividual, setShowIndividual] = useState(false)
   const [resultMessage, setResultMessage] = useState<{ type: 'success' | 'error' | 'partial', text: string } | null>(null)
   const router = useRouter()
-
-  if (handoffs.length === 0) return null
-
-  const otherPerson = isGiver ? handoffs[0].receiver : handoffs[0].giver
-  const hasGiftBooks = handoffs.some(h => h.books.gift_on_borrow)
+  const supabase = createClient()
 
   // Check if current user has already confirmed ALL handoffs in this batch
   const userAlreadyConfirmedAll = handoffs.every(h => 
     isGiver ? h.giver_confirmed_at !== null : h.receiver_confirmed_at !== null
   )
+
+  // Poll for updates when user has confirmed but waiting for other party
+  useEffect(() => {
+    if (!userAlreadyConfirmedAll) return
+
+    const pollForUpdates = async () => {
+      const handoffIds = handoffs.map(h => h.id)
+      
+      const { data: updatedHandoffs } = await supabase
+        .from('handoff_confirmations')
+        .select('id, both_confirmed_at')
+        .in('id', handoffIds)
+
+      if (updatedHandoffs) {
+        const allComplete = updatedHandoffs.every(h => h.both_confirmed_at !== null)
+        if (allComplete) {
+          // Other party confirmed! Refresh the page
+          console.log('[BatchHandoff] All handoffs complete! Refreshing...')
+          window.location.reload()
+        }
+      }
+    }
+
+    // Poll every 5 seconds
+    const interval = setInterval(pollForUpdates, 5000)
+    
+    // Also poll immediately
+    pollForUpdates()
+
+    return () => clearInterval(interval)
+  }, [userAlreadyConfirmedAll, handoffs, supabase])
+
+  if (handoffs.length === 0) return null
+
+  const otherPerson = isGiver ? handoffs[0].receiver : handoffs[0].giver
+  const hasGiftBooks = handoffs.some(h => h.books.gift_on_borrow)
 
   // Check if other party has confirmed any
   const otherPartyConfirmedAll = handoffs.every(h =>
@@ -78,8 +111,6 @@ export default function BatchHandoffGroup({
     setConfirmingIndividual(handoff.id)
     setResultMessage(null)
 
-    console.log(`[BatchHandoff] Confirming single handoff ${handoff.id} via API`)
-
     try {
       const response = await fetch('/api/handoffs/confirm', {
         method: 'POST',
@@ -92,8 +123,6 @@ export default function BatchHandoffGroup({
       if (!response.ok) {
         throw new Error(data.error || 'Failed to confirm')
       }
-
-      console.log(`[BatchHandoff] API response:`, data)
 
       setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'success' }))
       setConfirmingIndividual(null)
@@ -124,8 +153,6 @@ export default function BatchHandoffGroup({
       return
     }
 
-    console.log(`[BatchHandoff] Confirming ${handoffsToConfirm.length} handoffs via API`)
-
     const initialStatus: Record<string, 'pending' | 'success' | 'error'> = {}
     handoffsToConfirm.forEach(h => initialStatus[h.id] = 'pending')
     setConfirmationStatus(initialStatus)
@@ -145,11 +172,9 @@ export default function BatchHandoffGroup({
             throw new Error(data.error || 'Failed to confirm')
           }
 
-          console.log(`[BatchHandoff] Handoff ${handoff.id} confirmed:`, data)
           setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'success' }))
           return { handoffId: handoff.id, success: true, bothConfirmed: data.bothConfirmed }
         } catch (error: any) {
-          console.error(`[BatchHandoff] Failed to confirm handoff ${handoff.id}:`, error)
           setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'error' }))
           return { handoffId: handoff.id, success: false, error }
         }
@@ -159,8 +184,6 @@ export default function BatchHandoffGroup({
     const successes = results.filter(r => r.status === 'fulfilled' && r.value.success).length
     const failures = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length
     const anyBothConfirmed = results.some(r => r.status === 'fulfilled' && r.value.bothConfirmed)
-
-    console.log(`[BatchHandoff] Results: ${successes} successes, ${failures} failures, bothConfirmed: ${anyBothConfirmed}`)
 
     setConfirming(false)
 
@@ -182,7 +205,7 @@ export default function BatchHandoffGroup({
     }
   }
 
-  // If user already confirmed all, show waiting state
+  // If user already confirmed all, show waiting state with polling indicator
   if (userAlreadyConfirmedAll) {
     return (
       <div className="bg-white border-2 border-green-200 rounded-lg p-4 sm:p-6">
@@ -193,8 +216,9 @@ export default function BatchHandoffGroup({
               — {handoffs.length} book{handoffs.length > 1 ? 's' : ''}
             </span>
           </h3>
-          <p className="text-green-700 mt-2 font-medium">
+          <p className="text-green-700 mt-2 font-medium flex items-center gap-2">
             You confirmed! Waiting for {otherPerson.full_name} to confirm.
+            <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Checking for updates..."></span>
           </p>
         </div>
 
@@ -213,6 +237,10 @@ export default function BatchHandoffGroup({
             </div>
           ))}
         </div>
+        
+        <p className="text-xs text-gray-500 mt-4">
+          This will update automatically when they confirm.
+        </p>
       </div>
     )
   }
