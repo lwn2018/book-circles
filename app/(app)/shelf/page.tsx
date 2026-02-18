@@ -22,15 +22,9 @@ function groupHandoffsByPerson(handoffs: any[], isOutgoing: boolean) {
   return groups
 }
 
-// Helper to get contact info
+// Helper to get contact info (uses legacy fields only for now)
 function getContactInfo(profile: any): { type: 'phone' | 'email' | null, value: string | null } {
-  if (profile?.contact_phone) {
-    return { type: 'phone', value: profile.contact_phone }
-  }
-  if (profile?.contact_email) {
-    return { type: 'email', value: profile.contact_email }
-  }
-  if (profile?.contact_preference_value && profile?.contact_preference_type !== 'none') {
+  if (profile?.contact_preference_value && profile?.contact_preference_type && profile?.contact_preference_type !== 'none') {
     return { type: profile.contact_preference_type, value: profile.contact_preference_value }
   }
   return { type: null, value: null }
@@ -44,7 +38,7 @@ export default async function MyShelfTab() {
     redirect('/auth/signin')
   }
 
-  // Get pending handoffs where user is the giver (outgoing) - with full data for BatchHandoffGroup
+  // Get pending handoffs where user is the giver (outgoing)
   const { data: pendingHandoffsOutgoing } = await supabase
     .from('handoff_confirmations')
     .select(`
@@ -61,24 +55,20 @@ export default async function MyShelfTab() {
         id,
         full_name,
         contact_preference_type,
-        contact_preference_value,
-        contact_email,
-        contact_phone
+        contact_preference_value
       ),
       receiver:receiver_id (
         id,
         full_name,
         contact_preference_type,
-        contact_preference_value,
-        contact_email,
-        contact_phone
+        contact_preference_value
       )
     `)
     .eq('giver_id', user.id)
     .is('both_confirmed_at', null)
     .order('created_at', { ascending: false })
 
-  // Get pending handoffs where user is the receiver (incoming) - with full data for BatchHandoffGroup
+  // Get pending handoffs where user is the receiver (incoming)
   const { data: pendingHandoffsIncoming } = await supabase
     .from('handoff_confirmations')
     .select(`
@@ -95,17 +85,13 @@ export default async function MyShelfTab() {
         id,
         full_name,
         contact_preference_type,
-        contact_preference_value,
-        contact_email,
-        contact_phone
+        contact_preference_value
       ),
       receiver:receiver_id (
         id,
         full_name,
         contact_preference_type,
-        contact_preference_value,
-        contact_email,
-        contact_phone
+        contact_preference_value
       )
     `)
     .eq('receiver_id', user.id)
@@ -219,7 +205,6 @@ export default async function MyShelfTab() {
                       <a 
                         href={contact.type === 'phone' ? `sms:${contact.value.replace(/\D/g, '')}` : `mailto:${contact.value}`}
                         className="text-sm text-blue-600 hover:underline flex items-center gap-1"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         {contact.type === 'phone' ? '📱' : '📧'} {contact.value}
                       </a>
@@ -317,7 +302,6 @@ export default async function MyShelfTab() {
                       }`}
                     >
                       <div className="flex gap-4">
-                        {/* Cover */}
                         <BookCover
                           coverUrl={book.cover_url}
                           title={book.title}
@@ -325,8 +309,6 @@ export default async function MyShelfTab() {
                           isbn={book.isbn}
                           className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
                         />
-
-                        {/* Details */}
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg">{book.title}</h3>
                           {book.author && (
@@ -350,8 +332,6 @@ export default async function MyShelfTab() {
                               </p>
                             )}
                           </div>
-                          
-                          {/* Done reading button */}
                           <DoneReadingButton 
                             bookId={book.id}
                             bookTitle={book.title}
@@ -379,7 +359,6 @@ export default async function MyShelfTab() {
                   return (
                     <div key={entry.id} className="p-4 bg-white rounded-lg border border-gray-200">
                       <div className="flex gap-4">
-                        {/* Cover */}
                         <BookCover
                           coverUrl={book.cover_url}
                           title={book.title}
@@ -387,8 +366,6 @@ export default async function MyShelfTab() {
                           isbn={book.isbn}
                           className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
                         />
-
-                        {/* Details */}
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg">{book.title}</h3>
                           {book.author && (

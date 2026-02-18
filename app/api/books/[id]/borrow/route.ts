@@ -21,7 +21,7 @@ export async function POST(
     // Get service role client for operations that need to bypass RLS
     const adminClient = createServiceRoleClient()
     
-    // Get book details with owner's contact info
+    // Get book details with owner's contact info (using legacy fields)
     const { data: book, error: bookError } = await supabase
       .from('books')
       .select(`
@@ -34,9 +34,7 @@ export async function POST(
           full_name,
           email,
           contact_preference_type,
-          contact_preference_value,
-          contact_email,
-          contact_phone
+          contact_preference_value
         )
       `)
       .eq('id', bookId)
@@ -75,14 +73,9 @@ export async function POST(
     const ownerName = ownerProfile?.full_name || 'Owner'
     const ownerEmail = ownerProfile?.email
 
-    // Get owner's contact info for the borrower email
-    // Try new fields first (contact_email/contact_phone), fall back to legacy fields
+    // Get owner's contact info for the borrower email (using legacy fields)
     let ownerContact: { type: 'email' | 'phone' | null, value: string | null } | undefined
-    if (ownerProfile?.contact_phone) {
-      ownerContact = { type: 'phone', value: ownerProfile.contact_phone }
-    } else if (ownerProfile?.contact_email) {
-      ownerContact = { type: 'email', value: ownerProfile.contact_email }
-    } else if (ownerProfile?.contact_preference_value && ownerProfile?.contact_preference_type !== 'none') {
+    if (ownerProfile?.contact_preference_value && ownerProfile?.contact_preference_type !== 'none') {
       ownerContact = { 
         type: ownerProfile.contact_preference_type as 'email' | 'phone',
         value: ownerProfile.contact_preference_value 
@@ -155,7 +148,6 @@ export async function POST(
     }
 
     // Send notifications to BOTH parties (use service role)
-    // Link to /shelf where batch UI groups multiple handoffs with same person
     await adminClient
       .from('notifications')
       .insert([
@@ -211,7 +203,7 @@ export async function POST(
         borrowerName,
         book.title,
         handoffUrl,
-        ownerContact  // Pass owner contact info
+        ownerContact
       )
 
       await sendEmail({
@@ -223,7 +215,7 @@ export async function POST(
       })
     }
 
-    // Track borrow accepted (analytics) - wrapped in try-catch since analytics is client-side
+    // Track borrow accepted (analytics)
     try {
       await analytics.track('borrow_accepted', {
         bookId,
@@ -232,11 +224,10 @@ export async function POST(
         handoffId
       })
     } catch (analyticsError) {
-      // Analytics failure shouldn't break the borrow flow
       console.warn('Analytics tracking failed:', analyticsError)
     }
 
-    // Log event for gamification (user_events table)
+    // Log event for gamification
     await logUserEvent(user.id, 'borrow_confirmed', {
       book_id: bookId,
       borrower_id: user.id
