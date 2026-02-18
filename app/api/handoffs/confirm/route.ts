@@ -20,10 +20,10 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString()
     const field = isGiver ? 'giver_confirmed_at' : 'receiver_confirmed_at'
 
-    // First verify user is part of this handoff
+    // First verify user is part of this handoff and get book details
     const { data: handoff, error: fetchError } = await adminClient
       .from('handoff_confirmations')
-      .select('*, books:book_id(id, title, owner_id, gift_on_borrow)')
+      .select('*, books:book_id(id, title, owner_id, gift_on_borrow, current_borrower_id)')
       .eq('id', handoffId)
       .single()
 
@@ -66,25 +66,21 @@ export async function POST(request: NextRequest) {
         .update({ both_confirmed_at: now })
         .eq('id', handoffId)
 
-      // Update book status to 'borrowed' using service role (bypasses RLS)
-      const { error: bookError } = await adminClient
-        .from('books')
-        .update({ status: 'borrowed' })
-        .eq('id', updated.book_id)
+      const book = handoff.books as any
+      const bookOwnerId = book?.owner_id
 
-      if (bookError) {
-        console.error('[confirm] Book update error:', bookError)
-        // Don't fail the whole request, handoff is still confirmed
-      } else {
-        console.log('[confirm] Book status updated to borrowed')
-      }
+      // Determine handoff type by comparing giver/receiver to book owner
+      const isGiverTheOwner = updated.giver_id === bookOwnerId
+      const isReceiverTheOwner = updated.receiver_id === bookOwnerId
+      const isGift = book?.gift_on_borrow
 
-      // Handle gift transfer if applicable
-      if (handoff.books?.gift_on_borrow) {
-        console.log('[confirm] Gift book - transferring ownership...')
-        
-        // Transfer ownership to receiver
-        await adminClient
+      console.log('[confirm] Book owner:', bookOwnerId, 'Giver:', updated.giver_id, 'Receiver:', updated.receiver_id)
+      console.log('[confirm] isGiverTheOwner:', isGiverTheOwner, 'isReceiverTheOwner:', isReceiverTheOwner, 'isGift:', isGift)
+
+      if (isGift) {
+        // GIFT: Transfer ownership to receiver
+        console.log('[confirm] Gift book - transferring ownership to receiver')
+        const { error: bookError } = await adminClient
           .from('books')
           .update({ 
             owner_id: updated.receiver_id,
@@ -94,8 +90,49 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', updated.book_id)
 
-        // Update book_circle_visibility - remove from giver's circles, keep receiver's
-        // (This is handled separately if needed)
+        if (bookError) {
+          console.error('[confirm] Gift transfer error:', bookError)
+        }
+      } else if (isReceiverTheOwner) {
+        // RETURN: Book going back to owner
+        console.log('[confirm] Return handoff - book going back to owner')
+        const { error: bookError } = await adminClient
+          .from('books')
+          .update({ 
+            status: 'available',
+            current_borrower_id: null,
+            due_date: null
+          })
+          .eq('id', updated.book_id)
+
+        if (bookError) {
+          console.error('[confirm] Return update error:', bookError)
+        }
+      } else if (isGiverTheOwner) {
+        // INITIAL BORROW: Owner lending to borrower
+        console.log('[confirm] Initial borrow - setting status to borrowed')
+        const { error: bookError } = await adminClient
+          .from('books')
+          .update({ status: 'borrowed' })
+          .eq('id', updated.book_id)
+
+        if (bookError) {
+          console.error('[confirm] Borrow update error:', bookError)
+        }
+      } else {
+        // PAGEPASS: Neither is owner - book passing between borrowers
+        console.log('[confirm] Pagepass - updating current_borrower_id')
+        const { error: bookError } = await adminClient
+          .from('books')
+          .update({ 
+            current_borrower_id: updated.receiver_id,
+            status: 'borrowed'
+          })
+          .eq('id', updated.book_id)
+
+        if (bookError) {
+          console.error('[confirm] Pagepass update error:', bookError)
+        }
       }
 
       // Log to activity ledger
@@ -106,7 +143,8 @@ export async function POST(request: NextRequest) {
           action: isGiver ? 'handoff_given' : 'handoff_received',
           book_id: updated.book_id,
           metadata: {
-            handoff_id: handoffId
+            handoff_id: handoffId,
+            handoff_type: isGift ? 'gift' : isReceiverTheOwner ? 'return' : isGiverTheOwner ? 'borrow' : 'pagepass'
           }
         })
     }
