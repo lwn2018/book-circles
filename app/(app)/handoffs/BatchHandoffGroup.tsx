@@ -51,6 +51,7 @@ export default function BatchHandoffGroup({
   const [confirmingIndividual, setConfirmingIndividual] = useState<string | null>(null)
   const [confirmationStatus, setConfirmationStatus] = useState<Record<string, 'pending' | 'success' | 'error'>>({})
   const [showIndividual, setShowIndividual] = useState(false)
+  const [resultMessage, setResultMessage] = useState<{ type: 'success' | 'error' | 'partial', text: string } | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -67,8 +68,11 @@ export default function BatchHandoffGroup({
   // Confirm a single handoff
   const confirmSingleHandoff = async (handoff: Handoff) => {
     setConfirmingIndividual(handoff.id)
+    setResultMessage(null)
     const field = isGiver ? 'giver_confirmed_at' : 'receiver_confirmed_at'
     const now = new Date().toISOString()
+
+    console.log(`[BatchHandoff] Confirming single handoff ${handoff.id}, field: ${field}, userId: ${userId}`)
 
     try {
       // Update handoff confirmation
@@ -77,16 +81,28 @@ export default function BatchHandoffGroup({
         .update({ [field]: now })
         .eq('id', handoff.id)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        console.error(`[BatchHandoff] Update error:`, updateError)
+        throw updateError
+      }
+
+      console.log(`[BatchHandoff] Update successful, checking both_confirmed...`)
 
       // Check if both have confirmed
-      const { data: updated } = await supabase
+      const { data: updated, error: fetchError } = await supabase
         .from('handoff_confirmations')
         .select('giver_confirmed_at, receiver_confirmed_at, book_id')
         .eq('id', handoff.id)
         .single()
 
+      if (fetchError) {
+        console.error(`[BatchHandoff] Fetch error:`, fetchError)
+      }
+
+      console.log(`[BatchHandoff] Updated record:`, updated)
+
       if (updated && updated.giver_confirmed_at && updated.receiver_confirmed_at) {
+        console.log(`[BatchHandoff] Both confirmed! Finalizing...`)
         // Both confirmed - finalize handoff
         await supabase
           .from('handoff_confirmations')
@@ -114,19 +130,27 @@ export default function BatchHandoffGroup({
 
       setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'success' }))
       setConfirmingIndividual(null)
-      router.refresh()
+      
+      // Force page reload after short delay
+      setTimeout(() => {
+        window.location.reload()
+      }, 500)
     } catch (error) {
-      console.error(`Failed to confirm handoff ${handoff.id}:`, error)
+      console.error(`[BatchHandoff] Failed to confirm handoff ${handoff.id}:`, error)
       setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'error' }))
       setConfirmingIndividual(null)
+      setResultMessage({ type: 'error', text: 'Failed to confirm. Please try again.' })
     }
   }
 
   const handleConfirmAll = async () => {
     setConfirming(true)
+    setResultMessage(null)
     const batchId = uuidv4() // Generate batch ID for activity ledger
     const field = isGiver ? 'giver_confirmed_at' : 'receiver_confirmed_at'
     const now = new Date().toISOString()
+
+    console.log(`[BatchHandoff] Confirming ALL ${handoffs.length} handoffs, field: ${field}, batchId: ${batchId}`)
 
     // Initialize all as pending
     const initialStatus: Record<string, 'pending' | 'success' | 'error'> = {}
@@ -137,22 +161,34 @@ export default function BatchHandoffGroup({
     const results = await Promise.allSettled(
       handoffs.map(async (handoff) => {
         try {
+          console.log(`[BatchHandoff] Processing handoff ${handoff.id} for book "${handoff.books.title}"`)
+          
           // Update handoff confirmation
           const { error: updateError } = await supabase
             .from('handoff_confirmations')
             .update({ [field]: now })
             .eq('id', handoff.id)
 
-          if (updateError) throw updateError
+          if (updateError) {
+            console.error(`[BatchHandoff] Update error for ${handoff.id}:`, updateError)
+            throw updateError
+          }
 
           // Check if both have confirmed
-          const { data: updated } = await supabase
+          const { data: updated, error: fetchError } = await supabase
             .from('handoff_confirmations')
             .select('giver_confirmed_at, receiver_confirmed_at, book_id')
             .eq('id', handoff.id)
             .single()
 
+          if (fetchError) {
+            console.error(`[BatchHandoff] Fetch error for ${handoff.id}:`, fetchError)
+          }
+
+          console.log(`[BatchHandoff] Handoff ${handoff.id} state:`, updated)
+
           if (updated && updated.giver_confirmed_at && updated.receiver_confirmed_at) {
+            console.log(`[BatchHandoff] Both confirmed for ${handoff.id}! Finalizing...`)
             // Both confirmed - finalize handoff
             await supabase
               .from('handoff_confirmations')
@@ -183,7 +219,7 @@ export default function BatchHandoffGroup({
           setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'success' }))
           return { handoffId: handoff.id, success: true }
         } catch (error) {
-          console.error(`Failed to confirm handoff ${handoff.id}:`, error)
+          console.error(`[BatchHandoff] Failed to confirm handoff ${handoff.id}:`, error)
           setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'error' }))
           return { handoffId: handoff.id, success: false, error }
         }
@@ -194,16 +230,23 @@ export default function BatchHandoffGroup({
     const successes = results.filter(r => r.status === 'fulfilled' && r.value.success).length
     const failures = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length
 
+    console.log(`[BatchHandoff] Results: ${successes} successes, ${failures} failures`)
+
     setConfirming(false)
 
     if (successes === handoffs.length) {
-      alert(`✅ All ${handoffs.length} books confirmed!`)
-      router.refresh()
+      setResultMessage({ type: 'success', text: `✅ All ${handoffs.length} books confirmed!` })
+      // Force page reload after showing message
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     } else if (successes > 0) {
-      alert(`⚠️ Confirmed ${successes} of ${handoffs.length} books. ${failures} failed.`)
-      router.refresh()
+      setResultMessage({ type: 'partial', text: `⚠️ Confirmed ${successes} of ${handoffs.length} books. ${failures} failed.` })
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
     } else {
-      alert(`❌ Failed to confirm any books. Please try again.`)
+      setResultMessage({ type: 'error', text: `❌ Failed to confirm. Please try again.` })
     }
   }
 
@@ -224,6 +267,17 @@ export default function BatchHandoffGroup({
         <h3 className="text-lg font-semibold">
           📥 Incoming Books ({handoffs.length})
         </h3>
+
+        {/* Result message */}
+        {resultMessage && (
+          <div className={`p-3 rounded-lg text-sm font-medium ${
+            resultMessage.type === 'success' ? 'bg-green-100 text-green-800' :
+            resultMessage.type === 'error' ? 'bg-red-100 text-red-800' :
+            'bg-yellow-100 text-yellow-800'
+          }`}>
+            {resultMessage.text}
+          </div>
+        )}
         
         {handoffs.map(handoff => {
           const isConfirmed = confirmationStatus[handoff.id] === 'success'
@@ -320,6 +374,17 @@ export default function BatchHandoffGroup({
           </div>
         )}
       </div>
+
+      {/* Result message */}
+      {resultMessage && (
+        <div className={`p-3 rounded-lg text-sm font-medium mb-4 ${
+          resultMessage.type === 'success' ? 'bg-green-100 text-green-800' :
+          resultMessage.type === 'error' ? 'bg-red-100 text-red-800' :
+          'bg-yellow-100 text-yellow-800'
+        }`}>
+          {resultMessage.text}
+        </div>
+      )}
 
       {/* Book list */}
       <div className="space-y-2 mb-4">
