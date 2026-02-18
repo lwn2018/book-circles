@@ -22,6 +22,20 @@ function groupHandoffsByPerson(handoffs: any[], isOutgoing: boolean) {
   return groups
 }
 
+// Helper to get contact info
+function getContactInfo(profile: any): { type: 'phone' | 'email' | null, value: string | null } {
+  if (profile?.contact_phone) {
+    return { type: 'phone', value: profile.contact_phone }
+  }
+  if (profile?.contact_email) {
+    return { type: 'email', value: profile.contact_email }
+  }
+  if (profile?.contact_preference_value && profile?.contact_preference_type !== 'none') {
+    return { type: profile.contact_preference_type, value: profile.contact_preference_value }
+  }
+  return { type: null, value: null }
+}
+
 export default async function MyShelfTab() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -47,13 +61,17 @@ export default async function MyShelfTab() {
         id,
         full_name,
         contact_preference_type,
-        contact_preference_value
+        contact_preference_value,
+        contact_email,
+        contact_phone
       ),
       receiver:receiver_id (
         id,
         full_name,
         contact_preference_type,
-        contact_preference_value
+        contact_preference_value,
+        contact_email,
+        contact_phone
       )
     `)
     .eq('giver_id', user.id)
@@ -77,13 +95,17 @@ export default async function MyShelfTab() {
         id,
         full_name,
         contact_preference_type,
-        contact_preference_value
+        contact_preference_value,
+        contact_email,
+        contact_phone
       ),
       receiver:receiver_id (
         id,
         full_name,
         contact_preference_type,
-        contact_preference_value
+        contact_preference_value,
+        contact_email,
+        contact_phone
       )
     `)
     .eq('receiver_id', user.id)
@@ -160,31 +182,50 @@ export default async function MyShelfTab() {
                 )
               }
               
-              // Single book - show simple card
+              // Single book - show card with contact info
               const handoff = groupedHandoffs[0]
+              const contact = getContactInfo(handoff.giver)
+              
               return (
-                <Link
+                <div
                   key={handoff.id}
-                  href={`/handoff/${handoff.id}`}
-                  className="flex items-center gap-3 p-3 bg-white rounded border border-green-300 hover:border-green-400 transition-colors"
+                  className="p-3 bg-white rounded border border-green-300"
                 >
-                  <BookCover
-                    coverUrl={handoff.books?.cover_url}
-                    title={handoff.books?.title || 'Unknown'}
-                    author={handoff.books?.author}
-                    isbn={handoff.books?.isbn}
-                    className="w-12 h-16 object-cover rounded"
-                  />
-                  <div className="flex-1">
-                    <p className="font-semibold">{handoff.books?.title}</p>
-                    <p className="text-sm text-gray-600">
-                      Pick up from {handoff.giver?.full_name}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <BookCover
+                      coverUrl={handoff.books?.cover_url}
+                      title={handoff.books?.title || 'Unknown'}
+                      author={handoff.books?.author}
+                      isbn={handoff.books?.isbn}
+                      className="w-12 h-16 object-cover rounded"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold">{handoff.books?.title}</p>
+                      <p className="text-sm text-gray-600">
+                        Pick up from {handoff.giver?.full_name}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/handoff/${handoff.id}`}
+                      className="text-green-600 font-medium hover:underline"
+                    >
+                      Confirm →
+                    </Link>
                   </div>
-                  <div className="text-green-600 font-medium">
-                    Confirm →
-                  </div>
-                </Link>
+                  
+                  {/* Contact info */}
+                  {contact.value && (
+                    <div className="mt-2 pt-2 border-t border-green-200">
+                      <a 
+                        href={contact.type === 'phone' ? `sms:${contact.value.replace(/\D/g, '')}` : `mailto:${contact.value}`}
+                        className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {contact.type === 'phone' ? '📱' : '📧'} {contact.value}
+                      </a>
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>
