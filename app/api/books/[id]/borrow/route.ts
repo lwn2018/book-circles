@@ -21,7 +21,7 @@ export async function POST(
     // Get service role client for operations that need to bypass RLS
     const adminClient = createServiceRoleClient()
     
-    // Get book details
+    // Get book details with owner's contact info
     const { data: book, error: bookError } = await supabase
       .from('books')
       .select(`
@@ -32,7 +32,11 @@ export async function POST(
         profiles!books_owner_id_fkey (
           id,
           full_name,
-          email
+          email,
+          contact_preference_type,
+          contact_preference_value,
+          contact_email,
+          contact_phone
         )
       `)
       .eq('id', bookId)
@@ -67,8 +71,23 @@ export async function POST(
 
     const borrowerName = borrower?.full_name || 'Someone'
     const borrowerEmail = borrower?.email
-    const ownerName = (book.profiles as any)?.full_name || 'Owner'
-    const ownerEmail = (book.profiles as any)?.email
+    const ownerProfile = book.profiles as any
+    const ownerName = ownerProfile?.full_name || 'Owner'
+    const ownerEmail = ownerProfile?.email
+
+    // Get owner's contact info for the borrower email
+    // Try new fields first (contact_email/contact_phone), fall back to legacy fields
+    let ownerContact: { type: 'email' | 'phone' | null, value: string | null } | undefined
+    if (ownerProfile?.contact_phone) {
+      ownerContact = { type: 'phone', value: ownerProfile.contact_phone }
+    } else if (ownerProfile?.contact_email) {
+      ownerContact = { type: 'email', value: ownerProfile.contact_email }
+    } else if (ownerProfile?.contact_preference_value && ownerProfile?.contact_preference_type !== 'none') {
+      ownerContact = { 
+        type: ownerProfile.contact_preference_type as 'email' | 'phone',
+        value: ownerProfile.contact_preference_value 
+      }
+    }
 
     // Calculate due date (30 days from now)
     const dueDate = new Date()
@@ -111,7 +130,7 @@ export async function POST(
     }
 
     const handoffId = handoffData.id
-    const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://book-circles.vercel.app'}/handoff/${handoffId}`
+    const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://pagepass.app'}/shelf`
 
     // Count total pending handoffs between these two people (owner -> borrower)
     const { count: pendingCount } = await adminClient
@@ -185,13 +204,14 @@ export async function POST(
       })
     }
 
-    // Send email to borrower
+    // Send email to borrower WITH owner's contact info
     if (borrowerEmail) {
       const emailTemplate = handoffInitiatedEmailBorrower(
         ownerName,
         borrowerName,
         book.title,
-        handoffUrl
+        handoffUrl,
+        ownerContact  // Pass owner contact info
       )
 
       await sendEmail({

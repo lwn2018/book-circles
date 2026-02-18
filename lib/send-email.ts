@@ -75,7 +75,7 @@ export function handoffInitiatedEmailOwner(
         
         <p style="font-size: 14px; color: #999; margin: 16px 0 0 0;">
           PagePass — Book sharing made simple<br>
-          <a href="https://book-circles.vercel.app" style="color: #2563eb; text-decoration: none;">book-circles.vercel.app</a>
+          <a href="https://pagepass.app" style="color: #2563eb; text-decoration: none;">pagepass.app</a>
         </p>
       </body>
       </html>
@@ -87,8 +87,29 @@ export function handoffInitiatedEmailBorrower(
   ownerName: string,
   borrowerName: string,
   bookTitle: string,
-  handoffUrl: string
+  handoffUrl: string,
+  ownerContact?: { type: 'email' | 'phone' | null, value: string | null }
 ) {
+  // Build contact section if contact info is available
+  let contactSection = ''
+  if (ownerContact?.value && ownerContact?.type) {
+    const contactIcon = ownerContact.type === 'phone' ? '📱' : '📧'
+    const contactLink = ownerContact.type === 'phone' 
+      ? `sms:${ownerContact.value.replace(/\D/g, '')}`
+      : `mailto:${ownerContact.value}`
+    
+    contactSection = `
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin: 24px 0;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #1e40af; font-weight: 600;">
+            Contact ${ownerName}:
+          </p>
+          <a href="${contactLink}" style="color: #2563eb; text-decoration: none; font-size: 16px;">
+            ${contactIcon} ${ownerContact.value}
+          </a>
+        </div>
+    `
+  }
+
   return {
     subject: `Time to pick up "${bookTitle}" from ${ownerName}!`,
     html: `
@@ -106,6 +127,8 @@ export function handoffInitiatedEmailBorrower(
           </p>
         </div>
         
+        ${contactSection}
+        
         <p style="font-size: 16px; margin: 24px 0;">
           Coordinate with ${ownerName} to pick up the book, then confirm once you have it:
         </p>
@@ -120,7 +143,7 @@ export function handoffInitiatedEmailBorrower(
         
         <p style="font-size: 14px; color: #999; margin: 16px 0 0 0;">
           PagePass — Book sharing made simple<br>
-          <a href="https://book-circles.vercel.app" style="color: #2563eb; text-decoration: none;">book-circles.vercel.app</a>
+          <a href="https://pagepass.app" style="color: #2563eb; text-decoration: none;">pagepass.app</a>
         </p>
       </body>
       </html>
