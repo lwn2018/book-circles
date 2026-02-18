@@ -14,8 +14,8 @@ export async function initiateDoneReading(bookId: string) {
   }
 
   try {
-    // Get the book details with owner email
-    const { data: book, error: bookError } = await supabase
+    // Get the book details with owner info
+    const { data: book, error: bookError } = await adminClient
       .from('books')
       .select(`
         *,
@@ -26,9 +26,44 @@ export async function initiateDoneReading(bookId: string) {
         )
       `)
       .eq('id', bookId)
-      .eq('current_borrower_id', user.id)
       .single()
     
+    if (bookError || !book) {
+      console.error('Book fetch error:', bookError)
+      return { error: `Book error: ${bookError?.message || 'Not found'}` }
+    }
+
+    // CHECK 1: If user is the owner (gift book that transferred ownership)
+    // They don't need to return it - just mark as no longer borrowing
+    if (book.owner_id === user.id) {
+      console.log('[DoneReading] User is owner - marking as available, no handoff needed')
+      
+      // Clear borrower status, make available again
+      await adminClient
+        .from('books')
+        .update({ 
+          status: 'available',
+          current_borrower_id: null,
+          due_date: null
+        })
+        .eq('id', bookId)
+
+      return { 
+        success: true, 
+        isOwnBook: true,
+        message: 'Book marked as available on your shelf!'
+      }
+    }
+
+    // CHECK 2: Verify user is the current borrower
+    if (book.current_borrower_id !== user.id) {
+      return { error: 'You are not currently borrowing this book' }
+    }
+
+    // CHECK 3: If this is a gift book they haven't returned yet,
+    // the ownership should have transferred. If not, something went wrong.
+    // For now, proceed with normal return flow.
+
     // Get current user's profile for name and email
     const { data: giverProfile } = await supabase
       .from('profiles')
@@ -38,11 +73,6 @@ export async function initiateDoneReading(bookId: string) {
     
     const giverName = giverProfile?.full_name || user.user_metadata?.full_name || 'Someone'
     const giverEmail = giverProfile?.email || user.email
-
-    if (bookError || !book) {
-      console.error('Book fetch error:', bookError)
-      return { error: `Book error: ${bookError?.message || 'Not found'}` }
-    }
 
     // Check if there's a queue for this book
     const { data: queueEntries, error: queueError } = await adminClient
@@ -136,7 +166,7 @@ export async function initiateDoneReading(bookId: string) {
         message: isPagepass 
           ? `Nice! ${receiverName} is next — arrange the handoff.`
           : `We've let ${receiverName} know you're ready to return "${book.title}".`,
-        link: `/handoff/${handoff.id}`,
+        link: `/shelf`,
         data: { handoffId: handoff.id, bookId }
       }),
       // Notify receiver (next in queue or owner)
@@ -145,13 +175,13 @@ export async function initiateDoneReading(bookId: string) {
         type: 'book_ready',
         title: '📬 Book Ready for Pickup',
         message: `Time to pick up "${book.title}" from ${giverName}!`,
-        link: `/handoff/${handoff.id}`,
+        link: `/shelf`,
         data: { handoffId: handoff.id, bookId }
       })
     ])
 
     // Email notifications for both parties
-    const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://pagepass.app'}/handoff/${handoff.id}`
+    const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://pagepass.app'}/shelf`
     
     // Email to giver (borrower returning the book)
     if (giverEmail) {
