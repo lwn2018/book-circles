@@ -113,7 +113,30 @@ export async function POST(
     const handoffId = handoffData.id
     const handoffUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://book-circles.vercel.app'}/handoff/${handoffId}`
 
+    // Count total pending handoffs between these two people (owner -> borrower)
+    const { count: pendingCount } = await adminClient
+      .from('handoff_confirmations')
+      .select('*', { count: 'exact', head: true })
+      .eq('giver_id', book.owner_id)
+      .eq('receiver_id', user.id)
+      .is('both_confirmed_at', null)
+
+    const totalBooks = pendingCount || 1
+
+    // Create notification messages based on count
+    let ownerMessage: string
+    let borrowerMessage: string
+
+    if (totalBooks > 1) {
+      ownerMessage = `📚 You have ${totalBooks} books to hand off to ${borrowerName}!`
+      borrowerMessage = `📚 ${totalBooks} books ready to pick up from ${ownerName}!`
+    } else {
+      ownerMessage = `Time to hand off "${book.title}" to ${borrowerName}!`
+      borrowerMessage = `Time to pick up "${book.title}" from ${ownerName}!`
+    }
+
     // Send notifications to BOTH parties (use service role)
+    // Link to /shelf where batch UI groups multiple handoffs with same person
     await adminClient
       .from('notifications')
       .insert([
@@ -122,7 +145,7 @@ export async function POST(
           type: 'handoff_initiated',
           book_id: bookId,
           sender_id: user.id,
-          message: `Time to hand off "${book.title}" to ${borrowerName}!`,
+          message: ownerMessage,
           action_url: `/shelf`,
           read: false
         },
@@ -131,7 +154,7 @@ export async function POST(
           type: 'handoff_initiated',
           book_id: bookId,
           sender_id: book.owner_id,
-          message: `Time to pick up "${book.title}" from ${ownerName}!`,
+          message: borrowerMessage,
           action_url: `/shelf`,
           read: false
         }
@@ -155,7 +178,9 @@ export async function POST(
 
       await sendEmail({
         to: ownerEmail,
-        subject: emailTemplate.subject,
+        subject: totalBooks > 1 
+          ? `📚 ${totalBooks} books to hand off to ${borrowerName}!`
+          : emailTemplate.subject,
         html: emailTemplate.html
       })
     }
@@ -171,7 +196,9 @@ export async function POST(
 
       await sendEmail({
         to: borrowerEmail,
-        subject: emailTemplate.subject,
+        subject: totalBooks > 1
+          ? `📚 ${totalBooks} books ready to pick up from ${ownerName}!`
+          : emailTemplate.subject,
         html: emailTemplate.html
       })
     }
