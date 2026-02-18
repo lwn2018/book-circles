@@ -147,6 +147,14 @@ export async function POST(request: NextRequest) {
             handoff_type: isGift ? 'gift' : isReceiverTheOwner ? 'return' : isGiverTheOwner ? 'borrow' : 'pagepass'
           }
         })
+
+      // Mark related notifications as read for both parties
+      console.log('[confirm] Marking notifications as read for book:', updated.book_id)
+      await adminClient
+        .from('notifications')
+        .update({ read: true })
+        .eq('book_id', updated.book_id)
+        .in('user_id', [updated.giver_id, updated.receiver_id])
     }
 
     return NextResponse.json({ 
