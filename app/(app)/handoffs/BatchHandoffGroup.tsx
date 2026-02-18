@@ -60,6 +60,21 @@ export default function BatchHandoffGroup({
   const otherPerson = isGiver ? handoffs[0].receiver : handoffs[0].giver
   const hasGiftBooks = handoffs.some(h => h.books.gift_on_borrow)
 
+  // Check if current user has already confirmed ALL handoffs in this batch
+  const userAlreadyConfirmedAll = handoffs.every(h => 
+    isGiver ? h.giver_confirmed_at !== null : h.receiver_confirmed_at !== null
+  )
+  
+  // Check which handoffs user has already confirmed
+  const userConfirmedHandoffs = handoffs.filter(h =>
+    isGiver ? h.giver_confirmed_at !== null : h.receiver_confirmed_at !== null
+  )
+
+  // Check if other party has confirmed any
+  const otherPartyConfirmedAll = handoffs.every(h =>
+    isGiver ? h.receiver_confirmed_at !== null : h.giver_confirmed_at !== null
+  )
+
   // Show contact info only to receiver and only for the giver's contact
   const showContact = !isGiver && handoffs[0].giver.contact_preference_type !== 'none'
   const contactType = handoffs[0].giver.contact_preference_type
@@ -75,7 +90,6 @@ export default function BatchHandoffGroup({
     console.log(`[BatchHandoff] Confirming single handoff ${handoff.id}, field: ${field}, userId: ${userId}`)
 
     try {
-      // Update handoff confirmation
       const { error: updateError } = await supabase
         .from('handoff_confirmations')
         .update({ [field]: now })
@@ -86,9 +100,6 @@ export default function BatchHandoffGroup({
         throw updateError
       }
 
-      console.log(`[BatchHandoff] Update successful, checking both_confirmed...`)
-
-      // Check if both have confirmed
       const { data: updated, error: fetchError } = await supabase
         .from('handoff_confirmations')
         .select('giver_confirmed_at, receiver_confirmed_at, book_id')
@@ -99,11 +110,7 @@ export default function BatchHandoffGroup({
         console.error(`[BatchHandoff] Fetch error:`, fetchError)
       }
 
-      console.log(`[BatchHandoff] Updated record:`, updated)
-
       if (updated && updated.giver_confirmed_at && updated.receiver_confirmed_at) {
-        console.log(`[BatchHandoff] Both confirmed! Finalizing...`)
-        // Both confirmed - finalize handoff
         await supabase
           .from('handoff_confirmations')
           .update({ both_confirmed_at: now })
@@ -114,7 +121,6 @@ export default function BatchHandoffGroup({
           .update({ status: 'borrowed' })
           .eq('id', updated.book_id)
 
-        // Log to activity ledger
         await supabase
           .from('activity_ledger')
           .insert({
@@ -131,7 +137,6 @@ export default function BatchHandoffGroup({
       setConfirmationStatus(prev => ({ ...prev, [handoff.id]: 'success' }))
       setConfirmingIndividual(null)
       
-      // Force page reload after short delay
       setTimeout(() => {
         window.location.reload()
       }, 500)
@@ -146,50 +151,44 @@ export default function BatchHandoffGroup({
   const handleConfirmAll = async () => {
     setConfirming(true)
     setResultMessage(null)
-    const batchId = uuidv4() // Generate batch ID for activity ledger
+    const batchId = uuidv4()
     const field = isGiver ? 'giver_confirmed_at' : 'receiver_confirmed_at'
     const now = new Date().toISOString()
 
-    console.log(`[BatchHandoff] Confirming ALL ${handoffs.length} handoffs, field: ${field}, batchId: ${batchId}`)
+    // Only confirm handoffs that user hasn't already confirmed
+    const handoffsToConfirm = handoffs.filter(h =>
+      isGiver ? h.giver_confirmed_at === null : h.receiver_confirmed_at === null
+    )
 
-    // Initialize all as pending
+    if (handoffsToConfirm.length === 0) {
+      setResultMessage({ type: 'success', text: 'Already confirmed! Waiting for other party.' })
+      setConfirming(false)
+      return
+    }
+
+    console.log(`[BatchHandoff] Confirming ${handoffsToConfirm.length} handoffs, field: ${field}, batchId: ${batchId}`)
+
     const initialStatus: Record<string, 'pending' | 'success' | 'error'> = {}
-    handoffs.forEach(h => initialStatus[h.id] = 'pending')
+    handoffsToConfirm.forEach(h => initialStatus[h.id] = 'pending')
     setConfirmationStatus(initialStatus)
 
-    // Confirm each handoff individually using Promise.allSettled
     const results = await Promise.allSettled(
-      handoffs.map(async (handoff) => {
+      handoffsToConfirm.map(async (handoff) => {
         try {
-          console.log(`[BatchHandoff] Processing handoff ${handoff.id} for book "${handoff.books.title}"`)
-          
-          // Update handoff confirmation
           const { error: updateError } = await supabase
             .from('handoff_confirmations')
             .update({ [field]: now })
             .eq('id', handoff.id)
 
-          if (updateError) {
-            console.error(`[BatchHandoff] Update error for ${handoff.id}:`, updateError)
-            throw updateError
-          }
+          if (updateError) throw updateError
 
-          // Check if both have confirmed
-          const { data: updated, error: fetchError } = await supabase
+          const { data: updated } = await supabase
             .from('handoff_confirmations')
             .select('giver_confirmed_at, receiver_confirmed_at, book_id')
             .eq('id', handoff.id)
             .single()
 
-          if (fetchError) {
-            console.error(`[BatchHandoff] Fetch error for ${handoff.id}:`, fetchError)
-          }
-
-          console.log(`[BatchHandoff] Handoff ${handoff.id} state:`, updated)
-
           if (updated && updated.giver_confirmed_at && updated.receiver_confirmed_at) {
-            console.log(`[BatchHandoff] Both confirmed for ${handoff.id}! Finalizing...`)
-            // Both confirmed - finalize handoff
             await supabase
               .from('handoff_confirmations')
               .update({ both_confirmed_at: now })
@@ -200,7 +199,6 @@ export default function BatchHandoffGroup({
               .update({ status: 'borrowed' })
               .eq('id', updated.book_id)
 
-            // Log to activity ledger with batch_id
             await supabase
               .from('activity_ledger')
               .insert({
@@ -226,7 +224,6 @@ export default function BatchHandoffGroup({
       })
     )
 
-    // Count successes and failures
     const successes = results.filter(r => r.status === 'fulfilled' && r.value.success).length
     const failures = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length
 
@@ -234,14 +231,13 @@ export default function BatchHandoffGroup({
 
     setConfirming(false)
 
-    if (successes === handoffs.length) {
-      setResultMessage({ type: 'success', text: `✅ All ${handoffs.length} books confirmed!` })
-      // Force page reload after showing message
+    if (successes === handoffsToConfirm.length) {
+      setResultMessage({ type: 'success', text: `✅ Confirmed! Waiting for ${otherPerson.full_name}.` })
       setTimeout(() => {
         window.location.reload()
       }, 1000)
     } else if (successes > 0) {
-      setResultMessage({ type: 'partial', text: `⚠️ Confirmed ${successes} of ${handoffs.length} books. ${failures} failed.` })
+      setResultMessage({ type: 'partial', text: `⚠️ Confirmed ${successes} of ${handoffsToConfirm.length}. ${failures} failed.` })
       setTimeout(() => {
         window.location.reload()
       }, 1500)
@@ -250,11 +246,48 @@ export default function BatchHandoffGroup({
     }
   }
 
-  // Count remaining unconfirmed handoffs
-  const remainingHandoffs = handoffs.filter(h => confirmationStatus[h.id] !== 'success')
+  // If user already confirmed all, show waiting state
+  if (userAlreadyConfirmedAll) {
+    return (
+      <div className="bg-white border-2 border-green-200 rounded-lg p-4 sm:p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <span>✅ {otherPerson.full_name}</span>
+            <span className="text-sm font-normal text-gray-600">
+              — {handoffs.length} book{handoffs.length > 1 ? 's' : ''}
+            </span>
+          </h3>
+          <p className="text-green-700 mt-2 font-medium">
+            You confirmed! Waiting for {otherPerson.full_name} to confirm.
+          </p>
+        </div>
+
+        {/* Book list */}
+        <div className="space-y-2">
+          {handoffs.map((handoff) => (
+            <div key={handoff.id} className="flex items-center gap-2 text-sm">
+              <span className="text-green-500">✓</span>
+              <span>
+                {handoff.books.title}
+                {handoff.books.gift_on_borrow && (
+                  <span className="text-pink-600 ml-2">
+                    ({isGiver ? 'gift' : 'yours to keep!'})
+                  </span>
+                )}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const remainingHandoffs = handoffs.filter(h => 
+    confirmationStatus[h.id] !== 'success' && 
+    (isGiver ? h.giver_confirmed_at === null : h.receiver_confirmed_at === null)
+  )
 
   if (showIndividual) {
-    // Render individual cards WITH action buttons
     return (
       <div className="space-y-4">
         <button
@@ -265,10 +298,9 @@ export default function BatchHandoffGroup({
         </button>
         
         <h3 className="text-lg font-semibold">
-          📥 Incoming Books ({handoffs.length})
+          {isGiver ? '📤 Handing Off' : '📥 Receiving'} ({handoffs.length})
         </h3>
 
-        {/* Result message */}
         {resultMessage && (
           <div className={`p-3 rounded-lg text-sm font-medium ${
             resultMessage.type === 'success' ? 'bg-green-100 text-green-800' :
@@ -280,7 +312,8 @@ export default function BatchHandoffGroup({
         )}
         
         {handoffs.map(handoff => {
-          const isConfirmed = confirmationStatus[handoff.id] === 'success'
+          const alreadyConfirmed = isGiver ? handoff.giver_confirmed_at !== null : handoff.receiver_confirmed_at !== null
+          const isConfirmed = confirmationStatus[handoff.id] === 'success' || alreadyConfirmed
           const isConfirmingThis = confirmingIndividual === handoff.id
           const hasError = confirmationStatus[handoff.id] === 'error'
           
@@ -308,9 +341,10 @@ export default function BatchHandoffGroup({
                     <p className="text-sm text-pink-600 mt-1">🎁 Yours to keep</p>
                   )}
                   
-                  {/* Action buttons */}
                   {isConfirmed ? (
-                    <p className="text-sm text-green-600 mt-3 font-medium">✓ Confirmed</p>
+                    <p className="text-sm text-green-600 mt-3 font-medium">
+                      ✓ {alreadyConfirmed ? `Confirmed - waiting for ${otherPerson.full_name}` : 'Confirmed'}
+                    </p>
                   ) : hasError ? (
                     <div className="mt-3">
                       <p className="text-sm text-red-600 mb-2">✗ Failed - try again</p>
@@ -337,7 +371,6 @@ export default function BatchHandoffGroup({
           )
         })}
         
-        {/* Show "Confirm remaining" button if some are unconfirmed */}
         {remainingHandoffs.length > 1 && (
           <div className="pt-2 border-t border-gray-200">
             <button
@@ -363,6 +396,13 @@ export default function BatchHandoffGroup({
           </span>
         </h3>
 
+        {/* Show if other party already confirmed */}
+        {otherPartyConfirmedAll && (
+          <p className="text-blue-700 text-sm mt-1">
+            {otherPerson.full_name} already confirmed — your turn!
+          </p>
+        )}
+
         {showContact && contactValue && (
           <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-3">
             <p className="text-xs text-blue-700 font-medium mb-1">
@@ -375,7 +415,6 @@ export default function BatchHandoffGroup({
         )}
       </div>
 
-      {/* Result message */}
       {resultMessage && (
         <div className={`p-3 rounded-lg text-sm font-medium mb-4 ${
           resultMessage.type === 'success' ? 'bg-green-100 text-green-800' :
@@ -386,33 +425,33 @@ export default function BatchHandoffGroup({
         </div>
       )}
 
-      {/* Book list */}
       <div className="space-y-2 mb-4">
-        {handoffs.map((handoff, index) => (
-          <div 
-            key={handoff.id} 
-            className="flex items-center gap-2 text-sm"
-          >
-            <span className="text-gray-400">•</span>
-            <span>
-              {handoff.books.title}
-              {handoff.books.gift_on_borrow && (
-                <span className="text-pink-600 ml-2">
-                  ({isGiver ? 'gift' : 'yours to keep!'})
-                </span>
+        {handoffs.map((handoff) => {
+          const alreadyConfirmed = isGiver ? handoff.giver_confirmed_at !== null : handoff.receiver_confirmed_at !== null
+          return (
+            <div key={handoff.id} className="flex items-center gap-2 text-sm">
+              <span className={alreadyConfirmed ? "text-green-500" : "text-gray-400"}>
+                {alreadyConfirmed ? '✓' : '•'}
+              </span>
+              <span>
+                {handoff.books.title}
+                {handoff.books.gift_on_borrow && (
+                  <span className="text-pink-600 ml-2">
+                    ({isGiver ? 'gift' : 'yours to keep!'})
+                  </span>
+                )}
+              </span>
+              {confirmationStatus[handoff.id] === 'success' && (
+                <span className="text-green-600 ml-auto">✓</span>
               )}
-            </span>
-            {confirmationStatus[handoff.id] === 'success' && (
-              <span className="text-green-600 ml-auto">✓</span>
-            )}
-            {confirmationStatus[handoff.id] === 'error' && (
-              <span className="text-red-600 ml-auto">✗</span>
-            )}
-          </div>
-        ))}
+              {confirmationStatus[handoff.id] === 'error' && (
+                <span className="text-red-600 ml-auto">✗</span>
+              )}
+            </div>
+          )
+        })}
       </div>
 
-      {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
         <button
           onClick={handleConfirmAll}
