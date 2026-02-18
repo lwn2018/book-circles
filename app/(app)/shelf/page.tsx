@@ -2,6 +2,25 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import DoneReadingButton from './DoneReadingButton'
+import BatchHandoffGroup from '../handoffs/BatchHandoffGroup'
+import BookCover from '@/app/components/BookCover'
+
+// Group handoffs by the other party
+function groupHandoffsByPerson(handoffs: any[], isOutgoing: boolean) {
+  const groups: Record<string, any[]> = {}
+  
+  for (const handoff of handoffs) {
+    const otherPersonId = isOutgoing ? handoff.receiver?.id : handoff.giver?.id
+    if (!otherPersonId) continue
+    
+    if (!groups[otherPersonId]) {
+      groups[otherPersonId] = []
+    }
+    groups[otherPersonId].push(handoff)
+  }
+  
+  return groups
+}
 
 export default async function MyShelfTab() {
   const supabase = await createServerSupabaseClient()
@@ -11,38 +30,60 @@ export default async function MyShelfTab() {
     redirect('/auth/signin')
   }
 
-  // Get pending handoffs where user is the giver (outgoing)
+  // Get pending handoffs where user is the giver (outgoing) - with full data for BatchHandoffGroup
   const { data: pendingHandoffsOutgoing } = await supabase
     .from('handoff_confirmations')
     .select(`
       *,
-      book:book_id (
+      books:book_id (
         id,
         title,
-        cover_url
+        author,
+        cover_url,
+        isbn,
+        gift_on_borrow
+      ),
+      giver:giver_id (
+        id,
+        full_name,
+        contact_preference_type,
+        contact_preference_value
       ),
       receiver:receiver_id (
         id,
-        full_name
+        full_name,
+        contact_preference_type,
+        contact_preference_value
       )
     `)
     .eq('giver_id', user.id)
     .is('both_confirmed_at', null)
     .order('created_at', { ascending: false })
 
-  // Get pending handoffs where user is the receiver (incoming)
+  // Get pending handoffs where user is the receiver (incoming) - with full data for BatchHandoffGroup
   const { data: pendingHandoffsIncoming } = await supabase
     .from('handoff_confirmations')
     .select(`
       *,
-      book:book_id (
+      books:book_id (
         id,
         title,
-        cover_url
+        author,
+        cover_url,
+        isbn,
+        gift_on_borrow
       ),
       giver:giver_id (
         id,
-        full_name
+        full_name,
+        contact_preference_type,
+        contact_preference_value
+      ),
+      receiver:receiver_id (
+        id,
+        full_name,
+        contact_preference_type,
+        contact_preference_value
       )
     `)
     .eq('receiver_id', user.id)
@@ -64,9 +105,6 @@ export default async function MyShelfTab() {
   if (borrowedError) {
     console.error('Error fetching borrowed books:', borrowedError)
   }
-  console.log('Shelf Debug - User ID:', user.id)
-  console.log('Shelf Debug - Borrowed books:', JSON.stringify(borrowedBooks, null, 2))
-  console.log('Shelf Debug - Count:', borrowedBooks?.length || 0)
 
   // Get queue positions for books user is waiting for
   const { data: queueEntries } = await supabase
@@ -86,6 +124,10 @@ export default async function MyShelfTab() {
   const borrowedCount = borrowedBooks?.length || 0
   const queueCount = queueEntries?.length || 0
 
+  // Group handoffs by person for batch UI
+  const incomingGroups = groupHandoffsByPerson(pendingHandoffsIncoming || [], false)
+  const outgoingGroups = groupHandoffsByPerson(pendingHandoffsOutgoing || [], true)
+
   const getDaysRemaining = (dueDate: string | null) => {
     if (!dueDate) return null
     const days = Math.ceil((new Date(dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -104,34 +146,46 @@ export default async function MyShelfTab() {
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <h2 className="text-lg font-bold mb-3">📥 Incoming Books ({pendingHandoffsIncoming.length})</h2>
           <div className="space-y-3">
-            {pendingHandoffsIncoming.map((handoff: any) => (
-              <Link
-                key={handoff.id}
-                href={`/handoff/${handoff.id}`}
-                className="flex items-center gap-3 p-3 bg-white rounded border border-green-300 hover:border-green-400 transition-colors"
-              >
-                {handoff.book.cover_url ? (
-                  <img 
-                    src={handoff.book.cover_url} 
-                    alt={handoff.book.title}
+            {Object.entries(incomingGroups).map(([otherPersonId, groupedHandoffs]: [string, any[]]) => {
+              // Show batch UI if 2+ books from same person
+              if (groupedHandoffs.length >= 2) {
+                return (
+                  <BatchHandoffGroup
+                    key={otherPersonId}
+                    handoffs={groupedHandoffs}
+                    userId={user.id}
+                    isGiver={false}
+                  />
+                )
+              }
+              
+              // Single book - show simple card
+              const handoff = groupedHandoffs[0]
+              return (
+                <Link
+                  key={handoff.id}
+                  href={`/handoff/${handoff.id}`}
+                  className="flex items-center gap-3 p-3 bg-white rounded border border-green-300 hover:border-green-400 transition-colors"
+                >
+                  <BookCover
+                    coverUrl={handoff.books?.cover_url}
+                    title={handoff.books?.title || 'Unknown'}
+                    author={handoff.books?.author}
+                    isbn={handoff.books?.isbn}
                     className="w-12 h-16 object-cover rounded"
                   />
-                ) : (
-                  <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
-                    <span className="text-xl">📚</span>
+                  <div className="flex-1">
+                    <p className="font-semibold">{handoff.books?.title}</p>
+                    <p className="text-sm text-gray-600">
+                      Pick up from {handoff.giver?.full_name}
+                    </p>
                   </div>
-                )}
-                <div className="flex-1">
-                  <p className="font-semibold">{handoff.book.title}</p>
-                  <p className="text-sm text-gray-600">
-                    Pick up from {handoff.giver.full_name}
-                  </p>
-                </div>
-                <div className="text-green-600 font-medium">
-                  Confirm →
-                </div>
-              </Link>
-            ))}
+                  <div className="text-green-600 font-medium">
+                    Confirm →
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}
@@ -141,34 +195,46 @@ export default async function MyShelfTab() {
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <h2 className="text-lg font-bold mb-3">📤 Pending Handoffs ({pendingHandoffsOutgoing.length})</h2>
           <div className="space-y-3">
-            {pendingHandoffsOutgoing.map((handoff: any) => (
-              <Link
-                key={handoff.id}
-                href={`/handoff/${handoff.id}`}
-                className="flex items-center gap-3 p-3 bg-white rounded border border-yellow-300 hover:border-yellow-400 transition-colors"
-              >
-                {handoff.book.cover_url ? (
-                  <img 
-                    src={handoff.book.cover_url} 
-                    alt={handoff.book.title}
+            {Object.entries(outgoingGroups).map(([otherPersonId, groupedHandoffs]: [string, any[]]) => {
+              // Show batch UI if 2+ books to same person
+              if (groupedHandoffs.length >= 2) {
+                return (
+                  <BatchHandoffGroup
+                    key={otherPersonId}
+                    handoffs={groupedHandoffs}
+                    userId={user.id}
+                    isGiver={true}
+                  />
+                )
+              }
+              
+              // Single book - show simple card
+              const handoff = groupedHandoffs[0]
+              return (
+                <Link
+                  key={handoff.id}
+                  href={`/handoff/${handoff.id}`}
+                  className="flex items-center gap-3 p-3 bg-white rounded border border-yellow-300 hover:border-yellow-400 transition-colors"
+                >
+                  <BookCover
+                    coverUrl={handoff.books?.cover_url}
+                    title={handoff.books?.title || 'Unknown'}
+                    author={handoff.books?.author}
+                    isbn={handoff.books?.isbn}
                     className="w-12 h-16 object-cover rounded"
                   />
-                ) : (
-                  <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
-                    <span className="text-xl">📚</span>
+                  <div className="flex-1">
+                    <p className="font-semibold">{handoff.books?.title}</p>
+                    <p className="text-sm text-gray-600">
+                      Hand off to {handoff.receiver?.full_name}
+                    </p>
                   </div>
-                )}
-                <div className="flex-1">
-                  <p className="font-semibold">{handoff.book.title}</p>
-                  <p className="text-sm text-gray-600">
-                    Hand off to {handoff.receiver.full_name}
-                  </p>
-                </div>
-                <div className="text-blue-600 font-medium">
-                  Confirm →
-                </div>
-              </Link>
-            ))}
+                  <div className="text-blue-600 font-medium">
+                    Confirm →
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}
@@ -210,17 +276,13 @@ export default async function MyShelfTab() {
                     >
                       <div className="flex gap-4">
                         {/* Cover */}
-                        {book.cover_url ? (
-                          <img 
-                            src={book.cover_url} 
-                            alt={book.title}
-                            className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-16 h-24 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                            <span className="text-2xl">📚</span>
-                          </div>
-                        )}
+                        <BookCover
+                          coverUrl={book.cover_url}
+                          title={book.title}
+                          author={book.author}
+                          isbn={book.isbn}
+                          className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
+                        />
 
                         {/* Details */}
                         <div className="flex-1">
@@ -276,17 +338,13 @@ export default async function MyShelfTab() {
                     <div key={entry.id} className="p-4 bg-white rounded-lg border border-gray-200">
                       <div className="flex gap-4">
                         {/* Cover */}
-                        {book.cover_url ? (
-                          <img 
-                            src={book.cover_url} 
-                            alt={book.title}
-                            className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-16 h-24 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                            <span className="text-2xl">📚</span>
-                          </div>
-                        )}
+                        <BookCover
+                          coverUrl={book.cover_url}
+                          title={book.title}
+                          author={book.author}
+                          isbn={book.isbn}
+                          className="w-16 h-24 object-cover rounded shadow-sm flex-shrink-0"
+                        />
 
                         {/* Details */}
                         <div className="flex-1">
