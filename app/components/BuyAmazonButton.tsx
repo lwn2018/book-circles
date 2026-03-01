@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import { isNative } from '@/lib/platform'
+import { openExternal } from '@/lib/externalLinks'
 
 type Props = {
   book: {
@@ -55,6 +56,17 @@ export default function BuyAmazonButton({
     }).catch(err => console.error('Failed to track purchase click:', err))
   }
 
+  // Handle click - use external browser on native, normal behavior on web
+  const handleClick = async (e: React.MouseEvent) => {
+    trackClick()
+    
+    if (isNative()) {
+      e.preventDefault()
+      await openExternal(amazonUrl)
+    }
+    // On web, let the anchor tag handle it normally
+  }
+
   // Style variants
   const baseStyles = 'inline-flex items-center justify-center font-medium rounded transition'
   const variantStyles = {
@@ -64,12 +76,13 @@ export default function BuyAmazonButton({
   }
 
   // Use anchor tag - Safari NEVER blocks regular anchor tags
+  // On native, we intercept and use Browser plugin to open in system browser
   return (
     <a
       href={amazonUrl}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={trackClick}
+      onClick={handleClick}
       className={`${baseStyles} ${variantStyles[variant]}`}
     >
       {children || '🛒 Buy on Amazon'}

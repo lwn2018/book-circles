@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { trackEvent } from '@/lib/analytics'
+import { isNative } from '@/lib/platform'
+import { openExternal } from '@/lib/externalLinks'
 
 type Props = {
   bookId: string
@@ -71,9 +73,16 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
     return `https://www.amazon.ca/s?k=${query}&tag=${affiliateTag}`
   }
 
-  const handleClick = (source: 'bookshop' | 'amazon' | 'indigo' | 'amazon-ca', link: string) => {
+  const handleClick = async (source: 'bookshop' | 'amazon' | 'indigo' | 'amazon-ca', link: string) => {
     trackEvent.affiliateLinkClicked(bookId, source, 'book_card')
-    window.open(link, '_blank', 'noopener,noreferrer')
+    
+    if (isNative()) {
+      // Open in system browser on native app
+      await openExternal(link)
+    } else {
+      // Open in new tab on web
+      window.open(link, '_blank', 'noopener,noreferrer')
+    }
   }
 
   const indigoLink = generateIndigoLink()

@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { fetchBookCover } from '@/lib/fetch-book-cover'
 import { trackEvent } from '@/lib/analytics'
 import { logEvent } from '@/lib/gamification/log-event-action'
+import { isNative } from '@/lib/platform'
+import { scanBarcode, validateISBN, checkScanPermissions, requestScanPermission } from '@/lib/barcodeScanner'
 
 type Circle = {
   id: string
@@ -49,6 +51,14 @@ export default function AddBookModal({
 
   const lookupISBN = async (isbnValue: string) => {
     if (!isbnValue || isbnValue.length < 10) return
+
+    // Validate ISBN format
+    const validation = validateISBN(isbnValue)
+    if (!validation.valid) {
+      setLookupStatus(validation.message || 'Invalid barcode')
+      setTimeout(() => setLookupStatus(''), 5000)
+      return
+    }
 
     setLookupStatus('Looking up book...')
     try {
@@ -238,12 +248,61 @@ export default function AddBookModal({
     }
   }
 
-  const startScanner = () => {
+  // Native barcode scanner (Capacitor)
+  const startNativeScanner = async () => {
+    setError('')
+    setLookupStatus('Opening camera...')
+    
+    try {
+      // Check permissions
+      const permStatus = await checkScanPermissions()
+      
+      if (!permStatus.granted && permStatus.canRequest) {
+        const granted = await requestScanPermission()
+        if (!granted) {
+          setError('Camera permission is required to scan barcodes')
+          setLookupStatus('')
+          return
+        }
+      } else if (!permStatus.granted) {
+        setError(permStatus.message || 'Camera access denied. Please enable it in Settings.')
+        setLookupStatus('')
+        return
+      }
+
+      setLookupStatus('Scanning...')
+      const result = await scanBarcode()
+      
+      if (result) {
+        setIsbn(result.isbn)
+        setLookupStatus('')
+        await lookupISBN(result.isbn)
+      } else {
+        setLookupStatus('Scan cancelled')
+        setTimeout(() => setLookupStatus(''), 2000)
+      }
+    } catch (err: any) {
+      console.error('Scanner error:', err)
+      setError(err.message || 'Failed to scan barcode')
+      setLookupStatus('')
+    }
+  }
+
+  // Web barcode scanner (Quagga fallback)
+  const startWebScanner = () => {
     setScanning(true)
     setError('')
   }
 
-  // Initialize Quagga when scanner element appears
+  const startScanner = () => {
+    if (isNative()) {
+      startNativeScanner()
+    } else {
+      startWebScanner()
+    }
+  }
+
+  // Initialize Quagga when scanner element appears (web only)
   useEffect(() => {
     if (!scanning || !scannerRef.current) return
 
@@ -365,7 +424,8 @@ export default function AddBookModal({
             )}
           </div>
 
-          {scanning && (
+          {/* Web scanner view (only shown on web when scanning) */}
+          {scanning && !isNative() && (
             <div className="border rounded-lg overflow-hidden bg-black">
               <div ref={scannerRef} className="w-full h-64" />
               <p className="text-center text-sm text-white py-2 bg-black">
@@ -393,7 +453,7 @@ export default function AddBookModal({
             
             {/* Title search dropdown */}
             {showTitleDropdown && titleSearchResults.length > 0 && (
-              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto" style={{ top: '100%' }}>
                 {titleSearchResults.map((result) => (
                   <button
                     key={result.id}

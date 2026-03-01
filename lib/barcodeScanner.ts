@@ -143,10 +143,10 @@ async function scanNative(): Promise<ScanResult | null> {
       ]
     });
     
-    if (barcodes.length > 0) {
+    if (barcodes.length > 0 && barcodes[0].rawValue) {
       return {
         isbn: barcodes[0].rawValue,
-        format: barcodes[0].format
+        format: barcodes[0].format || 'unknown'
       };
     }
     
