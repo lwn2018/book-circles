@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appIDs": ["TEAM_ID.app.pagepass"],
+        "appIDs": ["24HT9737R2.app.pagepass"],
         "paths": ["/join/*", "/auth/*"]
       }
     ]
