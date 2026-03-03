@@ -25,6 +25,7 @@ html, body {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-arimo);
+  --font-arimo: var(--font-arimo);
 }
 
 body {
@@ -106,4 +107,14 @@ body {
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+/* Hide scrollbar for horizontal scroll areas */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

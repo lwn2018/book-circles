@@ -132,31 +132,31 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
   })
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen bg-[#121212] p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-3">{circle.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-3 font-arimo">{circle.name}</h1>
           {circle.description && (
-            <p className="text-gray-600 mb-2 text-sm sm:text-base">{circle.description}</p>
+            <p className="text-gray-400 mb-3 text-sm sm:text-base">{circle.description}</p>
           )}
           <InviteLink inviteCode={circle.invite_code} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-2 order-2 lg:order-1">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4">Books</h2>
-            <BooksListWithFilters 
-              books={(books as any) || []} 
-              userId={user.id} 
-              circleId={id}
-              circleMemberIds={ownerIds}
-              defaultBrowseView={profile?.default_browse_view || 'card'}
-            />
-          </div>
+        {/* Members Section */}
+        <div className="mb-6">
+          <CollapsibleMembersList members={(members as any) || []} />
+        </div>
 
-          <div className="order-1 lg:order-2">
-            <CollapsibleMembersList members={(members as any) || []} />
-          </div>
+        {/* Books Section */}
+        <div>
+          <BooksListWithFilters 
+            books={(books as any) || []} 
+            userId={user.id} 
+            circleId={id}
+            circleMemberIds={ownerIds}
+            defaultBrowseView={profile?.default_browse_view || 'card'}
+          />
         </div>
       </div>
     </div>

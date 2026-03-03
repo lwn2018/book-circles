@@ -97,63 +97,70 @@ export default function BooksListView({
 
   if (books.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
-        <p className="text-gray-600">No books yet. Add your first book!</p>
+      <div className="text-center py-12 bg-[#27272A] rounded-xl">
+        <p className="text-gray-400">No books yet. Add your first book!</p>
       </div>
     )
   }
 
   return (
     <>
-    <div className="border-t border-gray-200">
-      {books.map((book) => {
+    <div className="bg-[#27272A] rounded-xl overflow-hidden">
+      {books.map((book, index) => {
         const inQueue = book.book_queue?.some(q => q.user_id === userId)
         
         return (
           <div 
             key={book.id} 
-            className="flex items-center gap-3 px-2 py-2 border-b border-gray-200 hover:bg-gray-50 transition-colors"
+            className={`flex items-center gap-3 px-4 py-3 hover:bg-[#3F3F46] transition-colors ${
+              index !== books.length - 1 ? 'border-b border-[#3F3F46]' : ''
+            }`}
           >
             {/* Compact Cover */}
-            <BookCover
-              coverUrl={book.cover_url}
-              title={book.title}
-              author={book.author}
-              isbn={book.isbn}
-              status={book.status as any}
-              className="w-10 h-14 object-cover rounded shadow-sm flex-shrink-0 transition-opacity"
-            />
+            <div className="w-10 h-14 rounded overflow-hidden bg-[#3F3F46] flex-shrink-0">
+              {book.cover_url ? (
+                <img 
+                  src={book.cover_url}
+                  alt={book.title}
+                  className={`w-full h-full object-cover ${
+                    book.status === 'available' ? 'opacity-100' : 
+                    book.status === 'off_shelf' ? 'opacity-50' : 
+                    'opacity-70'
+                  }`}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xl">📚</div>
+              )}
+            </div>
 
             {/* Book Info */}
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-sm truncate">{book.title}</h3>
+              <h3 className="font-medium text-sm text-white truncate">{book.title}</h3>
               {book.author && (
-                <p className="text-xs text-gray-600 truncate">{book.author}</p>
+                <p className="text-xs text-gray-400 truncate">{book.author}</p>
               )}
             </div>
 
             {/* Status Badge */}
             <div className="flex items-center gap-2 flex-shrink-0">
               {book.gift_on_borrow && (
-                <span className="px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded font-medium">
-                  🎁
-                </span>
+                <span className="text-sm">🎁</span>
               )}
               {book.status === 'available' ? (
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
+                <span className="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded-full border border-green-500/30">
                   Available
                 </span>
               ) : book.status === 'off_shelf' ? (
-                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                <span className="px-2 py-1 bg-gray-600/20 text-gray-400 text-xs rounded-full border border-gray-500/30">
                   Off Shelf
                 </span>
               ) : book.status === 'in_transit' ? (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                <span className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded-full border border-blue-500/30">
                   Passing
                 </span>
               ) : (
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">
-                  With {book.current_borrower?.full_name || 'Someone'}
+                <span className="px-2 py-1 bg-yellow-600/20 text-yellow-400 text-xs rounded-full border border-yellow-500/30">
+                  Borrowed
                 </span>
               )}
             </div>
@@ -162,14 +169,11 @@ export default function BooksListView({
             <div className="flex-shrink-0">
               {book.status === 'available' && book.owner_id !== userId && (
                 <button
-                  onClick={() => {
-                    console.log('[BooksListView] Borrow button clicked for book:', book.id, book.title)
-                    setRequestingBookId(book.id)
-                  }}
-                  className={`px-3 py-1 text-xs text-white rounded ${
+                  onClick={() => setRequestingBookId(book.id)}
+                  className={`px-3 py-1.5 text-xs text-white rounded-lg font-medium active:scale-95 transition-all ${
                     book.gift_on_borrow 
-                      ? 'bg-pink-600 hover:bg-pink-700' 
-                      : 'bg-blue-600 hover:bg-blue-700'
+                      ? 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600' 
+                      : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
                   }`}
                 >
                   {book.gift_on_borrow ? '🎁 Accept' : 'Borrow'}
@@ -181,7 +185,7 @@ export default function BooksListView({
                     <button
                       onClick={() => handleLeaveQueue(book.id)}
                       disabled={loading === book.id}
-                      className="px-3 py-1 text-xs bg-gray-400 text-white rounded hover:bg-gray-500"
+                      className="px-3 py-1.5 text-xs bg-[#3F3F46] text-gray-300 rounded-lg font-medium hover:bg-[#52525B] disabled:opacity-50 active:scale-95 transition-all"
                     >
                       Leave Queue
                     </button>
@@ -189,7 +193,7 @@ export default function BooksListView({
                     <button
                       onClick={() => handleJoinQueue(book.id)}
                       disabled={loading === book.id}
-                      className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700"
+                      className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 active:scale-95 transition-all"
                     >
                       Join Queue
                     </button>

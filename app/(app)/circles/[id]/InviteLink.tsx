@@ -17,18 +17,18 @@ export default function InviteLink({ inviteCode }: { inviteCode: string }) {
   }
 
   return (
-    <div className="text-sm text-gray-500 flex items-center gap-2">
+    <div className="text-sm text-gray-400 flex items-center gap-2">
       <span>Invite friends:</span>
       <button
         onClick={copyInviteLink}
-        className="font-mono font-semibold text-blue-600 hover:text-blue-700 underline"
+        className="font-mono font-semibold text-orange-400 hover:text-orange-300 underline transition-colors"
       >
         {inviteCode}
       </button>
       {copied ? (
-        <span className="text-xs text-green-600 font-medium">✓ Copied!</span>
+        <span className="text-xs text-green-400 font-medium">✓ Copied!</span>
       ) : (
-        <span className="text-xs">(tap to copy)</span>
+        <span className="text-xs text-gray-500">(tap to copy)</span>
       )}
     </div>
   )

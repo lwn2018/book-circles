@@ -146,245 +146,175 @@ export default function BooksList({
 
   if (books.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
-        <p className="text-gray-600">No books yet. Add your first book!</p>
+      <div className="text-center py-12 bg-[#27272A] rounded-xl">
+        <p className="text-gray-400">No books yet. Add your first book!</p>
       </div>
     )
   }
 
   return (
     <>
-    <div className="space-y-4">
-      {books.map((book) => (
-        <div key={book.id} className="p-4 border rounded-lg flex gap-4">
-          {/* Book Cover */}
-          <BookCover
-            coverUrl={book.cover_url}
-            title={book.title}
-            author={book.author}
-            isbn={book.isbn}
-            status={book.status as any}
-            className="w-20 h-28 object-cover rounded shadow-sm flex-shrink-0 transition-opacity"
-          />
-
-          {/* Book Details */}
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <h3 className="font-semibold text-lg">{book.title}</h3>
-                {book.author && (
-                  <p className="text-gray-600 text-sm">by {book.author}</p>
-                )}
-                {book.isbn && (
-                  <p className="text-gray-500 text-xs mt-1">ISBN: {book.isbn}</p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
+    {/* Grid layout for book cards */}
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {books.map((book) => {
+        const inQueue = book.book_queue?.some(q => q.user_id === userId)
+        const isOwner = book.owner_id === userId
+        const isBorrower = book.current_borrower_id === userId
+        
+        return (
+          <div 
+            key={book.id} 
+            className="bg-[#27272A] rounded-xl p-3 flex flex-col"
+          >
+            {/* Book Cover */}
+            <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#3F3F46] mb-3">
+              {book.cover_url ? (
+                <img 
+                  src={book.cover_url} 
+                  alt={book.title}
+                  className={`w-full h-full object-cover transition-opacity ${
+                    book.status === 'available' ? 'opacity-100' : 
+                    book.status === 'off_shelf' ? 'opacity-50' : 
+                    'opacity-70'
+                  }`}
+                />
+              ) : (
+                <div className={`w-full h-full flex items-center justify-center transition-opacity ${
+                  book.status === 'available' ? 'opacity-100' : 
+                  book.status === 'off_shelf' ? 'opacity-50' : 
+                  'opacity-70'
+                }`}>
+                  <span className="text-4xl">📚</span>
+                </div>
+              )}
+              
+              {/* Gift badge */}
+              {book.gift_on_borrow && (
+                <div className="absolute top-2 right-2">
+                  <span className="text-lg">🎁</span>
+                </div>
+              )}
+              
+              {/* Status badge overlay */}
+              <div className="absolute bottom-2 left-2 right-2">
                 {book.status === 'off_shelf' ? (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                  <span className="text-xs bg-gray-600/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
                     Off Shelf
                   </span>
                 ) : book.status === 'available' ? (
-                  <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
+                  <span className="text-xs bg-green-600/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
                     Available
                   </span>
                 ) : book.status === 'in_transit' ? (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                  <span className="text-xs bg-blue-600/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
                     Passing
                   </span>
                 ) : (
-                  <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">
-                    With {book.current_borrower?.full_name || 'Someone'}
-                  </span>
-                )}
-                
-                {/* Gift Badge */}
-                {book.gift_on_borrow && (
-                  <span className="px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded font-medium">
-                    🎁 Gift
+                  <span className="text-xs bg-yellow-600/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
+                    Borrowed
                   </span>
                 )}
               </div>
             </div>
 
-            <p className="text-sm text-gray-600 mb-2">
-              {book.owner_id === userId ? 'Your book' : `Owner: ${book.owner?.full_name || 'Unknown'}`}
-              {book.current_borrower && (
-                <> • Currently with: {book.current_borrower.full_name}</>
+            {/* Book Info */}
+            <div className="flex-1 flex flex-col">
+              <h3 className="font-medium text-white text-sm line-clamp-2 mb-1">{book.title}</h3>
+              {book.author && (
+                <p className="text-xs text-gray-400 truncate mb-2">{book.author}</p>
               )}
-              {book.due_date && (
-                <> • Due: {new Date(book.due_date).toLocaleDateString()}</>
+              
+              <p className="text-xs text-gray-500 mb-2">
+                {isOwner ? 'Your book' : book.owner?.full_name}
+              </p>
+
+              {/* Queue indicator */}
+              {book.book_queue && book.book_queue.length > 0 && (
+                <div className="text-xs text-purple-400 mb-2">
+                  {book.book_queue.length} in queue
+                </div>
               )}
-            </p>
 
-            {/* Queue Details */}
-            {book.book_queue && book.book_queue.length > 0 && (
-              <div className="mb-3 text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                <p className="font-semibold mb-1">
-                  Queue ({book.book_queue.length} {book.book_queue.length === 1 ? 'person' : 'people'}):
-                </p>
-                <ol className="space-y-1 list-decimal list-inside">
-                  {book.book_queue.slice(0, 3).map((q) => {
-                    // Check if queued person is in this circle
-                    const isInCircle = circleMemberIds.includes(q.user_id)
-                    const displayName = isInCircle 
-                      ? (q.profiles?.full_name || 'Someone')
-                      : 'Someone from another circle'
-                    
-                    return (
-                      <li key={q.id} className="pl-2">
-                        {displayName}
-                        {isInCircle && q.pass_count && q.pass_count > 0 && (
-                          <span className="ml-2 text-orange-600">
-                            (passed {q.pass_count}×{q.last_pass_reason ? `: ${q.last_pass_reason}` : ''})
-                          </span>
-                        )}
-                      </li>
-                    )
-                  })}
-                  {book.book_queue.length > 3 && (
-                    <li className="pl-2 text-gray-500">
-                      + {book.book_queue.length - 3} more
-                    </li>
-                  )}
-                </ol>
-              </div>
-            )}
+              {/* User queue status */}
+              {inQueue && (
+                <div className="text-xs px-2 py-1 bg-purple-600/20 text-purple-300 rounded mb-2 text-center border border-purple-500/30">
+                  You're #{book.book_queue?.find(q => q.user_id === userId)?.position}
+                </div>
+              )}
 
-            {/* Queue Status */}
-            {book.book_queue && book.book_queue.some(q => q.user_id === userId) && (
-              <div className="mb-2 px-2 py-1 bg-purple-50 border border-purple-200 rounded text-xs text-purple-700">
-                You're #{book.book_queue.find(q => q.user_id === userId)?.position} in the queue
-              </div>
-            )}
-
-            <div className="flex gap-2 flex-wrap">
-              {book.status === 'available' && book.owner_id !== userId && (
-                <div className="flex flex-col gap-1">
+              {/* Action buttons */}
+              <div className="mt-auto space-y-2">
+                {book.status === 'available' && !isOwner && (
                   <button
-                    onClick={() => {
-                      console.log('[BooksList] Borrow button clicked for book:', book.id, book.title)
-                      setRequestingBookId(book.id)
-                    }}
-                    className={`px-3 py-1 text-white text-sm rounded ${
+                    onClick={() => setRequestingBookId(book.id)}
+                    className={`w-full text-xs px-3 py-2 text-white rounded-lg font-medium active:scale-95 transition-all ${
                       book.gift_on_borrow 
-                        ? 'bg-pink-600 hover:bg-pink-700' 
-                        : 'bg-blue-600 hover:bg-blue-700'
+                        ? 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600' 
+                        : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
                     }`}
                   >
                     {book.gift_on_borrow ? '🎁 Accept Gift' : 'Borrow'}
                   </button>
-                  {book.gift_on_borrow && (
-                    <p className="text-xs text-pink-600">
-                      You'll own this permanently
-                    </p>
-                  )}
-                </div>
-              )}
-              {book.status === 'off_shelf' && book.owner_id !== userId && (
-                <div className="text-sm text-gray-500 italic">
-                  Temporarily unavailable
-                  {book.book_queue && book.book_queue.some(q => q.user_id === userId) && (
-                    <span className="ml-2">(You're in the queue)</span>
-                  )}
-                </div>
-              )}
-              {book.current_borrower_id === userId && (
-                <button
-                  onClick={() => handleReturn(book.id)}
-                  disabled={loading === book.id}
-                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
-                >
-                  {loading === book.id ? 'Returning...' : 'Return'}
-                </button>
-              )}
+                )}
+                
+                {isBorrower && (
+                  <button
+                    onClick={() => handleReturn(book.id)}
+                    disabled={loading === book.id}
+                    className="w-full text-xs px-3 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
+                  >
+                    {loading === book.id ? 'Returning...' : 'Return'}
+                  </button>
+                )}
 
-              {/* Queue Actions */}
-              {book.status === 'borrowed' && 
-               book.owner_id !== userId && 
-               book.current_borrower_id !== userId && (
-                <>
-                  {book.book_queue && book.book_queue.some(q => q.user_id === userId) ? (
-                    <button
-                      onClick={() => handleLeaveQueue(book.id)}
-                      disabled={loading === book.id}
-                      className="px-3 py-1 bg-gray-400 text-white text-sm rounded hover:bg-gray-500 disabled:opacity-50"
-                    >
-                      {loading === book.id ? 'Leaving...' : 'Leave Queue'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleJoinQueue(book.id)}
-                      disabled={loading === book.id}
-                      className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 disabled:opacity-50"
-                    >
-                      {loading === book.id ? 'Joining...' : 'Join Queue'}
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Buy Option for All Books (except your own) */}
-            {book.owner_id !== userId && (
-              <div className="mt-3 pt-3 border-t">
-                {/* Show queue info if book is borrowed */}
-                {book.status === 'borrowed' && book.book_queue && book.book_queue.length > 0 && (
+                {/* Queue Actions */}
+                {book.status === 'borrowed' && 
+                 !isOwner && 
+                 !isBorrower && (
                   <>
-                    {/* Show estimated wait for current queue position */}
-                    {book.book_queue.some(q => q.user_id === userId) ? (
-                      <p className="text-sm text-gray-600 mb-2">
-                        You'd be #{book.book_queue.find(q => q.user_id === userId)?.position} — 
-                        estimated wait: {Math.ceil((book.book_queue.find(q => q.user_id === userId)?.position || 1) * 3)}-
-                        {Math.ceil((book.book_queue.find(q => q.user_id === userId)?.position || 1) * 4)} weeks
-                      </p>
+                    {inQueue ? (
+                      <button
+                        onClick={() => handleLeaveQueue(book.id)}
+                        disabled={loading === book.id}
+                        className="w-full text-xs px-3 py-2 bg-[#3F3F46] text-gray-300 rounded-lg font-medium hover:bg-[#52525B] disabled:opacity-50 active:scale-95 transition-all"
+                      >
+                        {loading === book.id ? 'Leaving...' : 'Leave Queue'}
+                      </button>
                     ) : (
-                      <p className="text-sm text-gray-600 mb-2">
-                        You'd be #{book.book_queue.length + 1} — 
-                        estimated wait: {Math.ceil((book.book_queue.length + 1) * 3)}-
-                        {Math.ceil((book.book_queue.length + 1) * 4)} weeks
-                      </p>
-                    )}
-                    
-                    {/* More prominent buy link if queue is long */}
-                    {(book.book_queue.length >= 3 || 
-                      (book.book_queue.some(q => q.user_id === userId) && 
-                       book.book_queue.find(q => q.user_id === userId)?.position! >= 3)) && (
-                      <p className="text-sm font-medium text-gray-700 mb-2">
-                        Want your own copy instead?
-                      </p>
+                      <button
+                        onClick={() => handleJoinQueue(book.id)}
+                        disabled={loading === book.id}
+                        className="w-full text-xs px-3 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 active:scale-95 transition-all"
+                      >
+                        {loading === book.id ? 'Joining...' : 'Join Queue'}
+                      </button>
                     )}
                   </>
                 )}
-                
-                <BuyAmazonButton
-                  book={{
-                    id: book.id,
-                    title: book.title,
-                    author: book.author,
-                    isbn: book.isbn
-                  }}
-                  context={
-                    book.status === 'borrowed' && book.book_queue && book.book_queue.length > 0
-                      ? 'unavailable_to_borrow'
-                      : 'browsing_recommendation'
-                  }
-                  circleId={circleId}
-                  variant={
-                    book.status === 'borrowed' && book.book_queue && book.book_queue.length >= 3 
-                      ? 'primary' 
-                      : 'link'
-                  }
-                >
-                  {book.status === 'borrowed' && book.book_queue && book.book_queue.length >= 3 
-                    ? '🛒 Buy on Amazon' 
-                    : 'Buy on Amazon'}
-                </BuyAmazonButton>
+
+                {/* Buy on Amazon - subtle link */}
+                {!isOwner && (
+                  <div className="pt-1">
+                    <BuyAmazonButton
+                      book={{
+                        id: book.id,
+                        title: book.title,
+                        author: book.author,
+                        isbn: book.isbn
+                      }}
+                      context="browsing_recommendation"
+                      circleId={circleId}
+                      variant="link"
+                    >
+                      Buy on Amazon
+                    </BuyAmazonButton>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
 
     {/* Request/Borrow Confirmation Dialog */}
