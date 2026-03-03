@@ -1,20 +1,19 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import ProgressBar from '../components/ProgressBar'
-import Link from 'next/link'
 
 const PRESET_AVATARS = [
-  { id: 'preset-1', emoji: '📚', color: 'bg-blue-100' },
-  { id: 'preset-2', emoji: '🌟', color: 'bg-yellow-100' },
-  { id: 'preset-3', emoji: '🎨', color: 'bg-purple-100' },
-  { id: 'preset-4', emoji: '🌈', color: 'bg-pink-100' },
-  { id: 'preset-5', emoji: '🚀', color: 'bg-indigo-100' },
-  { id: 'preset-6', emoji: '🌻', color: 'bg-green-100' },
-  { id: 'preset-7', emoji: '🎭', color: 'bg-red-100' },
-  { id: 'preset-8', emoji: '⭐', color: 'bg-orange-100' }
+  { id: 'preset-1', emoji: '📚', color: 'bg-amber-900/60' },
+  { id: 'preset-2', emoji: '🌟', color: 'bg-yellow-900/60' },
+  { id: 'preset-3', emoji: '🎨', color: 'bg-purple-900/60' },
+  { id: 'preset-4', emoji: '🌈', color: 'bg-pink-900/60' },
+  { id: 'preset-5', emoji: '🚀', color: 'bg-indigo-900/60' },
+  { id: 'preset-6', emoji: '🌻', color: 'bg-green-900/60' },
+  { id: 'preset-7', emoji: '🎭', color: 'bg-red-900/60' },
+  { id: 'preset-8', emoji: '⭐', color: 'bg-orange-900/60' }
 ]
 
 export default function OnboardingAvatar() {
@@ -40,7 +39,6 @@ export default function OnboardingAvatar() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Update profile (only preset or initials, no upload)
       console.log('[Onboarding Avatar] Saving:', { avatarType, selectedPreset, userId: user.id })
       
       const { error: updateError } = await supabase
@@ -48,7 +46,7 @@ export default function OnboardingAvatar() {
         .update({
           avatar_type: avatarType,
           avatar_id: avatarType === 'preset' ? selectedPreset : null,
-          avatar_url: null // Never use uploaded photos
+          avatar_url: null
         })
         .eq('id', user.id)
 
@@ -67,75 +65,62 @@ export default function OnboardingAvatar() {
   }
 
   const handleSkip = async () => {
-    // Just move to next step without saving avatar
     router.push('/onboarding/profile')
   }
 
-  // Get current avatar preview
-  const getCurrentAvatar = () => {
-    console.log('[Avatar] Rendering preview:', { avatarType, selectedPreset })
-    
-    if (avatarType === 'preset' && selectedPreset) {
-      const preset = PRESET_AVATARS.find(p => p.id === selectedPreset)
-      console.log('[Avatar] Found preset:', preset)
-      if (preset) {
-        return (
-          <div className={`w-full h-full rounded-full ${preset.color} flex items-center justify-center`}>
-            <span className="text-6xl">{preset.emoji}</span>
-          </div>
-        )
-      }
-    }
-
-    // Default initials placeholder
-    return (
-      <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center">
-        <span className="text-6xl text-gray-600">👤</span>
-      </div>
-    )
-  }
+  // Get selected preset for preview
+  const selectedAvatarData = selectedPreset 
+    ? PRESET_AVATARS.find(p => p.id === selectedPreset)
+    : null
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-md mx-auto pt-8">
       <ProgressBar currentStep={0} />
 
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">Welcome to PagePass!</h1>
-        <p className="text-center text-gray-600 mb-8">Choose your avatar.</p>
+      <div className="bg-[#1a1a1a] rounded-2xl shadow-xl p-8 border border-gray-800">
+        <h1 className="text-2xl font-bold text-center mb-2 text-white">
+          Choose Your Avatar
+        </h1>
+        <p className="text-center text-gray-400 mb-8">
+          Select any avatar to get started
+        </p>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-50 text-red-800 rounded-lg text-sm">
+          <div className="mb-6 p-3 bg-red-900/30 text-red-400 rounded-lg text-sm border border-red-800">
             {error}
           </div>
         )}
 
-        {/* Current Avatar Display */}
+        {/* Current Avatar Preview */}
         <div className="flex justify-center mb-8">
-          <div className="relative w-32 h-32">
-            {getCurrentAvatar()}
+          <div 
+            className={`relative w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300 ${
+              selectedAvatarData 
+                ? `${selectedAvatarData.color} ring-4 ring-orange-500 ring-offset-4 ring-offset-[#1a1a1a]` 
+                : 'bg-gray-800'
+            }`}
+          >
+            <span className="text-5xl">
+              {selectedAvatarData ? selectedAvatarData.emoji : '👤'}
+            </span>
           </div>
         </div>
 
-        {/* Preset Avatar Options */}
-        <div className="mb-8">
-          <h2 className="text-sm font-medium text-gray-700 mb-3 text-center">
-            Choose an avatar:
-          </h2>
-          <div className="grid grid-cols-4 gap-3">
-            {PRESET_AVATARS.map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => handlePresetSelect(preset.id)}
-                className={`w-full aspect-square rounded-full ${preset.color} flex items-center justify-center text-4xl transition-all ${
-                  selectedPreset === preset.id
-                    ? 'ring-4 ring-blue-500 scale-105'
-                    : 'hover:scale-105'
-                }`}
-              >
-                {preset.emoji}
-              </button>
-            ))}
-          </div>
+        {/* Avatar Grid - 2x4 layout */}
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          {PRESET_AVATARS.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => handlePresetSelect(preset.id)}
+              className={`aspect-square rounded-full ${preset.color} flex items-center justify-center text-3xl transition-all duration-200 ${
+                selectedPreset === preset.id
+                  ? 'ring-3 ring-orange-500 scale-110 shadow-lg shadow-orange-500/30'
+                  : 'hover:scale-105 hover:ring-2 hover:ring-orange-400/50'
+              }`}
+            >
+              {preset.emoji}
+            </button>
+          ))}
         </div>
 
         {/* Action Buttons */}
@@ -143,16 +128,16 @@ export default function OnboardingAvatar() {
           <button
             onClick={handleSkip}
             disabled={loading}
-            className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            className="flex-1 py-3 border border-gray-600 text-gray-300 rounded-xl hover:bg-gray-800 disabled:opacity-50 transition-colors"
           >
             Skip
           </button>
           <button
             onClick={handleNext}
             disabled={loading}
-            className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 shadow-md"
+            className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 shadow-lg shadow-orange-500/30 font-semibold transition-all"
           >
-            {loading ? 'Saving...' : 'Next'}
+            {loading ? 'Saving...' : 'Continue'}
           </button>
         </div>
       </div>

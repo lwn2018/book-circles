@@ -15,15 +15,15 @@ export default function ProgressBar({
             key={index}
             className={`flex-1 h-2 rounded-full transition-colors ${
               index < currentStep
-                ? 'bg-blue-600'
+                ? 'bg-orange-500'
                 : index === currentStep
-                ? 'bg-blue-400'
-                : 'bg-gray-200'
+                ? 'bg-orange-400'
+                : 'bg-gray-700'
             }`}
           />
         ))}
       </div>
-      <p className="text-center text-sm text-gray-600 mt-2">
+      <p className="text-center text-sm text-gray-400 mt-2">
         Step {currentStep + 1} of {totalSteps}
       </p>
     </div>
