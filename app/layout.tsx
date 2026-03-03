@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Arimo } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "./components/PostHogProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const arimo = Arimo({
+  variable: "--font-arimo",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -39,9 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${arimo.variable} antialiased`}>
         <PostHogProvider>
           {children}
         </PostHogProvider>
