@@ -32,8 +32,8 @@ function SignInContent() {
   }, [circleCode, supabase])
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: '#121212' }}>
+      <div className="max-w-md w-full rounded-2xl shadow-2xl p-8" style={{ backgroundColor: '#27272A' }}>
         <TabbedAuthForm 
           circleCode={circleCode} 
           circleName={circleName}
@@ -47,7 +47,7 @@ function SignInContent() {
 export default function SignIn() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#121212' }}>
         <div className="animate-spin text-4xl">⏳</div>
       </div>
     }>

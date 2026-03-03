@@ -23,7 +23,7 @@ function SignupRedirect() {
   }, [router, searchParams])
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#121212' }}>
       <div className="animate-spin text-4xl">⏳</div>
     </div>
   )
@@ -32,7 +32,7 @@ function SignupRedirect() {
 export default function SignupPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#121212' }}>
         <div className="animate-spin text-4xl">⏳</div>
       </div>
     }>

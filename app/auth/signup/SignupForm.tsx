@@ -154,21 +154,29 @@ export default function SignupForm() {
     }
   }
 
+  // Input field classes for dark theme
+  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+  
+  // Primary button gradient style
+  const primaryButtonStyle = {
+    background: 'linear-gradient(135deg, #F54900 0%, #FF6900 100%)',
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <div className="max-w-md w-full">
-        <h1 className="text-3xl font-bold mb-6 text-center">Sign Up</h1>
+    <div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: '#121212' }}>
+      <div className="max-w-md w-full rounded-2xl shadow-2xl p-8" style={{ backgroundColor: '#27272A' }}>
+        <h1 className="text-3xl font-bold mb-6 text-center text-white">Sign Up</h1>
         
         {inviteInfo && (
-          <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm">
-            <p className="font-semibold">✉️ You've been invited!</p>
-            <p className="mt-1">Invited by {inviteInfo.creatorName}</p>
+          <div className="mb-4 p-3 rounded-lg text-sm" style={{ backgroundColor: 'rgba(245, 73, 0, 0.15)', border: '1px solid rgba(245, 73, 0, 0.3)' }}>
+            <p className="font-semibold text-orange-300">✉️ You've been invited!</p>
+            <p className="mt-1 text-orange-200">Invited by {inviteInfo.creatorName}</p>
           </div>
         )}
 
         {circleCode && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="font-semibold text-green-900 text-center">
+          <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(245, 73, 0, 0.15)', border: '1px solid rgba(245, 73, 0, 0.3)' }}>
+            <p className="font-semibold text-orange-300 text-center">
               📚 You've been invited to join{circleInfo ? ` the ${circleInfo.name} circle` : ' a book circle'}!
             </p>
           </div>
@@ -176,45 +184,48 @@ export default function SignupForm() {
         
         <form onSubmit={handleSignUp} className="space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+            <div className="p-3 bg-red-900/30 border border-red-700 text-red-300 rounded-lg text-sm">
               {error}
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
+            <label className="block text-sm font-medium mb-1 text-zinc-300">Full Name</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClasses}
+              placeholder="Your name"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium mb-1 text-zinc-300">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClasses}
+              placeholder="you@example.com"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block text-sm font-medium mb-1 text-zinc-300">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClasses}
+              placeholder="At least 6 characters"
               required
               minLength={6}
             />
           </div>
           {!inviteInfo && !circleCode && (
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Invite Code <span className="text-gray-500">(optional)</span>
+              <label className="block text-sm font-medium mb-1 text-zinc-300">
+                Invite Code <span className="text-zinc-500">(optional)</span>
               </label>
               <input
                 type="text"
@@ -222,14 +233,14 @@ export default function SignupForm() {
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                 onBlur={() => inviteCode && validateInvite(inviteCode)}
                 placeholder="ABCD1234"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                className={`${inputClasses} uppercase`}
                 maxLength={8}
               />
             </div>
           )}
           {/* Privacy Message */}
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-800 text-center">
+          <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+            <p className="text-sm text-green-300 text-center">
               🔒 <strong>Your reading data is yours.</strong><br />
               We never sell individual data to anyone.
             </p>
@@ -242,16 +253,16 @@ export default function SignupForm() {
               id="agreedToTerms"
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="mt-1 w-4 h-4 bg-zinc-800 border-zinc-700 rounded focus:ring-orange-500 accent-orange-500"
               required
             />
-            <label htmlFor="agreedToTerms" className="text-sm text-gray-700">
+            <label htmlFor="agreedToTerms" className="text-sm text-zinc-400">
               I agree to the{' '}
-              <Link href="/terms" className="text-blue-600 hover:underline" target="_blank">
+              <Link href="/terms" className="text-orange-400 hover:text-orange-300 transition-colors" target="_blank">
                 Terms of Service
               </Link>
               {' '}and{' '}
-              <Link href="/privacy" className="text-blue-600 hover:underline" target="_blank">
+              <Link href="/privacy" className="text-orange-400 hover:text-orange-300 transition-colors" target="_blank">
                 Privacy Policy
               </Link>
             </label>
@@ -260,29 +271,30 @@ export default function SignupForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            style={primaryButtonStyle}
+            className="w-full px-4 py-3 text-white rounded-lg hover:opacity-90 disabled:opacity-50 font-medium text-lg transition-opacity"
           >
             {loading ? 'Creating account...' : 'Sign Up'}
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center text-sm text-zinc-400">
           Already have an account?{' '}
           <Link 
             href={circleCode ? `/auth/signin?circleCode=${circleCode}` : '/auth/signin'} 
-            className="text-blue-600 hover:underline"
+            className="text-orange-400 hover:text-orange-300 transition-colors"
           >
             Sign in
           </Link>
         </p>
 
         {/* Footer Links */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="flex justify-center gap-4 text-xs text-gray-500">
-            <Link href="/privacy" className="hover:text-blue-600 hover:underline">
+        <div className="mt-8 pt-6 border-t border-zinc-700">
+          <div className="flex justify-center gap-4 text-xs text-zinc-500">
+            <Link href="/privacy" className="hover:text-orange-400 transition-colors">
               Privacy Policy
             </Link>
             <span>•</span>
-            <Link href="/terms" className="hover:text-blue-600 hover:underline">
+            <Link href="/terms" className="hover:text-orange-400 transition-colors">
               Terms of Service
             </Link>
           </div>

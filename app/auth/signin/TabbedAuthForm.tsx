@@ -109,13 +109,21 @@ export default function TabbedAuthForm({
     }
   }
 
+  // Input field classes for dark theme
+  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+  
+  // Primary button gradient style
+  const primaryButtonStyle = {
+    background: 'linear-gradient(135deg, #F54900 0%, #FF6900 100%)',
+  }
+
   return (
     <div className="w-full relative">
       {/* Close button - only show if not from circle invite */}
       {!circleCode && (
         <button
           onClick={() => window.location.href = '/'}
-          className="absolute top-0 right-0 text-gray-400 hover:text-gray-600 text-3xl leading-none"
+          className="absolute top-0 right-0 text-zinc-500 hover:text-white text-3xl leading-none transition-colors"
           aria-label="Close"
         >
           ×
@@ -124,21 +132,21 @@ export default function TabbedAuthForm({
 
       {/* Circle Invitation Banner */}
       {circleCode && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-900 text-center font-medium">
+        <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'rgba(245, 73, 0, 0.15)', border: '1px solid rgba(245, 73, 0, 0.3)' }}>
+          <p className="text-sm text-orange-300 text-center font-medium">
             📚 {circleName ? `Join to access the ${circleName} circle` : 'Join to access your invited circle'}
           </p>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6">
+      <div className="flex border-b border-zinc-700 mb-6">
         <button
           onClick={() => setActiveTab('signin')}
           className={`flex-1 pb-3 text-lg font-semibold border-b-2 transition-colors ${
             activeTab === 'signin'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-orange-500 text-white'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
           }`}
         >
           Sign In
@@ -147,8 +155,8 @@ export default function TabbedAuthForm({
           onClick={() => setActiveTab('signup')}
           className={`flex-1 pb-3 text-lg font-semibold border-b-2 transition-colors ${
             activeTab === 'signup'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-orange-500 text-white'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
           }`}
         >
           Get Started
@@ -158,33 +166,33 @@ export default function TabbedAuthForm({
       {/* Sign In Form */}
       {activeTab === 'signin' && (
         <form onSubmit={handleSignIn} className="space-y-4">
-          <h2 className="text-2xl font-bold mb-4">Sign in to PagePass</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">Sign in to PagePass</h2>
           
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+            <div className="p-3 bg-red-900/30 border border-red-700 text-red-300 rounded-lg text-sm">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium mb-1 text-zinc-300">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClasses}
               placeholder="you@example.com"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block text-sm font-medium mb-1 text-zinc-300">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClasses}
               required
             />
           </div>
@@ -192,13 +200,14 @@ export default function TabbedAuthForm({
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium text-lg"
+            style={primaryButtonStyle}
+            className="w-full px-4 py-3 text-white rounded-lg hover:opacity-90 disabled:opacity-50 font-medium text-lg transition-opacity"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
 
           <div className="text-center">
-            <Link href="/auth/reset-password" className="text-sm text-blue-600 hover:underline">
+            <Link href="/auth/reset-password" className="text-sm text-orange-400 hover:text-orange-300 transition-colors">
               Forgot password?
             </Link>
           </div>
@@ -208,45 +217,45 @@ export default function TabbedAuthForm({
       {/* Sign Up Form */}
       {activeTab === 'signup' && (
         <form onSubmit={handleSignUp} className="space-y-4">
-          <h2 className="text-2xl font-bold mb-4">Create your account</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">Create your account</h2>
           
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+            <div className="p-3 bg-red-900/30 border border-red-700 text-red-300 rounded-lg text-sm">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
+            <label className="block text-sm font-medium mb-1 text-zinc-300">Full Name</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClasses}
               placeholder="Your name"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium mb-1 text-zinc-300">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClasses}
               placeholder="you@example.com"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block text-sm font-medium mb-1 text-zinc-300">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClasses}
               placeholder="At least 6 characters"
               required
               minLength={6}
@@ -259,16 +268,16 @@ export default function TabbedAuthForm({
               id="agreedToTerms"
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="mt-1 w-4 h-4 bg-zinc-800 border-zinc-700 rounded focus:ring-orange-500 accent-orange-500"
               required
             />
-            <label htmlFor="agreedToTerms" className="text-sm text-gray-700">
+            <label htmlFor="agreedToTerms" className="text-sm text-zinc-400">
               I agree to the{' '}
-              <Link href="/terms" className="text-blue-600 hover:underline" target="_blank">
+              <Link href="/terms" className="text-orange-400 hover:text-orange-300 transition-colors" target="_blank">
                 Terms of Service
               </Link>
               {' '}and{' '}
-              <Link href="/privacy" className="text-blue-600 hover:underline" target="_blank">
+              <Link href="/privacy" className="text-orange-400 hover:text-orange-300 transition-colors" target="_blank">
                 Privacy Policy
               </Link>
             </label>
@@ -277,7 +286,8 @@ export default function TabbedAuthForm({
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium text-lg"
+            style={primaryButtonStyle}
+            className="w-full px-4 py-3 text-white rounded-lg hover:opacity-90 disabled:opacity-50 font-medium text-lg transition-opacity"
           >
             {loading ? 'Creating account...' : 'Get Started'}
           </button>
@@ -285,13 +295,13 @@ export default function TabbedAuthForm({
       )}
 
       {/* Footer Links */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <div className="flex justify-center gap-4 text-xs text-gray-500">
-          <Link href="/privacy" className="hover:text-blue-600 hover:underline">
+      <div className="mt-8 pt-6 border-t border-zinc-700">
+        <div className="flex justify-center gap-4 text-xs text-zinc-500">
+          <Link href="/privacy" className="hover:text-orange-400 transition-colors">
             Privacy Policy
           </Link>
           <span>•</span>
-          <Link href="/terms" className="hover:text-blue-600 hover:underline">
+          <Link href="/terms" className="hover:text-orange-400 transition-colors">
             Terms of Service
           </Link>
         </div>
