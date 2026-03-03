@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import LibraryWithViewToggle from './LibraryWithViewToggle'
+import LibraryContent from './LibraryContent'
 
 export default async function MyLibraryTab() {
   const supabase = await createServerSupabaseClient()
@@ -73,24 +73,18 @@ export default async function MyLibraryTab() {
     })
   )
 
-  // Categorize books by status
-  const onShelf = booksWithVisibility.filter(b => b.status === 'available')
-  const offShelf = booksWithVisibility.filter(b => b.status === 'off_shelf')
-  const lentOut = booksWithVisibility.filter(b => b.status === 'borrowed')
-  const inTransit = booksWithVisibility.filter(b => b.status === 'ready_for_next' || b.status === 'in_transit')
-
   return (
-    <div>
+    <div className="min-h-screen -mx-4 -my-6 px-4 py-6" style={{ background: '#121212' }}>
       {/* Pending Handoffs */}
       {pendingHandoffs && pendingHandoffs.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h2 className="text-lg font-bold mb-3">📬 Pending Handoffs ({pendingHandoffs.length})</h2>
+        <div className="bg-amber-900/30 border border-amber-700/50 rounded-xl p-4 mb-6">
+          <h2 className="text-lg font-bold text-white mb-3">📬 Pending Handoffs ({pendingHandoffs.length})</h2>
           <div className="space-y-3">
             {pendingHandoffs.map((handoff: any) => (
               <Link
                 key={handoff.id}
                 href={`/handoff/${handoff.id}`}
-                className="flex items-center gap-3 p-3 bg-white rounded border border-yellow-300 hover:border-yellow-400 transition-colors"
+                className="flex items-center gap-3 p-3 bg-[#27272A] rounded-lg border border-amber-600/30 hover:border-amber-500/50 transition-colors"
               >
                 {handoff.book.cover_url ? (
                   <img 
@@ -99,17 +93,17 @@ export default async function MyLibraryTab() {
                     className="w-12 h-16 object-cover rounded"
                   />
                 ) : (
-                  <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center">
+                  <div className="w-12 h-16 bg-zinc-700 rounded flex items-center justify-center">
                     <span className="text-xl">📚</span>
                   </div>
                 )}
-                <div className="flex-1">
-                  <p className="font-semibold">{handoff.book.title}</p>
-                  <p className="text-sm text-gray-600">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white truncate">{handoff.book.title}</p>
+                  <p className="text-sm text-zinc-400">
                     Waiting for handoff with {handoff.giver.full_name}
                   </p>
                 </div>
-                <div className="text-blue-600 font-medium">
+                <div className="text-orange-500 font-medium text-sm">
                   Confirm →
                 </div>
               </Link>
@@ -118,41 +112,12 @@ export default async function MyLibraryTab() {
         </div>
       )}
 
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">My Library</h1>
-        <p className="text-gray-600 mt-1">
-          All your books • {booksWithVisibility.length} total
-        </p>
-      </div>
-
-      {/* Import from Goodreads */}
-      <div className="mb-6">
-        <Link
-          href="/library/import"
-          className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-        >
-          📥 Import from Goodreads
-        </Link>
-      </div>
-
-      {booksWithVisibility.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <p className="text-gray-600 mb-4">You haven't added any books yet.</p>
-          <p className="text-sm text-gray-500">
-            Your library is where you keep track of books you own and are willing to share. Add your first book, or import your collection from Goodreads.
-          </p>
-        </div>
-      ) : (
-        <LibraryWithViewToggle
-          onShelf={onShelf as any}
-          offShelf={offShelf as any}
-          lentOut={lentOut as any}
-          inTransit={inTransit as any}
-          circles={circles as any}
-          userId={user.id}
-          defaultBrowseView={profile?.default_browse_view || 'card'}
-        />
-      )}
+      <LibraryContent
+        books={booksWithVisibility as any}
+        circles={circles as any}
+        userId={user.id}
+        defaultBrowseView={profile?.default_browse_view || 'card'}
+      />
     </div>
   )
 }
