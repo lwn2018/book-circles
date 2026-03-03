@@ -9,7 +9,7 @@ interface DoneReadingButtonProps {
   bookTitle: string
   status: string
   ownerName?: string
-  isOwner?: boolean  // true if user owns this book (gift that transferred)
+  isOwner?: boolean
 }
 
 export default function DoneReadingButton({ 
@@ -31,7 +31,6 @@ export default function DoneReadingButton({
   const handleDoneReading = async () => {
     if (loading) return
 
-    // Different confirmation message if user owns the book
     const confirmMessage = isOwner
       ? `Finished with "${bookTitle}"?\n\nThis will mark it as available on your shelf.`
       : `Ready to return "${bookTitle}"?\n\nWe'll notify ${ownerName || 'the owner'} to arrange the handoff.`
@@ -52,15 +51,12 @@ export default function DoneReadingButton({
       }
 
       if (result.success) {
-        // Check if this was the user's own book (gift)
         if (result.isOwnBook) {
           setSuccess({ isOwnBook: true })
         } else {
           setSuccess({ receiverName: result.receiverName || ownerName || 'the owner' })
         }
         setLoading(false)
-        
-        // Refresh to show updated state
         router.refresh()
       }
     } catch (error: any) {
@@ -70,18 +66,18 @@ export default function DoneReadingButton({
     }
   }
 
-  // Show success state instead of button
+  // Show success state
   if (success) {
     if (success.isOwnBook) {
       return (
-        <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-sm text-emerald-400">
           ✓ Marked as available on your shelf!
         </div>
       )
     }
     return (
-      <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
-        ✓ {success.receiverName} notified! Check Pending Handoffs above when ready.
+      <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-sm text-emerald-400">
+        ✓ {success.receiverName} notified! Check Pending Handoffs when ready.
       </div>
     )
   }
@@ -90,9 +86,19 @@ export default function DoneReadingButton({
     <button
       onClick={handleDoneReading}
       disabled={loading}
-      className="mt-3 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700"
     >
-      {loading ? 'Processing...' : 'Done reading'}
+      {loading ? (
+        <span className="flex items-center justify-center gap-2">
+          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          Processing...
+        </span>
+      ) : (
+        'Done reading'
+      )}
     </button>
   )
 }
