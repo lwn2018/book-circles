@@ -198,31 +198,31 @@ export default function BooksList({
               {/* Status badge overlay */}
               <div className="absolute bottom-2 left-2 right-2">
                 {book.status === 'off_shelf' ? (
-                  <span className="text-xs font-semibold font-[Inter] bg-gray-600/20 text-gray-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-gray-600/30">
+                  <span className="text-xs font-semibold  bg-gray-600/20 text-gray-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-gray-600/30">
                     Off Shelf
                   </span>
                 ) : book.status === 'available' ? (
-                  <span className="text-xs font-semibold font-[Inter] bg-green-600/20 text-green-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-green-600/30">
+                  <span className="text-xs font-semibold  bg-[#32D74B]/20 text-[#32D74B] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#32D74B]/30">
                     Available
                   </span>
                 ) : book.status === 'in_transit' ? (
-                  <span className="text-xs font-semibold font-[Inter] bg-[#55B2DE]/20 text-[#55B2DE] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#55B2DE]/30">
+                  <span className="text-xs font-semibold  bg-[#55B2DE]/20 text-[#55B2DE] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#55B2DE]/30">
                     Passing
                   </span>
                 ) : isOwner && book.current_borrower ? (
-                  <span className="text-xs font-semibold font-[Inter] bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30 truncate max-w-full">
+                  <span className="text-xs font-semibold  bg-[#F7B14B]/20 text-[#F7B14B] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#F7B14B]/30 truncate max-w-full">
                     Lent to {book.current_borrower.full_name.split(' ')[0]}
                   </span>
                 ) : isBorrower ? (
-                  <span className="text-xs font-semibold font-[Inter] bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30">
+                  <span className="text-xs font-semibold  bg-[#F7B14B]/20 text-[#F7B14B] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#F7B14B]/30">
                     You're borrowing
                   </span>
                 ) : book.current_borrower ? (
-                  <span className="text-xs font-semibold font-[Inter] bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30 truncate max-w-full">
+                  <span className="text-xs font-semibold  bg-[#F7B14B]/20 text-[#F7B14B] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#F7B14B]/30 truncate max-w-full">
                     Borrowed by {book.current_borrower.full_name.split(' ')[0]}
                   </span>
                 ) : (
-                  <span className="text-xs font-semibold font-[Inter] bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30">
+                  <span className="text-xs font-semibold  bg-[#F7B14B]/20 text-[#F7B14B] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#F7B14B]/30">
                     Borrowed
                   </span>
                 )}
@@ -231,9 +231,9 @@ export default function BooksList({
 
             {/* Book Info */}
             <div className="flex-1 flex flex-col">
-              <h3 className="font-semibold font-[Inter] text-white text-sm line-clamp-2 mb-1">{book.title}</h3>
+              <h3 className="text-white line-clamp-2 mb-1" style={{ fontFamily: "var(--font-inter)", fontSize: "14px", fontWeight: 600 }}>{book.title}</h3>
               {book.author && (
-                <p className="text-xs text-gray-400 truncate mb-2">{book.author}</p>
+                <p className="text-gray-400 truncate mb-2" style={{ fontFamily: "var(--font-inter)", fontSize: "12px", fontWeight: 500 }}>{book.author}</p>
               )}
               
               <p className="text-xs text-gray-500 mb-2">

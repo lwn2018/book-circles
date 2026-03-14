@@ -1,6 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
 
@@ -11,9 +10,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/auth/signin')
-  }
+  if (!user) redirect('/auth/signin')
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -27,9 +24,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
     .eq('id', id)
     .single()
 
-  if (!circle) {
-    redirect('/dashboard')
-  }
+  if (!circle) redirect('/dashboard')
 
   const { data: membership } = await supabase
     .from('circle_members')
@@ -38,9 +33,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
     .eq('user_id', user.id)
     .single()
 
-  if (!membership) {
-    redirect('/dashboard')
-  }
+  if (!membership) redirect('/dashboard')
 
   const { data: members } = await supabase
     .from('circle_members')
@@ -94,11 +87,19 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
   return (
     <div className="min-h-screen bg-[#121212]">
       <div className="px-4 py-6">
-        {/* Header */}
-        <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
+        {/* Circle Name - Montreal 24px bold */}
+        <h1 
+          className="text-2xl font-bold text-white"
+          style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700 }}
+        >
           {circle.name}
         </h1>
-        <p className="text-gray-400 text-sm mt-1" style={{ fontFamily: 'var(--font-figtree)' }}>
+        
+        {/* Subtitle - Figtree 14px regular */}
+        <p 
+          className="text-[#9F9FA9] mt-1"
+          style={{ fontFamily: 'var(--font-figtree)', fontSize: '14px', fontWeight: 400 }}
+        >
           Founded {foundedDate} • {circle.is_private ? 'Private' : 'Public'} Circle
         </p>
 
@@ -109,13 +110,17 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
               <div 
                 key={member.profiles?.id || index}
                 className={`w-10 h-10 rounded-full bg-[#334155] flex items-center justify-center text-white font-medium border-2 border-[#121212] ${index > 0 ? '-ml-3' : ''}`}
+                style={{ fontFamily: 'var(--font-inter)' }}
                 title={member.profiles?.full_name || 'Member'}
               >
                 {(member.profiles?.full_name || 'M').charAt(0).toUpperCase()}
               </div>
             ))}
             {memberCount > 5 && (
-              <div className="-ml-3 w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center text-[#94A3B8] text-sm font-medium border-2 border-[#121212]">
+              <div 
+                className="-ml-3 w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center text-[#94A3B8] text-sm font-medium border-2 border-[#121212]"
+                style={{ fontFamily: 'var(--font-inter)' }}
+              >
                 +{memberCount - 5}
               </div>
             )}
@@ -126,16 +131,48 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-[#94A3B8] text-[10px] uppercase tracking-wide mb-1" style={{ fontFamily: 'var(--font-figtree)' }}>Members</p>
-            <p className="text-[#55B2DE] text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>{memberCount}</p>
+            {/* Label - Figtree 10px regular */}
+            <p 
+              className="text-[#9F9FA9] uppercase tracking-wide mb-1"
+              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 400 }}
+            >
+              Members
+            </p>
+            {/* Number - Montreal 24px bold */}
+            <p 
+              className="text-[#55B2DE]"
+              style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700 }}
+            >
+              {memberCount}
+            </p>
           </div>
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-[#94A3B8] text-[10px] uppercase tracking-wide mb-1" style={{ fontFamily: 'var(--font-figtree)' }}>Shared</p>
-            <p className="text-[#55B2DE] text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>{sharedCount}</p>
+            <p 
+              className="text-[#9F9FA9] uppercase tracking-wide mb-1"
+              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 400 }}
+            >
+              Shared
+            </p>
+            <p 
+              className="text-[#55B2DE]"
+              style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700 }}
+            >
+              {sharedCount}
+            </p>
           </div>
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-[#94A3B8] text-[10px] uppercase tracking-wide mb-1" style={{ fontFamily: 'var(--font-figtree)' }}>Active</p>
-            <p className="text-[#55B2DE] text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>{activeCount}</p>
+            <p 
+              className="text-[#9F9FA9] uppercase tracking-wide mb-1"
+              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 400 }}
+            >
+              Active
+            </p>
+            <p 
+              className="text-[#55B2DE]"
+              style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700 }}
+            >
+              {activeCount}
+            </p>
           </div>
         </div>
 

@@ -264,15 +264,15 @@ export default function BooksListWithFilters({
                     {/* Status badge overlay */}
                     <div className="absolute bottom-2 left-2 right-2">
                       {book.status === 'available' ? (
-                        <span className="text-xs font-semibold font-[Inter] bg-green-600/20 text-green-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-green-600/30">
+                        <span className="text-xs font-semibold  bg-[#32D74B]/20 text-[#32D74B] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#32D74B]/30">
                           Available
                         </span>
                       ) : book.status === 'borrowed' || book.status === 'in_transit' ? (
-                        <span className="text-xs font-semibold font-[Inter] bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30">
+                        <span className="text-xs font-semibold  bg-[#F7B14B]/20 text-[#F7B14B] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#F7B14B]/30">
                           Borrowed
                         </span>
                       ) : (
-                        <span className="text-xs font-semibold font-[Inter] bg-gray-600/20 text-gray-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-gray-600/30">
+                        <span className="text-xs font-semibold  bg-gray-600/20 text-gray-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-gray-600/30">
                           Off Shelf
                         </span>
                       )}
@@ -280,7 +280,7 @@ export default function BooksListWithFilters({
                   </div>
                   
                   {/* Book Info */}
-                  <p className="text-sm font-semibold font-[Inter] text-white line-clamp-2 leading-tight mb-1">{book.title}</p>
+                  <p className="text-sm font-semibold  text-white line-clamp-2 leading-tight mb-1">{book.title}</p>
                   {book.author && (
                     <p className="text-xs text-gray-400 truncate mb-2">{book.author}</p>
                   )}
