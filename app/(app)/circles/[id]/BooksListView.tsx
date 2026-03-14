@@ -147,19 +147,31 @@ export default function BooksListView({
                 <span className="text-sm">🎁</span>
               )}
               {book.status === 'available' ? (
-                <span className="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded-full border border-green-500/30">
+                <span className="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded-full border border-green-600/30">
                   Available
                 </span>
               ) : book.status === 'off_shelf' ? (
-                <span className="px-2 py-1 bg-gray-600/20 text-gray-400 text-xs rounded-full border border-gray-500/30">
+                <span className="px-2 py-1 bg-gray-600/20 text-gray-400 text-xs rounded-full border border-gray-600/30">
                   Off Shelf
                 </span>
               ) : book.status === 'in_transit' ? (
-                <span className="px-2 py-1 bg-[#55B2DE]/20 text-blue-400 text-xs rounded-full border border-blue-500/30">
+                <span className="px-2 py-1 bg-[#55B2DE]/20 text-[#55B2DE] text-xs rounded-full border border-[#55B2DE]/30">
                   Passing
                 </span>
+              ) : book.owner_id === userId && book.current_borrower ? (
+                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded-full border border-amber-600/30 truncate max-w-[120px]">
+                  Lent to {book.current_borrower.full_name.split(' ')[0]}
+                </span>
+              ) : book.current_borrower_id === userId ? (
+                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded-full border border-amber-600/30">
+                  You're borrowing
+                </span>
+              ) : book.current_borrower ? (
+                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded-full border border-amber-600/30 truncate max-w-[120px]">
+                  Borrowed by {book.current_borrower.full_name.split(' ')[0]}
+                </span>
               ) : (
-                <span className="px-2 py-1 bg-yellow-600/20 text-yellow-400 text-xs rounded-full border border-yellow-500/30">
+                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded-full border border-amber-600/30">
                   Borrowed
                 </span>
               )}

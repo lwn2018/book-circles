@@ -198,19 +198,31 @@ export default function BooksList({
               {/* Status badge overlay */}
               <div className="absolute bottom-2 left-2 right-2">
                 {book.status === 'off_shelf' ? (
-                  <span className="text-xs bg-gray-600/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
+                  <span className="text-xs bg-gray-600/20 text-gray-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-gray-600/30">
                     Off Shelf
                   </span>
                 ) : book.status === 'available' ? (
-                  <span className="text-xs bg-green-600/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
+                  <span className="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-green-600/30">
                     Available
                   </span>
                 ) : book.status === 'in_transit' ? (
-                  <span className="text-xs bg-[#55B2DE]/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
+                  <span className="text-xs bg-[#55B2DE]/20 text-[#55B2DE] px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-[#55B2DE]/30">
                     Passing
                   </span>
+                ) : isOwner && book.current_borrower ? (
+                  <span className="text-xs bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30 truncate max-w-full">
+                    Lent to {book.current_borrower.full_name.split(' ')[0]}
+                  </span>
+                ) : isBorrower ? (
+                  <span className="text-xs bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30">
+                    You're borrowing
+                  </span>
+                ) : book.current_borrower ? (
+                  <span className="text-xs bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30 truncate max-w-full">
+                    Borrowed by {book.current_borrower.full_name.split(' ')[0]}
+                  </span>
                 ) : (
-                  <span className="text-xs bg-yellow-600/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
+                  <span className="text-xs bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30">
                     Borrowed
                   </span>
                 )}
