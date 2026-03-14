@@ -1,6 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
 
 type Book = {
   id: string
@@ -42,6 +45,54 @@ function hashColor(str: string): string {
 }
 
 export default function BooksList({ books, userId, circleId, circleMemberIds }: BooksListProps) {
+  const router = useRouter()
+  const supabase = createClient()
+  const [loadingBookId, setLoadingBookId] = useState<string | null>(null)
+
+  const handleBorrow = async (e: React.MouseEvent, book: Book) => {
+    e.preventDefault() // Don't navigate to book page
+    e.stopPropagation()
+    
+    setLoadingBookId(book.id)
+    try {
+      const res = await fetch('/api/books/borrow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookId: book.id })
+      })
+      
+      if (res.ok) {
+        router.refresh()
+      }
+    } catch (err) {
+      console.error('Borrow failed:', err)
+    } finally {
+      setLoadingBookId(null)
+    }
+  }
+
+  const handleJoinQueue = async (e: React.MouseEvent, book: Book) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    setLoadingBookId(book.id)
+    try {
+      const res = await fetch('/api/books/queue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookId: book.id })
+      })
+      
+      if (res.ok) {
+        router.refresh()
+      }
+    } catch (err) {
+      console.error('Join queue failed:', err)
+    } finally {
+      setLoadingBookId(null)
+    }
+  }
+
   if (books.length === 0) {
     return (
       <div className="text-center py-12">
@@ -58,33 +109,54 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
         const isOwner = book.owner_id === userId
         const isBorrower = book.current_borrower_id === userId
         const borrowerName = book.current_borrower?.full_name?.split(' ')[0] || 'someone'
+        const inQueue = book.book_queue?.some(q => q.user_id === userId)
+        const queuePosition = book.book_queue?.find(q => q.user_id === userId)?.position
         
-        // Determine status badge - transparent bg with colored text
+        // Determine status badge
         let badgeText = ''
         let badgeColor = ''
         
         if (book.status === 'off_shelf') {
           badgeText = 'Off Shelf'
-          badgeColor = '#6B7280' // gray
+          badgeColor = '#6B7280'
         } else if (book.status === 'available') {
           badgeText = 'Available'
-          badgeColor = '#32D74B' // green
+          badgeColor = '#32D74B'
         } else if (book.status === 'in_transit') {
           badgeText = 'In Transit'
-          badgeColor = '#55B2DE' // blue
+          badgeColor = '#55B2DE'
         } else if (isBorrower) {
           badgeText = 'Borrowed by you'
-          badgeColor = '#F7B14B' // amber
+          badgeColor = '#F7B14B'
         } else if (isOwner && book.current_borrower) {
           badgeText = `Lent to ${borrowerName}`
-          badgeColor = '#F7B14B' // amber
+          badgeColor = '#F7B14B'
         } else if (book.current_borrower) {
           badgeText = `Borrowed by ${borrowerName}`
-          badgeColor = '#F7B14B' // amber
+          badgeColor = '#F7B14B'
         } else {
           badgeText = 'Borrowed'
-          badgeColor = '#F7B14B' // amber
+          badgeColor = '#F7B14B'
         }
+
+        // Determine button to show
+        let showBorrowButton = false
+        let showJoinQueueButton = false
+        let showInQueueBadge = false
+
+        if (!isOwner && !isBorrower) {
+          if (book.status === 'available') {
+            showBorrowButton = true
+          } else if (book.status === 'borrowed' || book.status === 'in_transit') {
+            if (inQueue) {
+              showInQueueBadge = true
+            } else {
+              showJoinQueueButton = true
+            }
+          }
+        }
+
+        const isLoading = loadingBookId === book.id
 
         return (
           <Link 
@@ -105,7 +177,6 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
                     alt={book.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Hide broken image, show colored bg
                       (e.target as HTMLImageElement).style.display = 'none'
                     }}
                   />
@@ -117,8 +188,8 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
               </div>
 
               {/* Content area */}
-              <div className="flex-1 min-w-0 flex flex-col justify-center">
-                {/* Status badge - transparent bg with colored text */}
+              <div className="flex-1 min-w-0 flex flex-col">
+                {/* Status badge */}
                 <span 
                   className="inline-flex items-center self-start px-3 py-1 rounded-full mb-2"
                   style={{ 
@@ -144,11 +215,47 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
                 {/* Author */}
                 {book.author && (
                   <p 
-                    className="text-[#9CA3AF] truncate"
+                    className="text-[#9CA3AF] truncate mb-2"
                     style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: 500 }}
                   >
                     {book.author}
                   </p>
+                )}
+
+                {/* Action button */}
+                {showBorrowButton && (
+                  <button
+                    onClick={(e) => handleBorrow(e, book)}
+                    disabled={isLoading}
+                    className="self-start px-4 py-1.5 bg-[#55B2DE] text-white rounded-full text-xs font-semibold hover:bg-[#4A9FCB] disabled:opacity-50 transition-colors"
+                    style={{ fontFamily: 'var(--font-inter)' }}
+                  >
+                    {isLoading ? '...' : 'Borrow'}
+                  </button>
+                )}
+
+                {showJoinQueueButton && (
+                  <button
+                    onClick={(e) => handleJoinQueue(e, book)}
+                    disabled={isLoading}
+                    className="self-start px-4 py-1.5 bg-[#3F3F46] text-white rounded-full text-xs font-semibold hover:bg-[#52525B] disabled:opacity-50 transition-colors"
+                    style={{ fontFamily: 'var(--font-inter)' }}
+                  >
+                    {isLoading ? '...' : 'Join Queue'}
+                  </button>
+                )}
+
+                {showInQueueBadge && (
+                  <span 
+                    className="self-start px-4 py-1.5 rounded-full text-xs font-semibold"
+                    style={{ 
+                      fontFamily: 'var(--font-inter)',
+                      backgroundColor: '#55B2DE20',
+                      color: '#55B2DE'
+                    }}
+                  >
+                    #{queuePosition} in queue
+                  </span>
                 )}
               </div>
             </div>
