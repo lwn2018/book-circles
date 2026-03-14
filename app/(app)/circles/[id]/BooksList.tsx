@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
 
 type Book = {
   id: string
@@ -46,26 +45,28 @@ function hashColor(str: string): string {
 
 export default function BooksList({ books, userId, circleId, circleMemberIds }: BooksListProps) {
   const router = useRouter()
-  const supabase = createClient()
   const [loadingBookId, setLoadingBookId] = useState<string | null>(null)
 
   const handleBorrow = async (e: React.MouseEvent, book: Book) => {
-    e.preventDefault() // Don't navigate to book page
+    e.preventDefault()
     e.stopPropagation()
     
     setLoadingBookId(book.id)
     try {
-      const res = await fetch('/api/books/borrow', {
+      const res = await fetch(`/api/books/${book.id}/borrow`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookId: book.id })
+        headers: { 'Content-Type': 'application/json' }
       })
       
       if (res.ok) {
         router.refresh()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to borrow')
       }
     } catch (err) {
       console.error('Borrow failed:', err)
+      alert('Failed to borrow book')
     } finally {
       setLoadingBookId(null)
     }
@@ -77,17 +78,20 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
     
     setLoadingBookId(book.id)
     try {
-      const res = await fetch('/api/books/queue', {
+      const res = await fetch(`/api/books/${book.id}/request`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookId: book.id })
+        headers: { 'Content-Type': 'application/json' }
       })
       
       if (res.ok) {
         router.refresh()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to join queue')
       }
     } catch (err) {
       console.error('Join queue failed:', err)
+      alert('Failed to join queue')
     } finally {
       setLoadingBookId(null)
     }
