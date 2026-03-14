@@ -123,8 +123,8 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
 
       <div className="px-4">
         <div className="flex justify-center mb-6">
-          <div className="w-48 h-72 rounded-lg overflow-hidden shadow-2xl">
-            <BookCover coverUrl={book.cover_url} title={book.title} author={book.author} size="xl" />
+          <div className="relative w-48 h-72 rounded-lg overflow-hidden shadow-2xl">
+            <BookCover coverUrl={book.cover_url} title={book.title} author={book.author} fill className="object-cover" />
           </div>
         </div>
 
