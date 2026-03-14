@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Arimo } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "./components/PostHogProvider";
 
-const arimo = Arimo({
-  variable: "--font-arimo",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${arimo.variable} antialiased`}>
+      <body className={`${inter.variable} antialiased`}>
         <PostHogProvider>
           {children}
         </PostHogProvider>
