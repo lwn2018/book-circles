@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import BookCover from '@/app/components/BookCover'
 
 type Book = {
   id: string
@@ -34,6 +33,14 @@ type BooksListProps = {
   circleMemberIds: string[]
 }
 
+// Simple color hash for placeholder backgrounds
+const COVER_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6']
+function hashColor(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i)
+  return COVER_COLORS[Math.abs(hash) % COVER_COLORS.length]
+}
+
 export default function BooksList({ books, userId, circleId, circleMemberIds }: BooksListProps) {
   if (books.length === 0) {
     return (
@@ -50,32 +57,33 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
       {books.map((book) => {
         const isOwner = book.owner_id === userId
         const isBorrower = book.current_borrower_id === userId
+        const borrowerName = book.current_borrower?.full_name?.split(' ')[0] || 'someone'
         
-        // Determine status badge
+        // Determine status badge - transparent bg with colored text
         let badgeText = ''
-        let badgeStyle = ''
+        let badgeColor = ''
         
         if (book.status === 'off_shelf') {
           badgeText = 'Off Shelf'
-          badgeStyle = 'bg-[#6B7280] text-white'
+          badgeColor = '#6B7280' // gray
         } else if (book.status === 'available') {
           badgeText = 'Available'
-          badgeStyle = 'bg-[#32D74B] text-[#121212]'
+          badgeColor = '#32D74B' // green
         } else if (book.status === 'in_transit') {
           badgeText = 'In Transit'
-          badgeStyle = 'bg-[#55B2DE] text-[#121212]'
-        } else if (isOwner && book.current_borrower) {
-          badgeText = `Lent to ${book.current_borrower.full_name.split(' ')[0]}`
-          badgeStyle = 'bg-[#F7B14B] text-[#121212]'
+          badgeColor = '#55B2DE' // blue
         } else if (isBorrower) {
-          badgeText = 'You\'re reading'
-          badgeStyle = 'bg-[#F7B14B] text-[#121212]'
+          badgeText = 'Borrowed by you'
+          badgeColor = '#F7B14B' // amber
+        } else if (isOwner && book.current_borrower) {
+          badgeText = `Lent to ${borrowerName}`
+          badgeColor = '#F7B14B' // amber
         } else if (book.current_borrower) {
-          badgeText = 'Borrowed'
-          badgeStyle = 'bg-[#F7B14B] text-[#121212]'
+          badgeText = `Borrowed by ${borrowerName}`
+          badgeColor = '#F7B14B' // amber
         } else {
           badgeText = 'Borrowed'
-          badgeStyle = 'bg-[#F7B14B] text-[#121212]'
+          badgeColor = '#F7B14B' // amber
         }
 
         return (
@@ -85,29 +93,42 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
             className="block"
           >
             {/* Horizontal row card */}
-            <div 
-              className="bg-[#1E293B] rounded-xl p-3 flex gap-[14px] items-start"
-              style={{ minHeight: '130px' }}
-            >
-              {/* Book cover thumbnail - 64px wide, 96px tall */}
-              <div className="relative flex-shrink-0 w-[64px] h-[96px] rounded-md overflow-hidden bg-[#2A3441]">
-                <BookCover
-                  coverUrl={book.cover_url}
-                  title={book.title}
-                  author={book.author}
-                  fill={true}
-                  sizes="64px"
-                  className="object-cover"
-                  status={book.status as any}
-                />
+            <div className="bg-[#1E293B] rounded-xl p-3 flex gap-[14px] items-start min-h-[130px]">
+              {/* Book cover thumbnail - 64px wide */}
+              <div 
+                className="flex-shrink-0 w-[64px] h-[96px] rounded-md overflow-hidden flex items-center justify-center"
+                style={{ backgroundColor: book.cover_url ? '#2A3441' : hashColor(book.title) }}
+              >
+                {book.cover_url ? (
+                  <img
+                    src={book.cover_url}
+                    alt={book.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Hide broken image, show colored bg
+                      (e.target as HTMLImageElement).style.display = 'none'
+                    }}
+                  />
+                ) : (
+                  <span className="text-white text-[10px] font-medium text-center px-1 line-clamp-3">
+                    {book.title}
+                  </span>
+                )}
               </div>
 
               {/* Content area */}
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                {/* Status badge */}
+                {/* Status badge - transparent bg with colored text */}
                 <span 
-                  className={`inline-flex items-center self-start px-3 py-1 rounded-full mb-2 ${badgeStyle}`}
-                  style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: 600 }}
+                  className="inline-flex items-center self-start px-3 py-1 rounded-full mb-2"
+                  style={{ 
+                    fontFamily: 'var(--font-inter)', 
+                    fontSize: '11px', 
+                    fontWeight: 600,
+                    backgroundColor: `${badgeColor}20`,
+                    color: badgeColor,
+                    border: `1px solid ${badgeColor}40`
+                  }}
                 >
                   {badgeText}
                 </span>
