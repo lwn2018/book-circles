@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Figtree, Montserrat } from "next/font/google";
+import { Inter, Figtree, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "./components/PostHogProvider";
 
@@ -13,9 +13,10 @@ const figtree = Figtree({
   variable: "--font-figtree",
 });
 
-const montserrat = Montserrat({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-montserrat",
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -44,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${figtree.variable} ${montserrat.variable} antialiased`}>
+      <body className={`${inter.variable} ${figtree.variable} ${plusJakarta.variable} antialiased`}>
         <PostHogProvider>
           {children}
         </PostHogProvider>
