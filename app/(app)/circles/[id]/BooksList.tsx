@@ -97,7 +97,8 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
                   coverUrl={book.cover_url}
                   title={book.title}
                   author={book.author}
-                  size="sm"
+                  width={64}
+                  height={96}
                   className="w-full h-full object-cover"
                 />
               </div>
