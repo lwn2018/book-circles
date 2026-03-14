@@ -3,17 +3,19 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import ProgressBar from '../components/ProgressBar'
-import { formatPhoneNumber } from '@/lib/formatPhone'
+import Link from 'next/link'
 
 export default function OnboardingProfile() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [fullName, setFullName] = useState('')
-  const [contactMethods, setContactMethods] = useState<Array<'email' | 'phone' | 'text'>>([])
-  const [emailValue, setEmailValue] = useState('')
-  const [phoneValue, setPhoneValue] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [countryCode, setCountryCode] = useState('+1')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [allowCalls, setAllowCalls] = useState(true)
+  const [allowTexts, setAllowTexts] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -22,49 +24,24 @@ export default function OnboardingProfile() {
     const loadUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // Pre-fill name from signup
         if (user.user_metadata?.full_name) {
-          setFullName(user.user_metadata.full_name)
+          const nameParts = user.user_metadata.full_name.split(' ')
+          setFirstName(nameParts[0] || '')
+          setLastName(nameParts.slice(1).join(' ') || '')
         }
-        // Pre-fill email
         if (user.email) {
-          setEmailValue(user.email)
-          setContactMethods(['email'])
+          setEmail(user.email)
         }
       }
     }
     loadUserData()
   }, [supabase])
 
-  const toggleContactMethod = (method: 'email' | 'phone' | 'text') => {
-    if (contactMethods.includes(method)) {
-      setContactMethods(contactMethods.filter(m => m !== method))
-    } else {
-      setContactMethods([...contactMethods, method])
-    }
-  }
-
   const handleNext = async () => {
     setError('')
 
-    // Validation
-    if (!fullName.trim()) {
-      setError('Please enter your name')
-      return
-    }
-
-    if (contactMethods.length === 0) {
-      setError('Please select at least one contact method')
-      return
-    }
-
-    if (contactMethods.includes('email') && !emailValue.trim()) {
-      setError('Please enter your email address')
-      return
-    }
-
-    if ((contactMethods.includes('phone') || contactMethods.includes('text')) && !phoneValue.trim()) {
-      setError('Please enter your phone number')
+    if (!firstName.trim()) {
+      setError('Please enter your first name')
       return
     }
 
@@ -74,22 +51,17 @@ export default function OnboardingProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Pre-fill email with auth email if not provided
-      const finalEmail = emailValue.trim() || user.email || ''
+      const fullName = lastName ? `${firstName.trim()} ${lastName.trim()}` : firstName.trim()
+      const fullPhone = phoneNumber ? `${countryCode}${phoneNumber.replace(/\D/g, '')}` : null
 
-      // Build contact preferences (can have both email and phone)
-      const contactEmail = contactMethods.includes('email') ? finalEmail : null
-      const contactPhone = (contactMethods.includes('phone') || contactMethods.includes('text')) 
-        ? phoneValue.trim() 
-        : null
-
-      // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          full_name: fullName.trim(),
-          contact_email: contactEmail,
-          contact_phone: contactPhone
+          full_name: fullName,
+          contact_email: email || null,
+          contact_phone: fullPhone,
+          allow_calls: allowCalls,
+          allow_texts: allowTexts
         })
         .eq('id', user.id)
 
@@ -107,137 +79,150 @@ export default function OnboardingProfile() {
     router.push('/onboarding/import')
   }
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <ProgressBar currentStep={1} />
+  const Checkbox = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) => (
+    <label className="flex items-center gap-3 cursor-pointer">
+      <div className="relative">
+        <input type="checkbox" checked={checked} onChange={onChange} className="sr-only" />
+        <div className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors ${
+          checked ? 'bg-[#55B2DE] border-[#55B2DE]' : 'border-gray-500'
+        }`}>
+          {checked && (
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
+      </div>
+      <span className="text-white">{label}</span>
+    </label>
+  )
 
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">Let's get to know each other</h1>
-        <p className="text-center text-gray-600 mb-8">
-          This helps your circle members connect with you.
+  return (
+    <div className="min-h-screen bg-[#121212] px-6 py-12">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <button onClick={() => router.back()} className="text-white">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button onClick={handleSkip} className="text-white font-medium">
+          Skip
+        </button>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="flex gap-2 mb-8">
+        <div className="flex-1 h-1 bg-gray-700 rounded-full" />
+        <div className="flex-1 h-1 bg-[#55B2DE] rounded-full" />
+        <div className="flex-1 h-1 bg-gray-700 rounded-full" />
+        <div className="flex-1 h-1 bg-gray-700 rounded-full" />
+      </div>
+
+      {/* Content */}
+      <div className="max-w-md mx-auto">
+        <h1 className="text-2xl font-bold text-white mb-2">Let's get to know each other</h1>
+        <p className="text-gray-400 mb-8">
+          PagePass is built on real connections. Tell us who you are so your neighbors can recognize you.
         </p>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-50 text-red-800 rounded-lg text-sm">
-            {error}
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
+            <p className="text-red-400 text-sm">{error}</p>
           </div>
         )}
 
-        <div className="space-y-6">
-          {/* Name Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Your name
-            </label>
+        {/* First Name */}
+        <div className="mb-4">
+          <label className="block text-white font-medium mb-2">First Name</label>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Jordan"
+            className="w-full bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
+          />
+        </div>
+
+        {/* Last Name */}
+        <div className="mb-8">
+          <label className="block text-white font-medium mb-2">
+            Last Name<span className="text-gray-500 font-normal">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Cris"
+            className="w-full bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
+          />
+        </div>
+
+        {/* Contact Section */}
+        <h2 className="text-xl font-bold text-white mb-4">
+          When you share a book, how should people contact you?
+        </h2>
+
+        {/* Email */}
+        <div className="mb-4">
+          <label className="block text-white font-medium mb-2">Enter Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Jordancris@gmail.com"
+            className="w-full bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
+          />
+        </div>
+
+        {/* Phone */}
+        <div className="mb-6">
+          <label className="block text-white font-medium mb-2">Enter Phone Number</label>
+          <div className="flex gap-2">
+            <div className="relative">
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="appearance-none bg-[#1E1E1E] text-white rounded-full px-4 py-4 pr-10 outline-none focus:ring-2 focus:ring-[#55B2DE]"
+              >
+                <option value="+1">+1</option>
+                <option value="+44">+44</option>
+                <option value="+61">+61</option>
+                <option value="+91">+91</option>
+              </select>
+              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
             <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="First and last name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="11 22 333 44"
+              className="flex-1 bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
             />
           </div>
-
-          {/* Contact Preferences */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              When you share a book, how should people contact you?
-            </label>
-
-            <div className="space-y-3">
-              {/* Email Option */}
-              <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={contactMethods.includes('email')}
-                  onChange={() => toggleContactMethod('email')}
-                  className="mt-1 w-5 h-5 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">Email</div>
-                  {contactMethods.includes('email') && (
-                    <input
-                      type="email"
-                      value={emailValue}
-                      onChange={(e) => setEmailValue(e.target.value)}
-                      placeholder="your@email.com"
-                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  )}
-                </div>
-              </label>
-
-              {/* Phone Option */}
-              <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={contactMethods.includes('phone')}
-                  onChange={() => toggleContactMethod('phone')}
-                  className="mt-1 w-5 h-5 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">Phone call</div>
-                  {contactMethods.includes('phone') && (
-                    <input
-                      type="tel"
-                      value={phoneValue}
-                      onChange={(e) => setPhoneValue(formatPhoneNumber(e.target.value))}
-                      placeholder="(555) 123-4567"
-                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  )}
-                </div>
-              </label>
-
-              {/* Text Option */}
-              <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={contactMethods.includes('text')}
-                  onChange={() => toggleContactMethod('text')}
-                  className="mt-1 w-5 h-5 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">Text message</div>
-                  {contactMethods.includes('text') && !contactMethods.includes('phone') && (
-                    <input
-                      type="tel"
-                      value={phoneValue}
-                      onChange={(e) => setPhoneValue(formatPhoneNumber(e.target.value))}
-                      placeholder="(555) 123-4567"
-                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  )}
-                </div>
-              </label>
-            </div>
-
-            <p className="text-xs text-gray-500 mt-3">
-              This information is only shown to people during active book handoffs.
-            </p>
-          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-8">
-          <button
-            onClick={handleSkip}
-            disabled={loading}
-            className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-          >
-            Skip
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={loading}
-            className="flex-1 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 shadow-md"
-          >
-            {loading ? 'Saving...' : 'Next'}
-          </button>
+        {/* Checkboxes */}
+        <div className="space-y-4 mb-4">
+          <Checkbox checked={allowCalls} onChange={() => setAllowCalls(!allowCalls)} label="Allow calls" />
+          <Checkbox checked={allowTexts} onChange={() => setAllowTexts(!allowTexts)} label="Allow text messages" />
         </div>
+
+        {/* Info text */}
+        <p className="text-gray-500 text-sm mb-8">
+          People who request to borrow your book will use this information to contact you directly.
+        </p>
+
+        {/* Next Button */}
+        <button
+          onClick={handleNext}
+          disabled={loading}
+          className="w-full bg-[#55B2DE] hover:bg-[#4A9FCB] text-white font-semibold py-4 rounded-full transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Saving...' : 'Next'}
+        </button>
       </div>
     </div>
   )
