@@ -9,13 +9,13 @@ interface BookResult {
   author: string | null
   isbn: string | null
   coverUrl: string | null
-  source: 'google' | 'isbndb'
+  source: 'google' | 'isbndb' | 'openlibrary'
 }
 
 async function searchGoogleBooks(query: string): Promise<BookResult[]> {
   try {
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=10${GOOGLE_BOOKS_API_KEY ? `&key=${GOOGLE_BOOKS_API_KEY}` : ''}`
-    const response = await fetch(url)
+    const response = await fetch(url, { next: { revalidate: 60 } })
     const data = await response.json()
     
     if (!data.items) return []
@@ -42,7 +42,8 @@ async function searchISBNdb(query: string): Promise<BookResult[]> {
   try {
     const url = `https://api2.isbndb.com/books/${encodeURIComponent(query)}?page=1&pageSize=10`
     const response = await fetch(url, {
-      headers: { 'Authorization': ISBNDB_API_KEY }
+      headers: { 'Authorization': ISBNDB_API_KEY },
+      next: { revalidate: 60 }
     })
     const data = await response.json()
     
@@ -62,6 +63,28 @@ async function searchISBNdb(query: string): Promise<BookResult[]> {
   }
 }
 
+async function searchOpenLibrary(query: string): Promise<BookResult[]> {
+  try {
+    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10`
+    const response = await fetch(url, { next: { revalidate: 60 } })
+    const data = await response.json()
+    
+    if (!data.docs) return []
+    
+    return data.docs.map((doc: any) => ({
+      id: `ol-${doc.key}`,
+      title: doc.title,
+      author: doc.author_name?.join(', ') || null,
+      isbn: doc.isbn?.[0] || null,
+      coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+      source: 'openlibrary' as const
+    }))
+  } catch (error) {
+    console.error('Open Library search error:', error)
+    return []
+  }
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const query = searchParams.get('q')
@@ -70,34 +93,38 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] })
   }
 
-  // Search both sources in parallel
-  const [googleResults, isbndbResults] = await Promise.all([
+  // Search all sources in parallel
+  const [googleResults, isbndbResults, openLibraryResults] = await Promise.all([
     searchGoogleBooks(query),
-    searchISBNdb(query)
+    searchISBNdb(query),
+    searchOpenLibrary(query)
   ])
 
-  // Merge and dedupe - prioritize ISBNdb (better for recent books)
+  // Merge and dedupe - prioritize ISBNdb, then Google, then Open Library
   const seen = new Set<string>()
   const results: BookResult[] = []
 
-  for (const book of isbndbResults) {
-    const key = book.isbn || book.title.toLowerCase()
-    if (!seen.has(key)) {
-      seen.add(key)
-      results.push(book)
+  const addResults = (books: BookResult[]) => {
+    for (const book of books) {
+      // Create dedup key from ISBN or normalized title+author
+      const key = book.isbn || `${book.title.toLowerCase().replace(/[^a-z0-9]/g, '')}-${(book.author || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`
+      if (!seen.has(key) && book.title) {
+        seen.add(key)
+        results.push(book)
+      }
     }
   }
 
-  for (const book of googleResults) {
-    const key = book.isbn || book.title.toLowerCase()
-    if (!seen.has(key)) {
-      seen.add(key)
-      results.push(book)
-    }
-  }
+  addResults(isbndbResults)
+  addResults(googleResults)
+  addResults(openLibraryResults)
 
   return NextResponse.json({ 
-    results: results.slice(0, 8),
-    sources: { google: googleResults.length, isbndb: isbndbResults.length }
+    results: results.slice(0, 10),
+    sources: { 
+      google: googleResults.length, 
+      isbndb: isbndbResults.length,
+      openlibrary: openLibraryResults.length 
+    }
   })
 }
