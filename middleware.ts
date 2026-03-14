@@ -9,20 +9,20 @@ export async function middleware(req: NextRequest) {
     },
   })
 
-  // Check for password recovery token in URL (Supabase redirects to root with token)
   const url = req.nextUrl
-  if (url.pathname === '/' && (url.searchParams.has('token') || url.hash.includes('type=recovery'))) {
-    // Redirect to update-password page with the token
+
+  // Check for password recovery - redirect to update-password page
+  // Supabase sends: ?token=xxx&type=recovery OR hash #access_token=xxx&type=recovery
+  if (url.pathname === '/' && url.searchParams.get('type') === 'recovery') {
     const redirectUrl = url.clone()
     redirectUrl.pathname = '/auth/update-password'
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Also check for recovery type in hash (client-side tokens)
-  if (url.pathname === '/' && url.searchParams.get('type') === 'recovery') {
-    const redirectUrl = url.clone()
-    redirectUrl.pathname = '/auth/update-password'
-    return NextResponse.redirect(redirectUrl)
+  // Password reset pages - ALWAYS allow, no auth check needed
+  if (url.pathname.startsWith('/auth/reset-password') || 
+      url.pathname.startsWith('/auth/update-password')) {
+    return res
   }
 
   const supabase = createServerClient(
@@ -75,44 +75,26 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Protected routes that require authentication
-  const protectedRoutes = [
-    '/dashboard',
-    '/circles',
-    '/library',
-    '/shelf',
-    '/notifications',
-    '/settings',
-    '/admin',
-    '/invite',
-    '/handoff',
-  ]
+  // Protected routes
+  const protectedRoutes = ['/dashboard', '/circles', '/library', '/shelf', '/notifications', '/settings', '/admin', '/invite', '/handoff']
+  const publicPaths = ['/circles/join']
 
-  const publicPaths = [
-    '/circles/join',
-  ]
+  const isPublicPath = publicPaths.some(path => url.pathname.startsWith(path))
+  const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route))
 
-  const isPublicPath = publicPaths.some(path => 
-    req.nextUrl.pathname.startsWith(path)
-  )
-
-  const isProtectedRoute = protectedRoutes.some(route => 
-    req.nextUrl.pathname.startsWith(route)
-  )
-
+  // Redirect to signin if accessing protected route without session
   if (isProtectedRoute && !session && !isPublicPath) {
-    const redirectUrl = req.nextUrl.clone()
+    const redirectUrl = url.clone()
     redirectUrl.pathname = '/auth/signin'
-    redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
+    redirectUrl.searchParams.set('redirectTo', url.pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Password reset pages should always be accessible
-  const passwordResetPaths = ['/auth/reset-password', '/auth/update-password']
-  const isPasswordReset = passwordResetPaths.some(path => req.nextUrl.pathname === path)
-  
-  if (session && req.nextUrl.pathname.startsWith('/auth/') && !isPasswordReset) {
-    const redirectUrl = req.nextUrl.clone()
+  // Redirect logged-in users away from auth pages (except password reset)
+  if (session && url.pathname.startsWith('/auth/') && 
+      !url.pathname.startsWith('/auth/reset-password') && 
+      !url.pathname.startsWith('/auth/update-password')) {
+    const redirectUrl = url.clone()
     redirectUrl.pathname = '/circles'
     return NextResponse.redirect(redirectUrl)
   }
