@@ -49,7 +49,7 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
           {isCircleDetailPage ? (
             <button 
               onClick={() => router.back()}
-              className="flex items-center gap-2 hover:opacity-80 transition text-[#94A3B8]"
+              className="flex items-center gap-2 hover:opacity-80 transition text-[#55B2DE]"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -67,7 +67,7 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
               className="p-2 rounded-lg hover:bg-[#1E1E1E] transition"
               aria-label="Search"
             >
-              <svg className="w-6 h-6 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
