@@ -13,7 +13,6 @@ function SignInContent() {
   const tab = searchParams.get('tab') as 'signin' | 'signup' | null
   const supabase = createClient()
 
-  // Look up circle name if circleCode is present
   useEffect(() => {
     if (circleCode) {
       const fetchCircleName = async () => {
@@ -32,8 +31,8 @@ function SignInContent() {
   }, [circleCode, supabase])
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: '#121212' }}>
-      <div className="max-w-md w-full rounded-2xl shadow-2xl p-8" style={{ backgroundColor: '#27272A' }}>
+    <div className="min-h-screen bg-[#121212] flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
         <TabbedAuthForm 
           circleCode={circleCode} 
           circleName={circleName}
@@ -47,7 +46,7 @@ function SignInContent() {
 export default function SignIn() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#121212' }}>
+      <div className="min-h-screen flex items-center justify-center bg-[#121212]">
         <div className="animate-spin text-4xl">⏳</div>
       </div>
     }>
