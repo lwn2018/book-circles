@@ -135,7 +135,7 @@ export default function BooksListView({
 
             {/* Book Info */}
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-sm text-white truncate">{book.title}</h3>
+              <h3 className="font-semibold font-[Inter] text-sm text-white truncate">{book.title}</h3>
               {book.author && (
                 <p className="text-xs text-gray-400 truncate">{book.author}</p>
               )}
@@ -147,31 +147,31 @@ export default function BooksListView({
                 <span className="text-sm">🎁</span>
               )}
               {book.status === 'available' ? (
-                <span className="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded-full border border-green-600/30">
+                <span className="px-2 py-1 bg-green-600/20 text-green-400 text-xs font-semibold font-[Inter] rounded-full border border-green-600/30">
                   Available
                 </span>
               ) : book.status === 'off_shelf' ? (
-                <span className="px-2 py-1 bg-gray-600/20 text-gray-400 text-xs rounded-full border border-gray-600/30">
+                <span className="px-2 py-1 bg-gray-600/20 text-gray-400 text-xs font-semibold font-[Inter] rounded-full border border-gray-600/30">
                   Off Shelf
                 </span>
               ) : book.status === 'in_transit' ? (
-                <span className="px-2 py-1 bg-[#55B2DE]/20 text-[#55B2DE] text-xs rounded-full border border-[#55B2DE]/30">
+                <span className="px-2 py-1 bg-[#55B2DE]/20 text-[#55B2DE] text-xs font-semibold font-[Inter] rounded-full border border-[#55B2DE]/30">
                   Passing
                 </span>
               ) : book.owner_id === userId && book.current_borrower ? (
-                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded-full border border-amber-600/30 truncate max-w-[120px]">
+                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs font-semibold font-[Inter] rounded-full border border-amber-600/30 truncate max-w-[120px]">
                   Lent to {book.current_borrower.full_name.split(' ')[0]}
                 </span>
               ) : book.current_borrower_id === userId ? (
-                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded-full border border-amber-600/30">
+                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs font-semibold font-[Inter] rounded-full border border-amber-600/30">
                   You're borrowing
                 </span>
               ) : book.current_borrower ? (
-                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded-full border border-amber-600/30 truncate max-w-[120px]">
+                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs font-semibold font-[Inter] rounded-full border border-amber-600/30 truncate max-w-[120px]">
                   Borrowed by {book.current_borrower.full_name.split(' ')[0]}
                 </span>
               ) : (
-                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs rounded-full border border-amber-600/30">
+                <span className="px-2 py-1 bg-amber-600/20 text-amber-400 text-xs font-semibold font-[Inter] rounded-full border border-amber-600/30">
                   Borrowed
                 </span>
               )}

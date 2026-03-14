@@ -227,7 +227,7 @@ export default function BooksListWithFilters({
       {/* New in this circle - Horizontal scroll carousel */}
       {newBooks.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-white mb-4 font-arimo">New in this circle</h2>
+          <h2 className="text-lg font-semibold text-white mb-4 font-[Montreal]">New in this circle</h2>
           <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
             {newBooks.map(book => {
               const inQueue = book.book_queue?.some(q => q.user_id === userId)
@@ -264,15 +264,15 @@ export default function BooksListWithFilters({
                     {/* Status badge overlay */}
                     <div className="absolute bottom-2 left-2 right-2">
                       {book.status === 'available' ? (
-                        <span className="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-green-600/30">
+                        <span className="text-xs font-semibold font-[Inter] bg-green-600/20 text-green-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-green-600/30">
                           Available
                         </span>
                       ) : book.status === 'borrowed' || book.status === 'in_transit' ? (
-                        <span className="text-xs bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30">
+                        <span className="text-xs font-semibold font-[Inter] bg-amber-600/20 text-amber-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-amber-600/30">
                           Borrowed
                         </span>
                       ) : (
-                        <span className="text-xs bg-gray-600/20 text-gray-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-gray-600/30">
+                        <span className="text-xs font-semibold font-[Inter] bg-gray-600/20 text-gray-400 px-2 py-1 rounded-full inline-block backdrop-blur-sm border border-gray-600/30">
                           Off Shelf
                         </span>
                       )}
@@ -280,7 +280,7 @@ export default function BooksListWithFilters({
                   </div>
                   
                   {/* Book Info */}
-                  <p className="text-sm font-medium text-white line-clamp-2 leading-tight mb-1">{book.title}</p>
+                  <p className="text-sm font-semibold font-[Inter] text-white line-clamp-2 leading-tight mb-1">{book.title}</p>
                   {book.author && (
                     <p className="text-xs text-gray-400 truncate mb-2">{book.author}</p>
                   )}

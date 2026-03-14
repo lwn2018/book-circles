@@ -144,8 +144,8 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
       <div className="max-w-6xl mx-auto">
         {/* Header Section */}
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-arimo">{circle.name}</h1>
-          <p className="text-[#94A3B8] text-sm mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white font-[Montreal]">{circle.name}</h1>
+          <p className="text-gray-400 text-sm mt-1 font-[Figtree]">
             Founded {foundedDate} • {circle.is_private ? 'Private' : 'Public'} Circle
           </p>
         </div>
@@ -174,16 +174,16 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-[#94A3B8] text-xs uppercase tracking-wide mb-1">Members</p>
-            <p className="text-[#55B2DE] text-2xl font-bold">{memberCount}</p>
+            <p className="text-[#94A3B8] text-[10px] uppercase tracking-wide mb-1 font-[Figtree]">Members</p>
+            <p className="text-[#55B2DE] text-2xl font-bold font-[Montreal]">{memberCount}</p>
           </div>
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-[#94A3B8] text-xs uppercase tracking-wide mb-1">Shared</p>
-            <p className="text-[#55B2DE] text-2xl font-bold">{sharedCount}</p>
+            <p className="text-[#94A3B8] text-[10px] uppercase tracking-wide mb-1 font-[Figtree]">Shared</p>
+            <p className="text-[#55B2DE] text-2xl font-bold font-[Montreal]">{sharedCount}</p>
           </div>
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-[#94A3B8] text-xs uppercase tracking-wide mb-1">Active</p>
-            <p className="text-[#55B2DE] text-2xl font-bold">{activeCount}</p>
+            <p className="text-[#94A3B8] text-[10px] uppercase tracking-wide mb-1 font-[Figtree]">Active</p>
+            <p className="text-[#55B2DE] text-2xl font-bold font-[Montreal]">{activeCount}</p>
           </div>
         </div>
 

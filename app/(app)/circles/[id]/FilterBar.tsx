@@ -32,7 +32,7 @@ export default function FilterBar({
           <button
             key={filter.key}
             onClick={() => onFilterChange(filter.key)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all font-[Figtree] ${
               activeFilter === filter.key
                 ? 'bg-[#55B2DE] text-white'
                 : 'bg-[#1E293B] text-[#94A3B8] border border-[#334155] hover:bg-[#334155]'
