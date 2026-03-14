@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { fetchBookCover } from '@/lib/fetch-book-cover'
 import { trackEvent } from '@/lib/analytics'
-import { logEvent } from '@/lib/gamification/log-event-action'
 import { isNative } from '@/lib/platform'
 import { scanBarcode, validateISBN, checkScanPermissions, requestScanPermission } from '@/lib/barcodeScanner'
 
@@ -29,6 +28,7 @@ export default function AddBookModal({
     }
     onClose(success, bookTitle)
   }
+  
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [isbn, setIsbn] = useState('')
@@ -46,25 +46,20 @@ export default function AddBookModal({
   const quaggaRef = useRef<any>(null)
   const titleSearchTimer = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
-  
   const supabase = createClient()
 
   const lookupISBN = async (isbnValue: string) => {
     if (!isbnValue || isbnValue.length < 10) return
-
-    // Validate ISBN format
     const validation = validateISBN(isbnValue)
     if (!validation.valid) {
       setLookupStatus(validation.message || 'Invalid barcode')
       setTimeout(() => setLookupStatus(''), 5000)
       return
     }
-
     setLookupStatus('Looking up book...')
     try {
       const response = await fetch(`/api/isbn-lookup?isbn=${isbnValue}`)
       const data = await response.json()
-
       if (response.ok) {
         setTitle(data.title || '')
         setAuthor(data.author || '')
@@ -85,9 +80,7 @@ export default function AddBookModal({
 
   const handleIsbnChange = (value: string) => {
     setIsbn(value)
-    if (value.length >= 10) {
-      lookupISBN(value)
-    }
+    if (value.length >= 10) lookupISBN(value)
   }
 
   const searchByTitle = async (query: string) => {
@@ -96,14 +89,11 @@ export default function AddBookModal({
       setShowTitleDropdown(false)
       return
     }
-
     try {
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY
       const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(query)}&maxResults=5${apiKey ? `&key=${apiKey}` : ''}`
-      
       const response = await fetch(url)
       const data = await response.json()
-
       if (data.items) {
         const results = data.items.map((item: any) => ({
           id: item.id,
@@ -121,7 +111,6 @@ export default function AddBookModal({
         setShowTitleDropdown(false)
       }
     } catch (err) {
-      console.error('Title search error:', err)
       setTitleSearchResults([])
       setShowTitleDropdown(false)
     }
@@ -129,17 +118,9 @@ export default function AddBookModal({
 
   const handleTitleChange = (value: string) => {
     setTitle(value)
-    
-    // Clear previous timer
-    if (titleSearchTimer.current) {
-      clearTimeout(titleSearchTimer.current)
-    }
-
-    // Debounce search by 300ms
+    if (titleSearchTimer.current) clearTimeout(titleSearchTimer.current)
     if (value.length >= 3) {
-      titleSearchTimer.current = setTimeout(() => {
-        searchByTitle(value)
-      }, 300)
+      titleSearchTimer.current = setTimeout(() => searchByTitle(value), 300)
     } else {
       setTitleSearchResults([])
       setShowTitleDropdown(false)
@@ -158,9 +139,7 @@ export default function AddBookModal({
 
   const toggleCircle = (circleId: string) => {
     setSelectedCircles(prev => 
-      prev.includes(circleId) 
-        ? prev.filter(id => id !== circleId)
-        : [...prev, circleId]
+      prev.includes(circleId) ? prev.filter(id => id !== circleId) : [...prev, circleId]
     )
   }
 
@@ -168,29 +147,21 @@ export default function AddBookModal({
     e.preventDefault()
     setError('')
     setLoading(true)
-
     if (!title.trim()) {
       setError('Title is required')
       setLoading(false)
       return
     }
-
     if (selectedCircles.length === 0) {
       setError('Select at least one circle')
       setLoading(false)
       return
     }
-
     try {
-      // Try to fetch cover if we don't have one yet
       let finalCoverUrl = coverUrl.trim() || null
       if (!finalCoverUrl) {
         setLookupStatus('Checking for cover art...')
-        const coverResult = await fetchBookCover(
-          isbn.trim() || null,
-          title.trim(),
-          author.trim() || null
-        )
+        const coverResult = await fetchBookCover(isbn.trim() || null, title.trim(), author.trim() || null)
         if (coverResult.coverUrl) {
           finalCoverUrl = coverResult.coverUrl
           setCoverUrl(coverResult.coverUrl)
@@ -199,11 +170,7 @@ export default function AddBookModal({
           setLookupStatus('')
         }
       }
-
-      // Use retail price from metadata, or default to $20 CAD
       const retailPrice = fullMetadata?.retail_price_cad || 20.0
-
-      // Create the book via API route (handles auth server-side)
       const response = await fetch('/api/books/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -228,18 +195,9 @@ export default function AddBookModal({
           source: bookSource
         })
       })
-
       const result = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to add book')
-      }
-
-      const book = result.book
-
-      // Track book added (client-side analytics)
-      trackEvent.bookAdded(book.id, bookSource, !!finalCoverUrl, selectedCircles)
-
+      if (!response.ok) throw new Error(result.error || 'Failed to add book')
+      trackEvent.bookAdded(result.book.id, bookSource, !!finalCoverUrl, selectedCircles)
       router.refresh()
       handleClose(true, title.trim())
     } catch (err: any) {
@@ -248,31 +206,25 @@ export default function AddBookModal({
     }
   }
 
-  // Native barcode scanner (Capacitor)
   const startNativeScanner = async () => {
     setError('')
     setLookupStatus('Opening camera...')
-    
     try {
-      // Check permissions
       const permStatus = await checkScanPermissions()
-      
       if (!permStatus.granted && permStatus.canRequest) {
         const granted = await requestScanPermission()
         if (!granted) {
-          setError('Camera permission is required to scan barcodes')
+          setError('Camera permission required')
           setLookupStatus('')
           return
         }
       } else if (!permStatus.granted) {
-        setError(permStatus.message || 'Camera access denied. Please enable it in Settings.')
+        setError(permStatus.message || 'Camera access denied')
         setLookupStatus('')
         return
       }
-
       setLookupStatus('Scanning...')
       const result = await scanBarcode()
-      
       if (result) {
         setIsbn(result.isbn)
         setLookupStatus('')
@@ -282,207 +234,146 @@ export default function AddBookModal({
         setTimeout(() => setLookupStatus(''), 2000)
       }
     } catch (err: any) {
-      console.error('Scanner error:', err)
-      setError(err.message || 'Failed to scan barcode')
+      setError(err.message || 'Failed to scan')
       setLookupStatus('')
     }
   }
 
-  // Web barcode scanner (Quagga fallback)
   const startWebScanner = () => {
     setScanning(true)
     setError('')
   }
 
   const startScanner = () => {
-    if (isNative()) {
-      startNativeScanner()
-    } else {
-      startWebScanner()
-    }
+    isNative() ? startNativeScanner() : startWebScanner()
   }
 
-  // Initialize Quagga when scanner element appears (web only)
   useEffect(() => {
     if (!scanning || !scannerRef.current) return
-
     const initQuagga = async () => {
       try {
-        // Dynamically import Quagga
         const Quagga = (await import('@ericblade/quagga2')).default
-
-        Quagga.init(
-          {
-            inputStream: {
-              type: 'LiveStream',
-              target: scannerRef.current!,
-              constraints: {
-                facingMode: 'environment',
-                width: { min: 640 },
-                height: { min: 480 }
-              }
-            },
-            decoder: {
-              readers: ['ean_reader', 'ean_8_reader']
-            }
-          },
-          (err: any) => {
-            if (err) {
-              console.error('Quagga init error:', err)
-              setError('Failed to start camera. Please check permissions.')
-              setScanning(false)
-              return
-            }
-            Quagga.start()
-          }
-        )
-
-        Quagga.onDetected((data: any) => {
-          const code = data.codeResult.code
-          handleIsbnChange(code)
-          stopScanner()
+        Quagga.init({
+          inputStream: { type: 'LiveStream', target: scannerRef.current!, constraints: { facingMode: 'environment', width: { min: 640 }, height: { min: 480 } } },
+          decoder: { readers: ['ean_reader', 'ean_8_reader'] }
+        }, (err: any) => {
+          if (err) { setError('Failed to start camera'); setScanning(false); return }
+          Quagga.start()
         })
-
+        Quagga.onDetected((data: any) => { handleIsbnChange(data.codeResult.code); stopScanner() })
         quaggaRef.current = Quagga
-      } catch (err) {
-        console.error('Failed to load scanner:', err)
-        setError('Failed to initialize scanner')
-        setScanning(false)
-      }
+      } catch (err) { setError('Failed to initialize scanner'); setScanning(false) }
     }
-
     initQuagga()
   }, [scanning])
 
   const stopScanner = () => {
-    if (quaggaRef.current) {
-      quaggaRef.current.stop()
-      quaggaRef.current = null
-    }
+    if (quaggaRef.current) { quaggaRef.current.stop(); quaggaRef.current = null }
     setScanning(false)
   }
 
-  useEffect(() => {
-    return () => {
-      if (quaggaRef.current) {
-        quaggaRef.current.stop()
-      }
-    }
-  }, [])
+  useEffect(() => { return () => { if (quaggaRef.current) quaggaRef.current.stop() } }, [])
+  useEffect(() => { return () => { if (titleSearchTimer.current) clearTimeout(titleSearchTimer.current) } }, [])
 
-  useEffect(() => {
-    return () => {
-      if (titleSearchTimer.current) {
-        clearTimeout(titleSearchTimer.current)
-      }
-    }
-  }, [])
+  // Dark theme input styles
+  const inputClass = "w-full px-4 py-3 bg-[#1E1E1E] border border-[#333] rounded-xl text-white placeholder-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
+  const labelClass = "block text-sm font-medium text-[#9CA3AF] mb-2"
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 overflow-y-auto" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-      <div className="bg-white rounded-lg max-w-2xl p-6 my-auto" style={{ width: '100%', minWidth: '280px', maxWidth: '42rem', boxSizing: 'border-box' }}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Add Book to Library</h2>
-          <button onClick={() => handleClose()} className="text-gray-500 hover:text-gray-700 text-2xl">
-            ×
+    <div className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+      <div className="bg-[#1E293B] rounded-2xl w-full max-w-lg p-6 my-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
+            Add Book to Library
+          </h2>
+          <button 
+            onClick={() => handleClose()} 
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#27272A] hover:bg-[#3F3F46] text-[#9CA3AF] hover:text-white transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-800 p-3 rounded mb-4">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl mb-4 text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', width: '100%' }}>
-          <div style={{ display: 'grid', gap: '0.25rem' }}>
-            <label className="block text-sm font-medium">ISBN (Optional)</label>
-            <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* ISBN */}
+          <div>
+            <label className={labelClass}>ISBN (Optional)</label>
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={isbn}
                 onChange={(e) => handleIsbnChange(e.target.value)}
-                className="px-3 py-2 border rounded-lg"
-                style={{ flex: '1 1 0', minWidth: '0', width: '100%', boxSizing: 'border-box' }}
+                className={inputClass}
                 placeholder="Enter ISBN or scan barcode"
                 disabled={scanning}
               />
               <button
                 type="button"
                 onClick={scanning ? stopScanner : startScanner}
-                className={`px-4 py-2 rounded-lg font-medium ${
+                className={`px-4 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors ${
                   scanning 
-                    ? 'bg-red-600 text-white hover:bg-red-700' 
+                    ? 'bg-red-500 text-white hover:bg-red-600' 
                     : 'bg-[#55B2DE] text-white hover:bg-[#4A9FCB]'
                 }`}
               >
-                {scanning ? '⏹ Stop' : '📷 Scan'}
+                <span>📷</span>
+                <span>{scanning ? 'Stop' : 'Scan'}</span>
               </button>
             </div>
             {lookupStatus && (
-              <p className="text-sm text-gray-600 mt-1">{lookupStatus}</p>
+              <p className="text-sm text-[#55B2DE] mt-2">{lookupStatus}</p>
             )}
           </div>
 
-          {/* Web scanner view (only shown on web when scanning) */}
+          {/* Scanner view */}
           {scanning && !isNative() && (
-            <div className="border rounded-lg overflow-hidden bg-black">
-              <div ref={scannerRef} className="w-full h-64" />
-              <p className="text-center text-sm text-white py-2 bg-black">
-                Position barcode in camera view
-              </p>
+            <div className="rounded-xl overflow-hidden bg-black">
+              <div ref={scannerRef} className="w-full h-48" />
+              <p className="text-center text-sm text-white py-2">Position barcode in camera view</p>
             </div>
           )}
 
-          <div style={{ display: 'grid', gap: '0.25rem', position: 'relative' }}>
-            <label className="block text-sm font-medium">Title *</label>
+          {/* Title */}
+          <div className="relative">
+            <label className={labelClass}>Title *</label>
             <input
               type="text"
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
-              onFocus={() => {
-                if (titleSearchResults.length > 0) {
-                  setShowTitleDropdown(true)
-                }
-              }}
-              className="px-3 py-2 border rounded-lg"
-              style={{ display: 'block', width: '100%', minWidth: '0', boxSizing: 'border-box' }}
+              onFocus={() => titleSearchResults.length > 0 && setShowTitleDropdown(true)}
+              className={inputClass}
               placeholder="Start typing to search books..."
               required
             />
-            
-            {/* Title search dropdown */}
             {showTitleDropdown && titleSearchResults.length > 0 && (
-              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto" style={{ top: '100%' }}>
+              <div className="absolute z-50 w-full mt-2 bg-[#27272A] border border-[#333] rounded-xl shadow-xl max-h-72 overflow-y-auto">
                 {titleSearchResults.map((result) => (
                   <button
                     key={result.id}
                     type="button"
                     onClick={() => selectSearchResult(result)}
-                    className="w-full flex gap-3 p-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 text-left"
+                    className="w-full flex gap-3 p-3 hover:bg-[#3F3F46] border-b border-[#333] last:border-0 text-left transition-colors"
                   >
-                    {/* Cover thumbnail */}
                     {result.coverUrl ? (
-                      <img 
-                        src={result.coverUrl} 
-                        alt={result.title}
-                        className="w-12 h-16 object-cover rounded shadow-sm flex-shrink-0"
-                      />
+                      <img src={result.coverUrl} alt={result.title} className="w-10 h-14 object-cover rounded shadow-sm flex-shrink-0" />
                     ) : (
-                      <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                        <span className="text-xl">📚</span>
+                      <div className="w-10 h-14 bg-[#3F3F46] rounded flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg">📚</span>
                       </div>
                     )}
-                    
-                    {/* Book details */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm line-clamp-2">{result.title}</div>
-                      {result.author && (
-                        <div className="text-xs text-gray-600 mt-1">{result.author}</div>
-                      )}
-                      {result.isbn && (
-                        <div className="text-xs text-gray-400 mt-1">ISBN: {result.isbn}</div>
-                      )}
+                      <div className="font-medium text-white text-sm line-clamp-2">{result.title}</div>
+                      {result.author && <div className="text-xs text-[#9CA3AF] mt-1">{result.author}</div>}
+                      {result.isbn && <div className="text-xs text-[#6B7280] mt-1">ISBN: {result.isbn}</div>}
                     </div>
                   </button>
                 ))}
@@ -490,54 +381,73 @@ export default function AddBookModal({
             )}
           </div>
 
-          <div style={{ display: 'grid', gap: '0.25rem' }}>
-            <label className="block text-sm font-medium">Author</label>
+          {/* Author */}
+          <div>
+            <label className={labelClass}>Author</label>
             <input
               type="text"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              className="px-3 py-2 border rounded-lg"
-              style={{ display: 'block', width: '100%', minWidth: '0', boxSizing: 'border-box' }}
+              className={inputClass}
               placeholder="Author name"
             />
           </div>
 
+          {/* Cover Preview */}
           {coverUrl && (
             <div>
-              <label className="block text-sm font-medium mb-1">Cover Preview</label>
-              <img src={coverUrl} alt="Book cover" className="w-24 h-32 object-cover rounded" />
+              <label className={labelClass}>Cover Preview</label>
+              <img src={coverUrl} alt="Book cover" className="w-20 h-28 object-cover rounded-lg shadow-lg" />
             </div>
           )}
 
+          {/* Circles */}
           <div>
-            <label className="block text-sm font-medium mb-2">Make visible in:</label>
+            <label className={labelClass}>Make visible in:</label>
             <div className="space-y-2">
               {userCircles.map(circle => (
-                <label key={circle.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                  <input
-                    type="checkbox"
-                    checked={selectedCircles.includes(circle.id)}
-                    onChange={() => toggleCircle(circle.id)}
-                    className="w-4 h-4 text-[#55B2DE] rounded"
-                  />
-                  <span className="text-sm">{circle.name}</span>
+                <label 
+                  key={circle.id} 
+                  className="flex items-center gap-3 cursor-pointer p-3 rounded-xl bg-[#27272A] hover:bg-[#3F3F46] transition-colors"
+                >
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={selectedCircles.includes(circle.id)}
+                      onChange={() => toggleCircle(circle.id)}
+                      className="sr-only"
+                    />
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                      selectedCircles.includes(circle.id)
+                        ? 'bg-[#55B2DE] border-[#55B2DE]'
+                        : 'border-[#6B7280]'
+                    }`}>
+                      {selectedCircles.includes(circle.id) && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-white text-sm">{circle.name}</span>
                 </label>
               ))}
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          {/* Buttons */}
+          <div className="flex gap-3 pt-2">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
+              className="flex-1 px-4 py-3 bg-[#55B2DE] text-white rounded-xl font-semibold hover:bg-[#4A9FCB] disabled:opacity-50 transition-colors"
             >
               {loading ? 'Adding...' : 'Add Book'}
             </button>
             <button
               type="button"
               onClick={() => handleClose()}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-6 py-3 bg-[#27272A] text-[#9CA3AF] rounded-xl font-medium hover:bg-[#3F3F46] hover:text-white transition-colors"
             >
               Cancel
             </button>
