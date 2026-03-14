@@ -17,25 +17,19 @@ export default async function AppLayout({
     redirect('/auth/signin')
   }
 
-  // Get user profile for header
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // Only enforce onboarding for new users (created after 2026-02-13)
-  // This prevents existing users from being forced into onboarding
   const onboardingLaunchDate = new Date('2026-02-13T00:00:00Z')
   const userCreatedAt = new Date(user.created_at)
   
-  if (profile && 
-      !profile.onboarding_completed && 
-      userCreatedAt > onboardingLaunchDate) {
+  if (profile && !profile.onboarding_completed && userCreatedAt > onboardingLaunchDate) {
     redirect('/onboarding/avatar')
   }
 
-  // Get user's circles for Add Book button
   const { data: memberships } = await supabase
     .from('circle_members')
     .select('circle_id, circles(id, name)')
@@ -44,7 +38,7 @@ export default async function AppLayout({
   const circles = memberships?.map(m => m.circles) || []
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-[#121212] pb-20">
       <AppHeader 
         user={{
           id: user.id,
@@ -57,16 +51,12 @@ export default async function AppLayout({
         userCircles={circles as any}
       />
       
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main>
         {children}
       </main>
 
       <BottomNav />
-      
-      {/* Global Search Overlay */}
       <SearchOverlay userId={user.id} />
-      
-      {/* Beta Feedback Button */}
       <BetaFeedbackButton />
     </div>
   )

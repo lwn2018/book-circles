@@ -155,7 +155,7 @@ export default function BooksList({
   return (
     <>
     {/* Grid layout for book cards */}
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {books.map((book) => {
         const inQueue = book.book_queue?.some(q => q.user_id === userId)
         const isOwner = book.owner_id === userId

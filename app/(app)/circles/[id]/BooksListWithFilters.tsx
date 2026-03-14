@@ -227,7 +227,7 @@ export default function BooksListWithFilters({
       {/* New in this circle - Horizontal scroll carousel */}
       {newBooks.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-white mb-4 font-[Montreal]">New in this circle</h2>
+          <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>New in this circle</h2>
           <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
             {newBooks.map(book => {
               const inQueue = book.book_queue?.some(q => q.user_id === userId)
