@@ -90,21 +90,10 @@ export default function AddBookModal({
       return
     }
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY
-      const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(query)}&maxResults=5${apiKey ? `&key=${apiKey}` : ''}`
-      const response = await fetch(url)
+      const response = await fetch(`/api/book-search?q=${encodeURIComponent(query)}`)
       const data = await response.json()
-      if (data.items) {
-        const results = data.items.map((item: any) => ({
-          id: item.id,
-          title: item.volumeInfo.title,
-          author: item.volumeInfo.authors?.join(', ') || null,
-          isbn: item.volumeInfo.industryIdentifiers?.find((id: any) => 
-            id.type === 'ISBN_13' || id.type === 'ISBN_10'
-          )?.identifier || null,
-          coverUrl: item.volumeInfo.imageLinks?.thumbnail?.replace('http://', 'https://') || null
-        }))
-        setTitleSearchResults(results)
+      if (data.results && data.results.length > 0) {
+        setTitleSearchResults(data.results)
         setShowTitleDropdown(true)
       } else {
         setTitleSearchResults([])
