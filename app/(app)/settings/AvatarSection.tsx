@@ -12,7 +12,7 @@ const PRESET_AVATARS = [
   { id: 'preset-5', emoji: '🚀', color: 'bg-indigo-100' },
   { id: 'preset-6', emoji: '🌻', color: 'bg-green-100' },
   { id: 'preset-7', emoji: '🎭', color: 'bg-red-100' },
-  { id: 'preset-8', emoji: '⭐', color: 'bg-orange-100' }
+  { id: 'preset-8', emoji: '⭐', color: 'bg-[#55B2DE]/20' }
 ]
 
 type AvatarSectionProps = {
@@ -316,7 +316,7 @@ export default function AvatarSection({
               disabled={uploading || saving}
               className={`w-full aspect-square rounded-full ${preset.color} flex items-center justify-center text-3xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 selectedPreset === preset.id && avatarType === 'preset'
-                  ? 'ring-4 ring-blue-500 scale-105'
+                  ? 'ring-4 ring-[#55B2DE] scale-105'
                   : 'hover:scale-105'
               }`}
             >
@@ -340,7 +340,7 @@ export default function AvatarSection({
           disabled={uploading || saving}
           className={`w-full px-4 py-3 border-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
             avatarType === 'initials'
-              ? 'border-blue-600 bg-blue-50 text-blue-700'
+              ? 'border-[#55B2DE] bg-blue-50 text-blue-700'
               : 'border-gray-300 hover:border-gray-400'
           }`}
         >
@@ -352,7 +352,7 @@ export default function AvatarSection({
       <button
         onClick={handleSaveAvatar}
         disabled={saving || uploading}
-        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        className="w-full px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
       >
         {uploading ? 'Uploading...' : saving ? 'Saving...' : 'Save Avatar'}
       </button>

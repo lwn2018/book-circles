@@ -163,7 +163,7 @@ export default function NotificationsList() {
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               filter === 'all'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-[#55B2DE] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
@@ -173,7 +173,7 @@ export default function NotificationsList() {
             onClick={() => setFilter('unread')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               filter === 'unread'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-[#55B2DE] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
@@ -184,7 +184,7 @@ export default function NotificationsList() {
         {unreadCount > 0 && filter === 'all' && (
           <button
             onClick={markAllAsRead}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-[#55B2DE] hover:underline"
           >
             Mark all as read
           </button>
@@ -220,7 +220,7 @@ export default function NotificationsList() {
             >
               {/* Unread indicator dot on left */}
               {!notification.read && (
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-600 rounded-full" />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#55B2DE] rounded-full" />
               )}
               
               <div className="flex gap-4">
@@ -249,7 +249,7 @@ export default function NotificationsList() {
                           e.stopPropagation()
                           handleStillReading(notification)
                         }}
-                        className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                        className="px-4 py-2 bg-[#55B2DE] text-white text-sm rounded hover:bg-[#4A9FCB]"
                       >
                         Still reading
                       </button>

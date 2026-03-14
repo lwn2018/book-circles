@@ -5,7 +5,7 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <Link href="/" className="text-blue-600 hover:underline">
+          <Link href="/" className="text-[#55B2DE] hover:underline">
             ← Back to PagePass
           </Link>
         </div>

@@ -413,7 +413,7 @@ export default function AddBookModal({
                 className={`px-4 py-2 rounded-lg font-medium ${
                   scanning 
                     ? 'bg-red-600 text-white hover:bg-red-700' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-[#55B2DE] text-white hover:bg-[#4A9FCB]'
                 }`}
               >
                 {scanning ? '⏹ Stop' : '📷 Scan'}
@@ -518,7 +518,7 @@ export default function AddBookModal({
                     type="checkbox"
                     checked={selectedCircles.includes(circle.id)}
                     onChange={() => toggleCircle(circle.id)}
-                    className="w-4 h-4 text-blue-600 rounded"
+                    className="w-4 h-4 text-[#55B2DE] rounded"
                   />
                   <span className="text-sm">{circle.name}</span>
                 </label>
@@ -530,7 +530,7 @@ export default function AddBookModal({
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
             >
               {loading ? 'Adding...' : 'Add Book'}
             </button>

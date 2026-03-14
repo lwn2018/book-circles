@@ -6,7 +6,7 @@ const PRESET_AVATARS = [
   { id: 'preset-5', emoji: '🚀', color: 'bg-indigo-100' },
   { id: 'preset-6', emoji: '🌻', color: 'bg-green-100' },
   { id: 'preset-7', emoji: '🎭', color: 'bg-red-100' },
-  { id: 'preset-8', emoji: '⭐', color: 'bg-orange-100' }
+  { id: 'preset-8', emoji: '⭐', color: 'bg-[#55B2DE]/20' }
 ]
 
 type AvatarProps = {

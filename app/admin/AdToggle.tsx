@@ -47,7 +47,7 @@ export default function AdToggle({ initialEnabled }: { initialEnabled: boolean }
         onClick={handleToggle}
         disabled={loading}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          enabled ? 'bg-blue-600' : 'bg-gray-300'
+          enabled ? 'bg-[#55B2DE]' : 'bg-gray-300'
         } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <span

@@ -127,7 +127,7 @@ export default function BuyBookButton({ bookId, isbn, title, author }: Props) {
         {primaryLink && (
           <button
             onClick={() => handleClick(primarySource, primaryLink)}
-            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
+            className="px-3 py-1.5 bg-[#55B2DE] text-white text-sm rounded-lg hover:bg-[#4A9FCB] transition"
           >
             {primaryLabel}
           </button>

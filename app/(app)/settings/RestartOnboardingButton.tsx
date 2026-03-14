@@ -42,7 +42,7 @@ export default function RestartOnboardingButton({ userId }: { userId: string }) 
     <button
       onClick={handleRestartOnboarding}
       disabled={loading}
-      className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50 transition-colors"
+      className="px-4 py-2 text-sm text-[#55B2DE] border border-[#55B2DE] rounded-lg hover:bg-blue-50 disabled:opacity-50 transition-colors"
     >
       {loading ? 'Restarting...' : '↻ Restart Onboarding'}
     </button>

@@ -138,7 +138,7 @@ export default function LibraryBookCard({
         return { emoji: '📦', label: 'Off Shelf', color: 'bg-zinc-600' }
       case 'in_transit':
       case 'ready_for_next':
-        return { emoji: '🚚', label: 'Passing', color: 'bg-blue-600' }
+        return { emoji: '🚚', label: 'Passing', color: 'bg-[#55B2DE]' }
       case 'borrowed':
         return { emoji: '📖', label: 'Lent', color: 'bg-amber-600' }
       default:
@@ -421,7 +421,7 @@ function BookDetailsModal({
                       checked={isVisible}
                       onChange={() => onToggleVisibility(circle.id)}
                       disabled={loading}
-                      className="w-5 h-5 text-orange-500 bg-zinc-700 border-zinc-600 rounded focus:ring-orange-500"
+                      className="w-5 h-5 text-[#55B2DE] bg-zinc-700 border-zinc-600 rounded focus:ring-[#55B2DE]"
                     />
                     <span className="text-sm text-white">{circle.name}</span>
                   </label>

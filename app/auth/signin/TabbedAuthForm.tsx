@@ -110,11 +110,11 @@ export default function TabbedAuthForm({
   }
 
   // Input field classes for dark theme
-  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent transition-all"
   
   // Primary button gradient style
   const primaryButtonStyle = {
-    background: 'linear-gradient(135deg, #F54900 0%, #FF6900 100%)',
+    background: 'linear-gradient(135deg, #55B2DE 0%, #4A9FCB 100%)',
   }
 
   return (
@@ -133,7 +133,7 @@ export default function TabbedAuthForm({
       {/* Circle Invitation Banner */}
       {circleCode && (
         <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'rgba(245, 73, 0, 0.15)', border: '1px solid rgba(245, 73, 0, 0.3)' }}>
-          <p className="text-sm text-orange-300 text-center font-medium">
+          <p className="text-sm text-[#6BC4EC] text-center font-medium">
             📚 {circleName ? `Join to access the ${circleName} circle` : 'Join to access your invited circle'}
           </p>
         </div>
@@ -145,7 +145,7 @@ export default function TabbedAuthForm({
           onClick={() => setActiveTab('signin')}
           className={`flex-1 pb-3 text-lg font-semibold border-b-2 transition-colors ${
             activeTab === 'signin'
-              ? 'border-orange-500 text-white'
+              ? 'border-[#55B2DE] text-white'
               : 'border-transparent text-zinc-500 hover:text-zinc-300'
           }`}
         >
@@ -155,7 +155,7 @@ export default function TabbedAuthForm({
           onClick={() => setActiveTab('signup')}
           className={`flex-1 pb-3 text-lg font-semibold border-b-2 transition-colors ${
             activeTab === 'signup'
-              ? 'border-orange-500 text-white'
+              ? 'border-[#55B2DE] text-white'
               : 'border-transparent text-zinc-500 hover:text-zinc-300'
           }`}
         >
@@ -207,7 +207,7 @@ export default function TabbedAuthForm({
           </button>
 
           <div className="text-center">
-            <Link href="/auth/reset-password" className="text-sm text-orange-400 hover:text-orange-300 transition-colors">
+            <Link href="/auth/reset-password" className="text-sm text-[#55B2DE] hover:text-[#6BC4EC] transition-colors">
               Forgot password?
             </Link>
           </div>
@@ -268,16 +268,16 @@ export default function TabbedAuthForm({
               id="agreedToTerms"
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="mt-1 w-4 h-4 bg-zinc-800 border-zinc-700 rounded focus:ring-orange-500 accent-orange-500"
+              className="mt-1 w-4 h-4 bg-zinc-800 border-zinc-700 rounded focus:ring-[#55B2DE] accent-[#55B2DE]"
               required
             />
             <label htmlFor="agreedToTerms" className="text-sm text-zinc-400">
               I agree to the{' '}
-              <Link href="/terms" className="text-orange-400 hover:text-orange-300 transition-colors" target="_blank">
+              <Link href="/terms" className="text-[#55B2DE] hover:text-[#6BC4EC] transition-colors" target="_blank">
                 Terms of Service
               </Link>
               {' '}and{' '}
-              <Link href="/privacy" className="text-orange-400 hover:text-orange-300 transition-colors" target="_blank">
+              <Link href="/privacy" className="text-[#55B2DE] hover:text-[#6BC4EC] transition-colors" target="_blank">
                 Privacy Policy
               </Link>
             </label>
@@ -297,11 +297,11 @@ export default function TabbedAuthForm({
       {/* Footer Links */}
       <div className="mt-8 pt-6 border-t border-zinc-700">
         <div className="flex justify-center gap-4 text-xs text-zinc-500">
-          <Link href="/privacy" className="hover:text-orange-400 transition-colors">
+          <Link href="/privacy" className="hover:text-[#55B2DE] transition-colors">
             Privacy Policy
           </Link>
           <span>•</span>
-          <Link href="/terms" className="hover:text-orange-400 transition-colors">
+          <Link href="/terms" className="hover:text-[#55B2DE] transition-colors">
             Terms of Service
           </Link>
         </div>

@@ -81,7 +81,7 @@ export default function AffiliateSettingsForm({
           value={indigoId}
           onChange={(e) => setIndigoId(e.target.value)}
           placeholder="12345"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
         />
         <p className="text-xs text-gray-500 mt-1">
           Your Indigo affiliate ID (numeric, from your affiliate dashboard)
@@ -97,7 +97,7 @@ export default function AffiliateSettingsForm({
           value={amazonCaTag}
           onChange={(e) => setAmazonCaTag(e.target.value)}
           placeholder="yoursite-20"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
         />
         <p className="text-xs text-gray-500 mt-1">
           Your Amazon.ca Associates tracking ID (usually ends in -20)
@@ -113,7 +113,7 @@ export default function AffiliateSettingsForm({
           value={amazonTag}
           onChange={(e) => setAmazonTag(e.target.value)}
           placeholder="yoursite-20"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
         />
         <p className="text-xs text-gray-500 mt-1">
           Your Amazon.com Associates tracking ID (optional - for US users)
@@ -127,7 +127,7 @@ export default function AffiliateSettingsForm({
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
         >
           <option value="indigo">Indigo/Chapters (Canadian, supports local)</option>
           <option value="amazon-ca">Amazon.ca (Canadian, wider selection)</option>
@@ -142,7 +142,7 @@ export default function AffiliateSettingsForm({
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+          className="px-6 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 font-medium"
         >
           {loading ? 'Saving...' : 'Save Settings'}
         </button>

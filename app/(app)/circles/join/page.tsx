@@ -100,7 +100,7 @@ function JoinCircleForm() {
               type="text"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-lg"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent font-mono text-lg"
               placeholder="Enter code"
               required
             />
@@ -111,7 +111,7 @@ function JoinCircleForm() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
           >
             {loading ? 'Joining...' : 'Join Circle'}
           </button>

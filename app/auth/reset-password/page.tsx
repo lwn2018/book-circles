@@ -31,11 +31,11 @@ export default function ResetPassword() {
   }
 
   // Input field classes for dark theme
-  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent transition-all"
   
   // Primary button gradient style
   const primaryButtonStyle = {
-    background: 'linear-gradient(135deg, #F54900 0%, #FF6900 100%)',
+    background: 'linear-gradient(135deg, #55B2DE 0%, #4A9FCB 100%)',
   }
 
   return (
@@ -84,7 +84,7 @@ export default function ResetPassword() {
 
         <p className="mt-4 text-center text-sm text-zinc-400">
           Remember your password?{' '}
-          <Link href="/auth/signin" className="text-orange-400 hover:text-orange-300 transition-colors">
+          <Link href="/auth/signin" className="text-[#55B2DE] hover:text-[#6BC4EC] transition-colors">
             Sign in
           </Link>
         </p>

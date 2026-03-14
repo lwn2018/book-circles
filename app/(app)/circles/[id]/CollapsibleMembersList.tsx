@@ -17,7 +17,7 @@ type Props = {
 // Generate avatar color based on name
 function getAvatarColor(name: string): string {
   const colors = [
-    'bg-orange-500',
+    'bg-[#55B2DE]',
     'bg-amber-500', 
     'bg-yellow-500',
     'bg-lime-500',
@@ -96,7 +96,7 @@ export default function CollapsibleMembersList({ members }: Props) {
       {isExpanded && members.length > 6 && (
         <button
           onClick={() => setIsExpanded(false)}
-          className="mt-4 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+          className="mt-4 text-sm text-[#55B2DE] hover:text-[#6BC4EC] transition-colors"
         >
           Show less
         </button>

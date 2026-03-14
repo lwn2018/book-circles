@@ -234,7 +234,7 @@ export default function LibraryBookCard({
           <button
             onClick={handleToggleShelf}
             disabled={togglingShelf || book.status === 'in_transit'}
-            className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="text-xs text-[#55B2DE] hover:text-[#3D8AAF] disabled:opacity-50 disabled:cursor-not-allowed"
             title={book.status === 'off_shelf' ? 'Return to shelf' : 'Take off shelf'}
           >
             {togglingShelf ? '...' : book.status === 'off_shelf' ? '↩️ Return' : '📦 Off Shelf'}
@@ -276,7 +276,7 @@ export default function LibraryBookCard({
       {/* Visibility Toggle */}
       <button
         onClick={() => setShowVisibility(!showVisibility)}
-        className="text-sm text-blue-600 hover:underline"
+        className="text-sm text-[#55B2DE] hover:underline"
       >
         {showVisibility ? 'Hide' : 'Manage'} visibility
       </button>
@@ -296,7 +296,7 @@ export default function LibraryBookCard({
                   checked={isVisible}
                   onChange={() => handleToggleVisibility(circle.id)}
                   disabled={loading}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  className="w-4 h-4 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
                 />
                 <span className="text-sm">{circle.name}</span>
               </label>

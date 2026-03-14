@@ -219,7 +219,7 @@ function ListBookRow({
             <button
               onClick={handleToggleShelf}
               disabled={togglingShelf || book.status === 'in_transit'}
-              className="text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-[#55B2DE] hover:text-[#3D8AAF] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {togglingShelf ? '...' : book.status === 'off_shelf' ? '↩️ Return' : '📦 Off'}
             </button>
@@ -239,7 +239,7 @@ function ListBookRow({
             </span>
             <button
               onClick={() => setShowVisibility(!showVisibility)}
-              className="text-blue-600 hover:underline"
+              className="text-[#55B2DE] hover:underline"
             >
               {showVisibility ? 'Hide' : 'Edit'}
             </button>
@@ -263,7 +263,7 @@ function ListBookRow({
                   checked={isVisible}
                   onChange={() => handleToggleVisibility(circle.id)}
                   disabled={loading}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  className="w-4 h-4 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
                 />
                 <span className="text-sm">{circle.name}</span>
               </label>

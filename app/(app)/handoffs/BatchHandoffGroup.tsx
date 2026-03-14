@@ -255,7 +255,7 @@ export default function BatchHandoffGroup({
       <div className="space-y-4">
         <button
           onClick={() => setShowIndividual(false)}
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-[#55B2DE] hover:underline"
         >
           ← Back to batch view
         </button>
@@ -425,7 +425,7 @@ export default function BatchHandoffGroup({
         <button
           onClick={() => setShowIndividual(true)}
           disabled={confirming}
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-[#55B2DE] hover:underline"
         >
           or tap to handle individually
         </button>

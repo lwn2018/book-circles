@@ -170,7 +170,7 @@ export default function OnboardingWelcome() {
           <div className="pt-4 border-t border-blue-200">
             <a 
               href="/roadmap" 
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-[#55B2DE] hover:text-[#4A9FCB] font-medium"
             >
               See what's coming → Roadmap
             </a>
@@ -183,7 +183,7 @@ export default function OnboardingWelcome() {
             <button
               onClick={handleGoToCircle}
               disabled={joiningCircle}
-              className="w-full py-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 shadow-md text-lg"
+              className="w-full py-4 bg-[#55B2DE] text-white font-medium rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 shadow-md text-lg"
             >
               {joiningCircle ? 'Joining...' : `Go to ${circleName || 'Circle'}`}
             </button>
@@ -201,7 +201,7 @@ export default function OnboardingWelcome() {
             <button
               onClick={() => router.push('/circles/create')}
               disabled={loading}
-              className="w-full py-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 shadow-md text-lg"
+              className="w-full py-4 bg-[#55B2DE] text-white font-medium rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 shadow-md text-lg"
             >
               Create your first circle
             </button>

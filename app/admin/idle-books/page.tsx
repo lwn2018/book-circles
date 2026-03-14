@@ -69,7 +69,7 @@ export default async function IdleBooksPage() {
       <div className="min-h-screen p-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
-            <Link href="/admin" className="text-blue-600 hover:underline">
+            <Link href="/admin" className="text-[#55B2DE] hover:underline">
               ← Back to Admin Dashboard
             </Link>
           </div>
@@ -110,7 +110,7 @@ export default async function IdleBooksPage() {
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <Link href="/admin" className="text-blue-600 hover:underline">
+          <Link href="/admin" className="text-[#55B2DE] hover:underline">
             ← Back to Admin Dashboard
           </Link>
         </div>
@@ -187,7 +187,7 @@ export default async function IdleBooksPage() {
                         book.idleDays > 90 
                           ? 'bg-red-100 text-red-700'
                           : book.idleDays > 60
-                          ? 'bg-orange-100 text-orange-700'
+                          ? 'bg-[#55B2DE]/20 text-[#4A9FCB]'
                           : 'bg-yellow-100 text-yellow-700'
                       }`}>
                         {book.idleDays} days

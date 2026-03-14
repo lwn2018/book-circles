@@ -22,7 +22,7 @@ export default async function ImportBooks() {
   return (
     <div className="p-4 sm:p-8 pb-24">
       <div className="max-w-4xl mx-auto">
-        <Link href="/library" className="text-blue-600 hover:underline mb-4 inline-block">
+        <Link href="/library" className="text-[#55B2DE] hover:underline mb-4 inline-block">
           ← Back to Library
         </Link>
 

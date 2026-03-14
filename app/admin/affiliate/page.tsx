@@ -56,7 +56,7 @@ export default async function AffiliateSettings() {
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
-          <Link href="/admin" className="text-blue-600 hover:underline">
+          <Link href="/admin" className="text-[#55B2DE] hover:underline">
             ← Back to Admin Dashboard
           </Link>
         </div>

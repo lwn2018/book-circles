@@ -57,7 +57,7 @@ export default function FounderBanner({ userId }: { userId: string }) {
         Your feedback shapes what PagePass becomes.{' '}
         <a 
           href="/roadmap" 
-          className="text-blue-600 hover:text-blue-700 font-medium"
+          className="text-[#55B2DE] hover:text-[#4A9FCB] font-medium"
         >
           See the roadmap →
         </a>

@@ -14,7 +14,7 @@ export default async function NotificationsPage() {
   return (
     <div>
       <div className="mb-6">
-        <Link href="/circles" className="text-blue-600 hover:underline text-sm">
+        <Link href="/circles" className="text-[#55B2DE] hover:underline text-sm">
           ← Back to Circles
         </Link>
       </div>

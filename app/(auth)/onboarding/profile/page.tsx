@@ -134,7 +134,7 @@ export default function OnboardingProfile() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="First and last name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
             />
           </div>
 
@@ -151,7 +151,7 @@ export default function OnboardingProfile() {
                   type="checkbox"
                   checked={contactMethods.includes('email')}
                   onChange={() => toggleContactMethod('email')}
-                  className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-5 h-5 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
                 />
                 <div className="flex-1">
                   <div className="font-medium text-gray-900">Email</div>
@@ -161,7 +161,7 @@ export default function OnboardingProfile() {
                       value={emailValue}
                       onChange={(e) => setEmailValue(e.target.value)}
                       placeholder="your@email.com"
-                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
                       onClick={(e) => e.stopPropagation()}
                     />
                   )}
@@ -174,7 +174,7 @@ export default function OnboardingProfile() {
                   type="checkbox"
                   checked={contactMethods.includes('phone')}
                   onChange={() => toggleContactMethod('phone')}
-                  className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-5 h-5 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
                 />
                 <div className="flex-1">
                   <div className="font-medium text-gray-900">Phone call</div>
@@ -184,7 +184,7 @@ export default function OnboardingProfile() {
                       value={phoneValue}
                       onChange={(e) => setPhoneValue(formatPhoneNumber(e.target.value))}
                       placeholder="(555) 123-4567"
-                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
                       onClick={(e) => e.stopPropagation()}
                     />
                   )}
@@ -197,7 +197,7 @@ export default function OnboardingProfile() {
                   type="checkbox"
                   checked={contactMethods.includes('text')}
                   onChange={() => toggleContactMethod('text')}
-                  className="mt-1 w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-5 h-5 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
                 />
                 <div className="flex-1">
                   <div className="font-medium text-gray-900">Text message</div>
@@ -207,7 +207,7 @@ export default function OnboardingProfile() {
                       value={phoneValue}
                       onChange={(e) => setPhoneValue(formatPhoneNumber(e.target.value))}
                       placeholder="(555) 123-4567"
-                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
                       onClick={(e) => e.stopPropagation()}
                     />
                   )}
@@ -233,7 +233,7 @@ export default function OnboardingProfile() {
           <button
             onClick={handleNext}
             disabled={loading}
-            className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 shadow-md"
+            className="flex-1 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 shadow-md"
           >
             {loading ? 'Saving...' : 'Next'}
           </button>

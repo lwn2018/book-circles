@@ -159,7 +159,7 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
                 <p>
                   Due: {new Date(book.due_date).toLocaleDateString()}
                   {daysRemaining !== null && (
-                    <span className={daysRemaining < 0 ? 'text-red-600 ml-2' : daysRemaining <= 3 ? 'text-orange-600 ml-2' : 'text-gray-600 ml-2'}>
+                    <span className={daysRemaining < 0 ? 'text-red-600 ml-2' : daysRemaining <= 3 ? 'text-[#4A9FCB] ml-2' : 'text-gray-600 ml-2'}>
                       ({daysRemaining < 0 ? `${Math.abs(daysRemaining)} days overdue` : `${daysRemaining} days`})
                     </span>
                   )}
@@ -236,7 +236,7 @@ export default function BorrowedBookCard({ book, userId }: { book: Book; userId:
                 <button
                   onClick={handleConfirmHandoff}
                   disabled={loading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+                  className="px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 text-sm font-medium"
                 >
                   {loading ? 'Processing...' : 'I Gave It To Them'}
                 </button>

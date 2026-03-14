@@ -206,7 +206,7 @@ export default function BooksList({
                     Available
                   </span>
                 ) : book.status === 'in_transit' ? (
-                  <span className="text-xs bg-blue-600/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
+                  <span className="text-xs bg-[#55B2DE]/90 text-white px-2 py-1 rounded-full inline-block backdrop-blur-sm">
                     Passing
                   </span>
                 ) : (
@@ -250,7 +250,7 @@ export default function BooksList({
                     className={`w-full text-xs px-3 py-2 text-white rounded-lg font-medium active:scale-95 transition-all ${
                       book.gift_on_borrow 
                         ? 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600' 
-                        : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
+                        : 'bg-[#55B2DE] hover:bg-[#4A9FCB]'
                     }`}
                   >
                     {book.gift_on_borrow ? '🎁 Accept Gift' : 'Borrow'}

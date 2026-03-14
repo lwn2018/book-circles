@@ -13,7 +13,7 @@ const PRESET_AVATARS = [
   { id: 'preset-5', emoji: '🚀', color: 'bg-indigo-900/60' },
   { id: 'preset-6', emoji: '🌻', color: 'bg-green-900/60' },
   { id: 'preset-7', emoji: '🎭', color: 'bg-red-900/60' },
-  { id: 'preset-8', emoji: '⭐', color: 'bg-orange-900/60' }
+  { id: 'preset-8', emoji: '⭐', color: 'bg-[#55B2DE]/60' }
 ]
 
 export default function OnboardingAvatar() {
@@ -96,7 +96,7 @@ export default function OnboardingAvatar() {
           <div 
             className={`relative w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300 ${
               selectedAvatarData 
-                ? `${selectedAvatarData.color} ring-4 ring-orange-500 ring-offset-4 ring-offset-[#1a1a1a]` 
+                ? `${selectedAvatarData.color} ring-4 ring-[#55B2DE] ring-offset-4 ring-offset-[#1a1a1a]` 
                 : 'bg-gray-800'
             }`}
           >
@@ -114,8 +114,8 @@ export default function OnboardingAvatar() {
               onClick={() => handlePresetSelect(preset.id)}
               className={`aspect-square rounded-full ${preset.color} flex items-center justify-center text-3xl transition-all duration-200 ${
                 selectedPreset === preset.id
-                  ? 'ring-3 ring-orange-500 scale-110 shadow-lg shadow-orange-500/30'
-                  : 'hover:scale-105 hover:ring-2 hover:ring-orange-400/50'
+                  ? 'ring-3 ring-[#55B2DE] scale-110 shadow-lg shadow-[#55B2DE]'
+                  : 'hover:scale-105 hover:ring-2 hover:ring-[#55B2DE]/50'
               }`}
             >
               {preset.emoji}
@@ -135,7 +135,7 @@ export default function OnboardingAvatar() {
           <button
             onClick={handleNext}
             disabled={loading}
-            className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 shadow-lg shadow-orange-500/30 font-semibold transition-all"
+            className="flex-1 py-3 bg-[#55B2DE] text-white rounded-xl hover:bg-[#4A9FCB] disabled:opacity-50 shadow-lg shadow-[#55B2DE] font-semibold transition-all"
           >
             {loading ? 'Saving...' : 'Continue'}
           </button>

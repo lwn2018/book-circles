@@ -100,7 +100,7 @@ export default function BookOfferCard({ book, userId, queueEntryId }: {
               <p>Available from: <span className="font-medium">{book.current_holder.full_name}</span></p>
               <p>Circle: <span className="font-medium">{book.circle.name}</span></p>
               {book.pass_count !== undefined && book.pass_count > 0 && (
-                <p className="text-orange-600">
+                <p className="text-[#4A9FCB]">
                   You've passed {book.pass_count} time{book.pass_count > 1 ? 's' : ''}
                   {book.pass_count >= 2 && ' (One more and you move to position 2)'}
                 </p>

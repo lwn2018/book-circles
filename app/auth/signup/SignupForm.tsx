@@ -155,11 +155,11 @@ export default function SignupForm() {
   }
 
   // Input field classes for dark theme
-  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent transition-all"
   
   // Primary button gradient style
   const primaryButtonStyle = {
-    background: 'linear-gradient(135deg, #F54900 0%, #FF6900 100%)',
+    background: 'linear-gradient(135deg, #55B2DE 0%, #4A9FCB 100%)',
   }
 
   return (
@@ -169,14 +169,14 @@ export default function SignupForm() {
         
         {inviteInfo && (
           <div className="mb-4 p-3 rounded-lg text-sm" style={{ backgroundColor: 'rgba(245, 73, 0, 0.15)', border: '1px solid rgba(245, 73, 0, 0.3)' }}>
-            <p className="font-semibold text-orange-300">✉️ You've been invited!</p>
-            <p className="mt-1 text-orange-200">Invited by {inviteInfo.creatorName}</p>
+            <p className="font-semibold text-[#6BC4EC]">✉️ You've been invited!</p>
+            <p className="mt-1 text-[#89D1F2]">Invited by {inviteInfo.creatorName}</p>
           </div>
         )}
 
         {circleCode && (
           <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'rgba(245, 73, 0, 0.15)', border: '1px solid rgba(245, 73, 0, 0.3)' }}>
-            <p className="font-semibold text-orange-300 text-center">
+            <p className="font-semibold text-[#6BC4EC] text-center">
               📚 You've been invited to join{circleInfo ? ` the ${circleInfo.name} circle` : ' a book circle'}!
             </p>
           </div>
@@ -253,16 +253,16 @@ export default function SignupForm() {
               id="agreedToTerms"
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="mt-1 w-4 h-4 bg-zinc-800 border-zinc-700 rounded focus:ring-orange-500 accent-orange-500"
+              className="mt-1 w-4 h-4 bg-zinc-800 border-zinc-700 rounded focus:ring-[#55B2DE] accent-[#55B2DE]"
               required
             />
             <label htmlFor="agreedToTerms" className="text-sm text-zinc-400">
               I agree to the{' '}
-              <Link href="/terms" className="text-orange-400 hover:text-orange-300 transition-colors" target="_blank">
+              <Link href="/terms" className="text-[#55B2DE] hover:text-[#6BC4EC] transition-colors" target="_blank">
                 Terms of Service
               </Link>
               {' '}and{' '}
-              <Link href="/privacy" className="text-orange-400 hover:text-orange-300 transition-colors" target="_blank">
+              <Link href="/privacy" className="text-[#55B2DE] hover:text-[#6BC4EC] transition-colors" target="_blank">
                 Privacy Policy
               </Link>
             </label>
@@ -281,7 +281,7 @@ export default function SignupForm() {
           Already have an account?{' '}
           <Link 
             href={circleCode ? `/auth/signin?circleCode=${circleCode}` : '/auth/signin'} 
-            className="text-orange-400 hover:text-orange-300 transition-colors"
+            className="text-[#55B2DE] hover:text-[#6BC4EC] transition-colors"
           >
             Sign in
           </Link>
@@ -290,11 +290,11 @@ export default function SignupForm() {
         {/* Footer Links */}
         <div className="mt-8 pt-6 border-t border-zinc-700">
           <div className="flex justify-center gap-4 text-xs text-zinc-500">
-            <Link href="/privacy" className="hover:text-orange-400 transition-colors">
+            <Link href="/privacy" className="hover:text-[#55B2DE] transition-colors">
               Privacy Policy
             </Link>
             <span>•</span>
-            <Link href="/terms" className="hover:text-orange-400 transition-colors">
+            <Link href="/terms" className="hover:text-[#55B2DE] transition-colors">
               Terms of Service
             </Link>
           </div>

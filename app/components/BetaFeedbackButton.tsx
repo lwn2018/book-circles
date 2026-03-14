@@ -80,7 +80,7 @@ export default function BetaFeedbackButton() {
       {/* Feedback Button - Bottom Right */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-4 z-40 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 active:bg-blue-800 transition"
+        className="fixed bottom-20 right-4 z-40 bg-[#55B2DE] text-white p-3 rounded-full shadow-lg hover:bg-[#4A9FCB] active:bg-blue-800 transition"
         aria-label="Report issue"
       >
         <svg 
@@ -146,7 +146,7 @@ export default function BetaFeedbackButton() {
                           onClick={() => setFeedbackType(feedbackType === type ? null : type)}
                           className={`flex-1 px-3 py-2 text-sm rounded-lg border transition ${
                             feedbackType === type
-                              ? 'bg-blue-600 text-white border-blue-600'
+                              ? 'bg-[#55B2DE] text-white border-[#55B2DE]'
                               : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                           }`}
                         >
@@ -164,7 +164,7 @@ export default function BetaFeedbackButton() {
                     <textarea
                       value={feedbackText}
                       onChange={(e) => setFeedbackText(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent resize-none"
                       rows={4}
                       placeholder="Describe what you experienced..."
                       required
@@ -175,7 +175,7 @@ export default function BetaFeedbackButton() {
                   <button
                     type="submit"
                     disabled={loading || !feedbackText.trim()}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="w-full px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
                     {loading ? 'Sending...' : 'Send Feedback'}
                   </button>

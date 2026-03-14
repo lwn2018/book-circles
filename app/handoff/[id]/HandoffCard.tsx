@@ -117,7 +117,7 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
         </p>
         <button
           onClick={() => router.push(role === 'giver' ? '/library' : '/dashboard/borrowed')}
-          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-6 py-2 bg-[#55B2DE] text-white rounded hover:bg-[#4A9FCB]"
         >
           Done
         </button>
@@ -158,7 +158,7 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
         <div className="flex flex-col gap-3">
           <button
             onClick={() => router.push('/shelf')}
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            className="w-full px-6 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] font-medium"
           >
             Go to My Shelf
           </button>
@@ -262,7 +262,7 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
         <button
           onClick={handleConfirm}
           disabled={loading}
-          className="w-full py-3 bg-blue-600 text-white text-lg font-semibold rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 bg-[#55B2DE] text-white text-lg font-semibold rounded hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Confirming...' : role === 'giver' ? 'I Gave It' : 'I Got It'}
         </button>
@@ -278,7 +278,7 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
           <div className="flex flex-col gap-3">
             <button
               onClick={() => router.push('/shelf')}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              className="w-full px-6 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] font-medium"
             >
               Go to My Shelf
             </button>

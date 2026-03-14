@@ -94,7 +94,7 @@ export default function CreateCircle() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
               placeholder="e.g., Sarah's Book Club"
               required
             />
@@ -104,7 +104,7 @@ export default function CreateCircle() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
               rows={3}
               placeholder="e.g., Our neighbourhood book swap"
             />
@@ -112,7 +112,7 @@ export default function CreateCircle() {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
           >
             {loading ? 'Creating...' : 'Create Circle'}
           </button>

@@ -67,7 +67,7 @@ export default function InvitePage() {
           <button
             onClick={generateInvite}
             disabled={generating}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium mb-8"
+            className="px-6 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 font-medium mb-8"
           >
             {generating ? 'Generating...' : '✨ Generate New Invite Link'}
           </button>
@@ -87,7 +87,7 @@ export default function InvitePage() {
                 <div key={invite.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <p className="font-mono text-lg font-bold text-blue-600">{invite.code}</p>
+                      <p className="font-mono text-lg font-bold text-[#55B2DE]">{invite.code}</p>
                       <p className="text-xs text-gray-500">
                         Created {new Date(invite.created_at).toLocaleDateString()}
                       </p>

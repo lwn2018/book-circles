@@ -131,21 +131,60 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
     return true
   })
 
+  // Calculate stats
+  const memberCount = members?.length || 0
+  const sharedCount = books.length
+  const activeCount = books.filter(b => b.status === 'borrowed').length
+
+  // Format founded date
+  const foundedDate = new Date(circle.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+
   return (
     <div className="min-h-screen bg-[#121212] p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header Section */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-3 font-arimo">{circle.name}</h1>
-          {circle.description && (
-            <p className="text-gray-400 mb-3 text-sm sm:text-base">{circle.description}</p>
-          )}
-          <InviteLink inviteCode={circle.invite_code} />
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white font-arimo">{circle.name}</h1>
+          <p className="text-[#94A3B8] text-sm mt-1">
+            Founded {foundedDate} • {circle.is_private ? 'Private' : 'Public'} Circle
+          </p>
         </div>
 
-        {/* Members Section */}
-        <div className="mb-6">
-          <CollapsibleMembersList members={(members as any) || []} />
+        {/* Members Row with Overlapping Avatars */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center">
+            {members?.slice(0, 5).map((member: any, index: number) => (
+              <div 
+                key={member.profiles?.id || index}
+                className={`w-10 h-10 rounded-full bg-[#334155] flex items-center justify-center text-white font-medium border-2 border-[#121212] ${index > 0 ? '-ml-3' : ''}`}
+                title={member.profiles?.full_name || 'Member'}
+              >
+                {(member.profiles?.full_name || 'M').charAt(0).toUpperCase()}
+              </div>
+            ))}
+            {memberCount > 5 && (
+              <div className="-ml-3 w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center text-[#94A3B8] text-sm font-medium border-2 border-[#121212]">
+                +{memberCount - 5}
+              </div>
+            )}
+          </div>
+          <InviteLink inviteCode={circle.invite_code} variant="pill" />
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-[#1E293B] rounded-xl p-4 text-center">
+            <p className="text-[#94A3B8] text-xs uppercase tracking-wide mb-1">Members</p>
+            <p className="text-[#55B2DE] text-2xl font-bold">{memberCount}</p>
+          </div>
+          <div className="bg-[#1E293B] rounded-xl p-4 text-center">
+            <p className="text-[#94A3B8] text-xs uppercase tracking-wide mb-1">Shared</p>
+            <p className="text-[#55B2DE] text-2xl font-bold">{sharedCount}</p>
+          </div>
+          <div className="bg-[#1E293B] rounded-xl p-4 text-center">
+            <p className="text-[#94A3B8] text-xs uppercase tracking-wide mb-1">Active</p>
+            <p className="text-[#55B2DE] text-2xl font-bold">{activeCount}</p>
+          </div>
         </div>
 
         {/* Books Section */}

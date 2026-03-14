@@ -90,7 +90,7 @@ export default async function HandoffsPage() {
             </p>
             <Link
               href="/circles"
-              className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="inline-block mt-4 px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB]"
             >
               Browse Circles
             </Link>

@@ -88,7 +88,7 @@ export default async function CirclesTab() {
       <div className="mb-6 flex gap-4 flex-wrap">
         <Link
           href="/circles/create"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          className="px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] font-medium"
         >
           ➕ Create Circle
         </Link>

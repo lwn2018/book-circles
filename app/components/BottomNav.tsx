@@ -10,7 +10,7 @@ const CirclesIcon = ({ active }: { active: boolean }) => (
     height="24" 
     viewBox="0 0 24 24" 
     fill="none" 
-    stroke={active ? '#F96602' : '#FFFFFF'}
+    stroke={active ? '#55B2DE' : '#64748B'}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -26,7 +26,7 @@ const LibraryIcon = ({ active }: { active: boolean }) => (
     height="24" 
     viewBox="0 0 24 24" 
     fill="none" 
-    stroke={active ? '#F96602' : '#FFFFFF'}
+    stroke={active ? '#55B2DE' : '#64748B'}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -42,7 +42,7 @@ const ShelfIcon = ({ active }: { active: boolean }) => (
     height="24" 
     viewBox="0 0 24 24" 
     fill="none" 
-    stroke={active ? '#F96602' : '#FFFFFF'}
+    stroke={active ? '#55B2DE' : '#64748B'}
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -84,7 +84,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-zinc-800 z-50 safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-[#334155] z-50 safe-area-bottom">
       <div className="max-w-md mx-auto flex justify-around items-center h-16">
         {tabs.map((tab) => {
           const active = isActive(tab.path)
@@ -95,15 +95,15 @@ export default function BottomNav() {
               href={tab.path}
               className={`flex flex-col items-center justify-center py-2 px-4 flex-1 min-w-0 transition-colors duration-200 ${
                 active 
-                  ? 'text-[#F96602]' 
-                  : 'text-white hover:text-zinc-300'
+                  ? 'text-[#55B2DE]' 
+                  : 'text-[#64748B] hover:text-[#94A3B8]'
               }`}
             >
               <div className={`mb-1 ${active ? 'transform scale-105' : ''}`}>
                 <IconComponent active={active} />
               </div>
               <span className={`text-xs font-medium tracking-wide ${
-                active ? 'text-[#F96602]' : 'text-white'
+                active ? 'text-[#55B2DE]' : 'text-[#64748B]'
               }`}>
                 {tab.label}
               </span>

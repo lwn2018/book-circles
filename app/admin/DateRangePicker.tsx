@@ -105,15 +105,15 @@ export default function DateRangePicker({ onChange }: Props) {
           <button
             key={preset.label}
             onClick={() => handlePresetClick(preset)}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#55B2DE]"
           >
             {preset.label}
           </button>
         ))}
         <button
           onClick={() => setShowCustom(!showCustom)}
-          className={`px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 ${
-            showCustom ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 hover:bg-gray-50'
+          className={`px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#55B2DE] ${
+            showCustom ? 'bg-[#55B2DE] text-white border-[#55B2DE]' : 'border-gray-300 hover:bg-gray-50'
           }`}
         >
           Custom
@@ -129,7 +129,7 @@ export default function DateRangePicker({ onChange }: Props) {
               type="date"
               value={dateRange.start}
               onChange={(e) => handleCustomChange('start', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE]"
             />
           </div>
           <div>
@@ -138,7 +138,7 @@ export default function DateRangePicker({ onChange }: Props) {
               type="date"
               value={dateRange.end}
               onChange={(e) => handleCustomChange('end', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE]"
             />
           </div>
         </div>

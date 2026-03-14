@@ -70,9 +70,9 @@ export default function BuyAmazonButton({
   // Style variants
   const baseStyles = 'inline-flex items-center justify-center font-medium rounded transition'
   const variantStyles = {
-    primary: 'px-4 py-2 bg-orange-600 text-white hover:bg-orange-700',
+    primary: 'px-4 py-2 bg-[#4A9FCB] text-white hover:bg-[#3D8AAF]',
     secondary: 'px-3 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50',
-    link: 'text-blue-600 hover:underline'
+    link: 'text-[#55B2DE] hover:underline'
   }
 
   // Use anchor tag - Safari NEVER blocks regular anchor tags

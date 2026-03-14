@@ -297,7 +297,7 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
             type="text"
             value={isbn}
             onChange={(e) => handleIsbnChange(e.target.value)}
-            className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE]"
             placeholder="Enter or scan ISBN"
           />
           <button
@@ -351,7 +351,7 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
               setShowTitleDropdown(true)
             }
           }}
-          className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE]"
           placeholder="Start typing to search books..."
           required
         />
@@ -400,13 +400,13 @@ export default function AddBookForm({ circleId, userId }: { circleId: string; us
           type="text"
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE]"
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+        className="w-full px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 text-sm"
       >
         {loading ? 'Adding...' : 'Add Book'}
       </button>

@@ -331,7 +331,7 @@ export default function SearchOverlay({ userId }: { userId: string }) {
                             <button
                               onClick={() => handleAddToLibrary(book)}
                               disabled={addingBook === book.id}
-                              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+                              className="px-3 py-1.5 bg-[#55B2DE] text-white text-sm rounded hover:bg-[#4A9FCB] disabled:opacity-50"
                             >
                               {addingBook === book.id ? 'Adding...' : 'Add to My Library'}
                             </button>

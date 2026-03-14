@@ -75,7 +75,7 @@ export default function AdminDashboard({ adsEnabled }: Props) {
           href="/admin/signup-analytics"
           className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
         >
-          <h3 className="font-semibold text-blue-600 mb-1">👥 Signup Analytics</h3>
+          <h3 className="font-semibold text-[#55B2DE] mb-1">👥 Signup Analytics</h3>
           <p className="text-sm text-gray-600">Sources, referrers, invite tracking</p>
         </a>
         <a 
@@ -89,7 +89,7 @@ export default function AdminDashboard({ adsEnabled }: Props) {
           href="/admin/idle-books"
           className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
         >
-          <h3 className="font-semibold text-orange-600 mb-1">😴 Idle Books</h3>
+          <h3 className="font-semibold text-[#4A9FCB] mb-1">😴 Idle Books</h3>
           <p className="text-sm text-gray-600">Books never borrowed</p>
         </a>
       </div>
@@ -100,7 +100,7 @@ export default function AdminDashboard({ adsEnabled }: Props) {
           <h2 className="text-xl font-semibold">Ad & Affiliate Controls</h2>
           <a 
             href="/admin/affiliate"
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-[#55B2DE] hover:underline"
           >
             Configure Affiliate IDs →
           </a>
@@ -109,7 +109,7 @@ export default function AdminDashboard({ adsEnabled }: Props) {
       </div>
 
       {loading && stats && (
-        <div className="bg-blue-50 text-blue-600 rounded-lg p-3 mb-6 text-sm">
+        <div className="bg-blue-50 text-[#55B2DE] rounded-lg p-3 mb-6 text-sm">
           Updating metrics...
         </div>
       )}

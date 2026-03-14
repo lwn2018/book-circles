@@ -124,7 +124,7 @@ export default function OnboardingImport() {
             </p>
             <button
               onClick={() => router.push('/onboarding/welcome')}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md"
+              className="px-8 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] shadow-md"
             >
               Continue
             </button>
@@ -138,7 +138,7 @@ export default function OnboardingImport() {
               <div className="bg-white rounded-lg p-4 mb-4">
                 <p className="font-medium mb-2">Step 1: Download your library</p>
                 <ol className="text-sm text-gray-700 space-y-1 mb-3 list-decimal list-inside">
-                  <li>Go to <a href="https://www.goodreads.com/review/import" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Goodreads Export</a></li>
+                  <li>Go to <a href="https://www.goodreads.com/review/import" target="_blank" rel="noopener noreferrer" className="text-[#55B2DE] hover:underline">Goodreads Export</a></li>
                   <li>Click "Export Library"</li>
                   <li>Download the CSV file</li>
                 </ol>
@@ -184,7 +184,7 @@ export default function OnboardingImport() {
               <button
                 onClick={handleImport}
                 disabled={!selectedFile || uploading}
-                className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                className="w-full py-3 bg-[#55B2DE] text-white font-medium rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
                 {uploading ? 'Uploading...' : 'Start Import'}
               </button>

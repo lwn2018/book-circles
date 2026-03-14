@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Figtree, Montserrat } from "next/font/google";
 import "./globals.css";
 import { PostHogProvider } from "./components/PostHogProvider";
 
 const inter = Inter({
-  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
+});
+
+const figtree = Figtree({
+  subsets: ["latin"],
+  variable: "--font-figtree",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
 });
 
 export const metadata: Metadata = {
@@ -35,7 +44,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.variable} ${figtree.variable} ${montserrat.variable} antialiased`}>
         <PostHogProvider>
           {children}
         </PostHogProvider>

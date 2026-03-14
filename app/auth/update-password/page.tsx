@@ -54,11 +54,11 @@ export default function UpdatePassword() {
   }
 
   // Input field classes for dark theme
-  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+  const inputClasses = "w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent transition-all"
   
   // Primary button gradient style
   const primaryButtonStyle = {
-    background: 'linear-gradient(135deg, #F54900 0%, #FF6900 100%)',
+    background: 'linear-gradient(135deg, #55B2DE 0%, #4A9FCB 100%)',
   }
 
   if (!isValidSession && !error) {

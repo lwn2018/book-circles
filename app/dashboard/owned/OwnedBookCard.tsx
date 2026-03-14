@@ -146,7 +146,7 @@ export default function OwnedBookCard({ book, userId }: { book: Book; userId: st
             <button
               onClick={handleRecall}
               disabled={loading}
-              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 text-sm font-medium"
+              className="px-4 py-2 bg-[#4A9FCB] text-white rounded-lg hover:bg-[#3D8AAF] disabled:opacity-50 text-sm font-medium"
             >
               {loading ? 'Processing...' : '📣 Request Book Back'}
             </button>

@@ -117,7 +117,7 @@ export default function LibraryContent({
           placeholder="Search your library..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-[#27272A] text-white placeholder-zinc-500 rounded-xl border border-transparent focus:border-orange-500 focus:outline-none transition-colors"
+          className="w-full pl-12 pr-4 py-3 bg-[#27272A] text-white placeholder-zinc-500 rounded-xl border border-transparent focus:border-[#55B2DE] focus:outline-none transition-colors"
         />
         {searchQuery && (
           <button
@@ -139,12 +139,12 @@ export default function LibraryContent({
             onClick={() => setActiveFilter(tab.key)}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               activeFilter === tab.key
-                ? 'bg-orange-500 text-white'
+                ? 'bg-[#55B2DE] text-white'
                 : 'bg-[#27272A] text-zinc-400 hover:text-white hover:bg-zinc-700'
             }`}
           >
             {tab.label}
-            <span className={`ml-1.5 ${activeFilter === tab.key ? 'text-orange-100' : 'text-zinc-500'}`}>
+            <span className={`ml-1.5 ${activeFilter === tab.key ? 'text-[#55B2DE]' : 'text-zinc-500'}`}>
               {counts[tab.key]}
             </span>
           </button>

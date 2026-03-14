@@ -145,7 +145,7 @@ export default function BookSearch({ userId }: { userId: string }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search for books by title or author..."
-          className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#55B2DE]"
         />
         <span className="absolute left-4 top-3.5 text-gray-400 text-xl">🔍</span>
         {searchingInternal && (
@@ -216,7 +216,7 @@ export default function BookSearch({ userId }: { userId: string }) {
                         <button
                           onClick={() => handleAddToLibrary(book)}
                           disabled={addingBook === book.id}
-                          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+                          className="px-3 py-1.5 bg-[#55B2DE] text-white text-sm rounded hover:bg-[#4A9FCB] disabled:opacity-50"
                         >
                           {addingBook === book.id ? 'Adding...' : '+ Add to Library'}
                         </button>
@@ -246,7 +246,7 @@ export default function BookSearch({ userId }: { userId: string }) {
                   href={getBuyAmazonLink({ id: '', title: query, author: null, isbn: null, cover_url: null })}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-[#55B2DE] hover:underline"
                 >
                   browse on Amazon
                 </a>

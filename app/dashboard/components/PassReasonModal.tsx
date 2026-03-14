@@ -38,7 +38,7 @@ export default function PassReasonModal({ bookTitle, onPass, onCancel, passCount
         <h3 className="text-xl font-semibold mb-2">Pass on "{bookTitle}"?</h3>
         
         {passCount > 0 && (
-          <p className="text-sm text-orange-600 mb-4">
+          <p className="text-sm text-[#4A9FCB] mb-4">
             You&apos;ve passed {passCount} time{passCount > 1 ? 's' : ''}. 
             {passCount >= 2 && ' After 3 passes, you\'ll move to position 2.'}
           </p>
@@ -86,7 +86,7 @@ export default function PassReasonModal({ bookTitle, onPass, onCancel, passCount
           <button
             onClick={handleSubmit}
             disabled={loading || !selectedReason}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="flex-1 px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
           >
             {loading ? 'Processing...' : selectedReason === 'remove' ? 'Remove' : 'Pass'}
           </button>

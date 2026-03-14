@@ -53,7 +53,7 @@ export default function QueueStats({ dateRange }: Props) {
   return (
     <div className="space-y-6">
       {loading && stats && (
-        <div className="bg-blue-50 text-blue-600 rounded-lg p-3 text-sm">
+        <div className="bg-blue-50 text-[#55B2DE] rounded-lg p-3 text-sm">
           Updating metrics...
         </div>
       )}
@@ -105,7 +105,7 @@ export default function QueueStats({ dateRange }: Props) {
               .map(([reason, count]) => (
                 <div key={reason} className="flex justify-between items-center p-3 bg-gray-50 rounded">
                   <span className="text-sm">{reason}</span>
-                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+                  <span className="px-3 py-1 bg-[#55B2DE]/20 text-[#4A9FCB] rounded-full text-sm font-semibold">
                     {count}
                   </span>
                 </div>

@@ -103,7 +103,7 @@ export default async function MyLibraryTab() {
                     Waiting for handoff with {handoff.giver.full_name}
                   </p>
                 </div>
-                <div className="text-orange-500 font-medium text-sm">
+                <div className="text-[#55B2DE] font-medium text-sm">
                   Confirm →
                 </div>
               </Link>

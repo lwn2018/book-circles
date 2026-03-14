@@ -52,7 +52,7 @@ export default function DownloadDataSection() {
       <button
         onClick={handleDownload}
         disabled={loading}
-        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-6 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Preparing Download...' : '📥 Download My Data'}
       </button>

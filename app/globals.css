@@ -29,21 +29,38 @@ html, body {
   /* Borders */
   --border: #334155;
   --border-muted: #1E293B;
+  
+  /* Typography */
+  --font-display: var(--font-montserrat), 'Montreal', sans-serif;
+  --font-body: var(--font-figtree), sans-serif;
+  --font-ui: var(--font-inter), sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-inter: var(--font-inter);
+  --font-sans: var(--font-body);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Utilities */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.font-ui {
+  font-family: var(--font-ui);
 }
 
 /* Utility Classes */
@@ -52,6 +69,7 @@ body {
 .btn-primary {
   background: var(--primary);
   color: var(--foreground);
+  font-family: var(--font-ui);
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
@@ -89,6 +107,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
+  font-family: var(--font-body);
   font-size: 1rem;
   width: 100%;
   transition: border-color 0.2s ease;

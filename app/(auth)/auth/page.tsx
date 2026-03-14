@@ -129,7 +129,7 @@ function AuthForm() {
           onClick={() => setTab('login')}
           className={`flex-1 py-3 text-center font-medium transition-colors ${
             tab === 'login'
-              ? 'text-blue-600 border-b-2 border-blue-600'
+              ? 'text-[#55B2DE] border-b-2 border-[#55B2DE]'
               : 'text-gray-600 hover:text-gray-900'
           }`}
         >
@@ -139,7 +139,7 @@ function AuthForm() {
           onClick={() => setTab('join')}
           className={`flex-1 py-3 text-center font-medium transition-colors ${
             tab === 'join'
-              ? 'text-blue-600 border-b-2 border-blue-600'
+              ? 'text-[#55B2DE] border-b-2 border-[#55B2DE]'
               : 'text-gray-600 hover:text-gray-900'
           }`}
         >
@@ -165,7 +165,7 @@ function AuthForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
               placeholder="your@email.com"
               required
             />
@@ -179,7 +179,7 @@ function AuthForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
               placeholder="••••••••"
               required
               minLength={6}
@@ -194,7 +194,7 @@ function AuthForm() {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
               placeholder="••••••••"
               required
               minLength={6}
@@ -207,16 +207,16 @@ function AuthForm() {
                 type="checkbox"
                 checked={agreedToTerms}
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                className="mt-1 w-4 h-4 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
                 required
               />
               <span className="text-sm text-gray-700">
                 I agree to the PagePass{' '}
-                <Link href="/terms" target="_blank" className="text-blue-600 hover:underline">
+                <Link href="/terms" target="_blank" className="text-[#55B2DE] hover:underline">
                   terms of service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">
+                <Link href="/privacy" target="_blank" className="text-[#55B2DE] hover:underline">
                   privacy policy
                 </Link>
               </span>
@@ -230,7 +230,7 @@ function AuthForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
+            className="w-full py-3 bg-[#55B2DE] text-white font-medium rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
           >
             {loading ? 'Creating account...' : 'Join PagePass'}
           </button>
@@ -240,7 +240,7 @@ function AuthForm() {
             <button
               type="button"
               onClick={() => setTab('login')}
-              className="text-blue-600 font-medium hover:underline"
+              className="text-[#55B2DE] font-medium hover:underline"
             >
               Sign in
             </button>
@@ -259,7 +259,7 @@ function AuthForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
               placeholder="your@email.com"
               required
             />
@@ -273,7 +273,7 @@ function AuthForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
               placeholder="••••••••"
               required
             />
@@ -282,7 +282,7 @@ function AuthForm() {
           <div className="text-right">
             <Link
               href="/auth/reset-password"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-[#55B2DE] hover:underline"
             >
               Forgot password?
             </Link>
@@ -291,7 +291,7 @@ function AuthForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
+            className="w-full py-3 bg-[#55B2DE] text-white font-medium rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
@@ -301,7 +301,7 @@ function AuthForm() {
             <button
               type="button"
               onClick={() => setTab('join')}
-              className="text-blue-600 font-medium hover:underline"
+              className="text-[#55B2DE] font-medium hover:underline"
             >
               Join
             </button>

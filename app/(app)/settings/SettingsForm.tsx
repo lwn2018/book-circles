@@ -150,7 +150,7 @@ export default function SettingsForm({ user }: { user: User }) {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-blue-500"
               placeholder="Your name"
             />
           </div>
@@ -171,7 +171,7 @@ export default function SettingsForm({ user }: { user: User }) {
                     type="checkbox"
                     checked={shareEmail}
                     onChange={(e) => setShareEmail(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-4 h-4 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
                   />
                   <span className="text-sm font-medium">Email</span>
                 </label>
@@ -180,7 +180,7 @@ export default function SettingsForm({ user }: { user: User }) {
                     type="email"
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
-                    className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-blue-500"
                     placeholder="you@example.com"
                   />
                 )}
@@ -192,7 +192,7 @@ export default function SettingsForm({ user }: { user: User }) {
                     type="checkbox"
                     checked={sharePhone}
                     onChange={(e) => setSharePhone(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-4 h-4 text-[#55B2DE] rounded focus:ring-2 focus:ring-[#55B2DE]"
                   />
                   <span className="text-sm font-medium">Phone (call or text)</span>
                 </label>
@@ -201,7 +201,7 @@ export default function SettingsForm({ user }: { user: User }) {
                     type="tel"
                     value={contactPhone}
                     onChange={(e) => setContactPhone(formatPhoneNumber(e.target.value))}
-                    className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-2 ml-6 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-blue-500"
                     placeholder="(555) 123-4567"
                   />
                 )}
@@ -227,7 +227,7 @@ export default function SettingsForm({ user }: { user: User }) {
             <div className="flex gap-3">
               <label className={`flex-1 px-4 py-3 border-2 rounded-lg cursor-pointer transition ${
                 defaultBrowseView === 'card' 
-                  ? 'border-blue-600 bg-blue-50' 
+                  ? 'border-[#55B2DE] bg-blue-50' 
                   : 'border-gray-300 hover:border-gray-400'
               }`}>
                 <input
@@ -246,7 +246,7 @@ export default function SettingsForm({ user }: { user: User }) {
 
               <label className={`flex-1 px-4 py-3 border-2 rounded-lg cursor-pointer transition ${
                 defaultBrowseView === 'list' 
-                  ? 'border-blue-600 bg-blue-50' 
+                  ? 'border-[#55B2DE] bg-blue-50' 
                   : 'border-gray-300 hover:border-gray-400'
               }`}>
                 <input
@@ -268,7 +268,7 @@ export default function SettingsForm({ user }: { user: User }) {
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
           >
             {loading ? 'Saving...' : 'Save Profile'}
           </button>
@@ -288,7 +288,7 @@ export default function SettingsForm({ user }: { user: User }) {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-blue-500"
               placeholder="Enter new password"
               minLength={6}
             />
@@ -302,7 +302,7 @@ export default function SettingsForm({ user }: { user: User }) {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-blue-500"
               placeholder="Confirm new password"
               minLength={6}
             />
@@ -311,7 +311,7 @@ export default function SettingsForm({ user }: { user: User }) {
           <button
             type="submit"
             disabled={loading || !newPassword || !confirmPassword}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
           >
             {loading ? 'Changing...' : 'Change Password'}
           </button>

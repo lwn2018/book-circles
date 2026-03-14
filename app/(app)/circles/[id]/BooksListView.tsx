@@ -155,7 +155,7 @@ export default function BooksListView({
                   Off Shelf
                 </span>
               ) : book.status === 'in_transit' ? (
-                <span className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded-full border border-blue-500/30">
+                <span className="px-2 py-1 bg-[#55B2DE]/20 text-blue-400 text-xs rounded-full border border-blue-500/30">
                   Passing
                 </span>
               ) : (
@@ -173,7 +173,7 @@ export default function BooksListView({
                   className={`px-3 py-1.5 text-xs text-white rounded-lg font-medium active:scale-95 transition-all ${
                     book.gift_on_borrow 
                       ? 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600' 
-                      : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
+                      : 'bg-[#55B2DE] hover:bg-[#4A9FCB]'
                   }`}
                 >
                   {book.gift_on_borrow ? '🎁 Accept' : 'Borrow'}

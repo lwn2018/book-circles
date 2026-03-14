@@ -171,7 +171,7 @@ export default function NotificationBell() {
               <button
                 onClick={markAllAsRead}
                 disabled={loading}
-                className="text-sm text-blue-600 hover:underline disabled:opacity-50"
+                className="text-sm text-[#55B2DE] hover:underline disabled:opacity-50"
               >
                 Mark all read
               </button>
@@ -197,7 +197,7 @@ export default function NotificationBell() {
                   >
                     {/* Unread indicator dot on left */}
                     {!notification.read && (
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-600 rounded-full" />
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#55B2DE] rounded-full" />
                     )}
                     
                     <div className="flex gap-3">
@@ -233,7 +233,7 @@ export default function NotificationBell() {
                   router.push('/notifications')
                   setShowDropdown(false)
                 }}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-[#55B2DE] hover:underline"
               >
                 View all notifications
               </button>

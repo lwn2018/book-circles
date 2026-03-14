@@ -348,7 +348,7 @@ export default function GoodreadsImporter({
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <div className="text-center py-12">
-          <div className="inline-block animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
+          <div className="inline-block animate-spin h-8 w-8 border-4 border-[#55B2DE] border-t-transparent rounded-full mb-4"></div>
           <p className="text-lg font-medium text-blue-800">{uploadStatus}</p>
           <p className="text-sm text-gray-500 mt-2">This may take a moment for large libraries</p>
         </div>
@@ -437,7 +437,7 @@ export default function GoodreadsImporter({
             <div className="flex flex-wrap gap-2 mb-4">
               {(['all', 'read', 'to-read'] as const).map(shelf => (
                 <button key={shelf} onClick={() => setActiveShelf(shelf)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition ${activeShelf === shelf ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition ${activeShelf === shelf ? 'bg-[#55B2DE] text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
                   {shelf === 'read' ? '✅ Read' : shelf === 'to-read' ? '📖 To-Read' : '📚 All'} ({shelfCounts[shelf]})
                 </button>
               ))}
@@ -464,7 +464,7 @@ export default function GoodreadsImporter({
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-gray-600"><strong>{selectedCount}</strong> selected</span>
               <div className="flex gap-3">
-                <button onClick={selectAllVisible} className="text-sm text-blue-600 hover:underline">Select all</button>
+                <button onClick={selectAllVisible} className="text-sm text-[#55B2DE] hover:underline">Select all</button>
                 <button onClick={deselectAll} className="text-sm text-gray-500 hover:underline">Deselect all</button>
               </div>
             </div>
@@ -500,7 +500,7 @@ export default function GoodreadsImporter({
                         </div>
                       ) : (
                         <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                          book.selected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
+                          book.selected ? 'bg-[#55B2DE] border-[#55B2DE]' : 'border-gray-300'
                         }`}>
                           {book.selected && (
                             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -514,7 +514,7 @@ export default function GoodreadsImporter({
                         <p className="text-xs text-gray-500 truncate">
                           {book.author}
                           {book.imported && <span className="ml-2 text-green-600">• Imported</span>}
-                          {!book.imported && isOwned && <span className="ml-2 text-blue-600">• Already in library</span>}
+                          {!book.imported && isOwned && <span className="ml-2 text-[#55B2DE]">• Already in library</span>}
                         </p>
                       </div>
                       {book.myRating && book.myRating > 0 && (
@@ -532,11 +532,11 @@ export default function GoodreadsImporter({
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex justify-between mb-2">
                 <span className="text-sm font-medium text-blue-800">📚 Importing your books…</span>
-                <span className="text-sm text-blue-600">{importProgress.current}/{importProgress.total}</span>
+                <span className="text-sm text-[#55B2DE]">{importProgress.current}/{importProgress.total}</span>
               </div>
               <div className="w-full bg-blue-200 rounded-full h-3">
                 <div 
-                  className="bg-blue-600 h-3 rounded-full transition-all" 
+                  className="bg-[#55B2DE] h-3 rounded-full transition-all" 
                   style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }} 
                 />
               </div>
@@ -545,7 +545,7 @@ export default function GoodreadsImporter({
             <button 
               onClick={handleImport} 
               disabled={selectedCount === 0}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+              className="w-full px-4 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 font-medium"
             >
               Import {selectedCount} Book{selectedCount !== 1 ? 's' : ''}
             </button>
@@ -567,7 +567,7 @@ export default function GoodreadsImporter({
                   <div className="flex flex-wrap gap-2">
                     {userCircles.map(c => (
                       <label key={c.id} className={`px-3 py-1 rounded-full text-xs cursor-pointer ${
-                        book.selectedCircles.includes(c.id) ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                        book.selectedCircles.includes(c.id) ? 'bg-[#55B2DE] text-white' : 'bg-gray-200'
                       }`}>
                         <input 
                           type="checkbox" 

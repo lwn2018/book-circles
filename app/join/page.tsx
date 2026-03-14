@@ -147,7 +147,7 @@ function JoinCircleContent() {
           <p className="text-gray-600 mb-6">{error}</p>
           <a
             href="/circles"
-            className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-block px-6 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB]"
           >
             Go to My Circles
           </a>
@@ -173,7 +173,7 @@ function JoinCircleContent() {
           <div className="flex flex-col gap-3">
             <button
               onClick={handleAcceptInvite}
-              className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 shadow-md text-lg"
+              className="w-full py-3 bg-[#55B2DE] text-white font-medium rounded-lg hover:bg-[#4A9FCB] shadow-md text-lg"
             >
               Yes, Join Circle
             </button>

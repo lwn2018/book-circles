@@ -15,9 +15,9 @@ export default function ProgressBar({
             key={index}
             className={`flex-1 h-2 rounded-full transition-colors ${
               index < currentStep
-                ? 'bg-orange-500'
+                ? 'bg-[#55B2DE]'
                 : index === currentStep
-                ? 'bg-orange-400'
+                ? 'bg-[#55B2DE]'
                 : 'bg-gray-700'
             }`}
           />

@@ -41,7 +41,7 @@ export default function BooksListWithFilters({
 }: BooksListWithFiltersProps) {
   const [books, setBooks] = useState(initialBooks)
   const [sortBy, setSortBy] = useState('recently_added')
-  const [availableOnly, setAvailableOnly] = useState(false)
+  const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'borrowed' | 'in_queue'>('all')
   const [displayCount, setDisplayCount] = useState(20)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
   const searchParams = useSearchParams()
@@ -92,6 +92,20 @@ export default function BooksListWithFilters({
 
   // Filter and sort books
   const filteredAndSortedBooks = useMemo(() => {
+    // Apply filter based on active filter
+    const applyStatusFilter = (result: Book[]) => {
+      switch (activeFilter) {
+        case 'available':
+          return result.filter(book => book.status === 'available')
+        case 'borrowed':
+          return result.filter(book => book.status === 'borrowed' || book.status === 'in_transit')
+        case 'in_queue':
+          return result.filter(book => book.book_queue?.some(q => q.user_id === userId))
+        default:
+          return result
+      }
+    }
+
     // If we have session-modified books, don't re-sort at all - keep current order
     if (sessionModifiedBooks.size > 0) {
       let result = [...books]
@@ -105,9 +119,7 @@ export default function BooksListWithFilters({
         )
       }
 
-      if (availableOnly) {
-        result = result.filter(book => book.status === 'available')
-      }
+      result = applyStatusFilter(result)
       
       return result
     }
@@ -124,10 +136,8 @@ export default function BooksListWithFilters({
       )
     }
 
-    // Apply available only filter
-    if (availableOnly) {
-      result = result.filter(book => book.status === 'available')
-    }
+    // Apply status filter
+    result = applyStatusFilter(result)
 
     // Sort
     switch (sortBy) {
@@ -177,7 +187,7 @@ export default function BooksListWithFilters({
     }
 
     return result
-  }, [books, searchFilter, availableOnly, sortBy, userId, sessionModifiedBooks])
+  }, [books, searchFilter, activeFilter, sortBy, userId, sessionModifiedBooks])
 
   // Paginated books (for infinite scroll)
   const displayedBooks = useMemo(() => {
@@ -203,7 +213,7 @@ export default function BooksListWithFilters({
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(20)
-  }, [searchFilter, availableOnly, sortBy])
+  }, [searchFilter, activeFilter, sortBy])
 
   // Get most recent books for "New in circle" section
   const newBooks = useMemo(() => {
@@ -279,7 +289,7 @@ export default function BooksListWithFilters({
                   {!isOwner && book.status === 'available' && (
                     <button
                       onClick={() => setRequestingBookId(book.id)}
-                      className="w-full text-xs px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-amber-600 active:scale-95 transition-all"
+                      className="w-full text-xs px-3 py-2 bg-[#55B2DE] text-white rounded-lg font-medium hover:bg-[#4A9FCB] active:scale-95 transition-all"
                     >
                       Borrow
                     </button>
@@ -320,7 +330,7 @@ export default function BooksListWithFilters({
         {searchFilter && (
           <div className="mb-3 mt-3 px-3 py-2 bg-[#27272A] border border-[#3F3F46] rounded-lg flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <span className="text-sm text-gray-300">
@@ -329,7 +339,7 @@ export default function BooksListWithFilters({
             </div>
             <button
               onClick={() => setSearchFilter('')}
-              className="text-orange-400 hover:text-orange-300 text-sm font-medium transition-colors"
+              className="text-[#55B2DE] hover:text-[#6BC4EC] text-sm font-medium transition-colors"
             >
               Clear
             </button>
@@ -342,7 +352,7 @@ export default function BooksListWithFilters({
             onClick={() => handleViewModeChange('card')}
             className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
               viewMode === 'card'
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
+                ? 'bg-[#55B2DE] text-white'
                 : 'bg-[#27272A] text-gray-300 hover:bg-[#3F3F46]'
             }`}
           >
@@ -352,7 +362,7 @@ export default function BooksListWithFilters({
             onClick={() => handleViewModeChange('list')}
             className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
               viewMode === 'list'
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
+                ? 'bg-[#55B2DE] text-white'
                 : 'bg-[#27272A] text-gray-300 hover:bg-[#3F3F46]'
             }`}
           >
@@ -382,7 +392,7 @@ export default function BooksListWithFilters({
         {/* Loading indicator when more books are available */}
         {displayCount < filteredAndSortedBooks.length && (
           <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#55B2DE]"></div>
             <p className="text-sm text-gray-400 mt-2">Loading more books...</p>
           </div>
         )}
@@ -406,7 +416,7 @@ export default function BooksListWithFilters({
 
       {/* Toast notification - Dark theme */}
       {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-3 rounded-lg shadow-lg max-w-md text-center animate-fade-in">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[#55B2DE] text-white px-4 py-3 rounded-lg shadow-lg max-w-md text-center animate-fade-in">
           {toast.message}
         </div>
       )}

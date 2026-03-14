@@ -62,7 +62,7 @@ export default function BackfillMetadataPage() {
             className={`w-full py-3 rounded-lg font-semibold text-white ${
               running
                 ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
+                : 'bg-[#55B2DE] hover:bg-[#4A9FCB]'
             }`}
           >
             {running ? 'Running backfill...' : 'Start Backfill'}
@@ -83,7 +83,7 @@ export default function BackfillMetadataPage() {
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-blue-50 p-4 rounded">
                 <p className="text-sm text-gray-600">Total Books</p>
-                <p className="text-2xl font-bold text-blue-600">{results.total}</p>
+                <p className="text-2xl font-bold text-[#55B2DE]">{results.total}</p>
               </div>
 
               <div className="bg-green-50 p-4 rounded">

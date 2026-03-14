@@ -36,7 +36,7 @@ export default async function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
+          <Link href="/dashboard" className="text-[#55B2DE] hover:underline">
             ← Back to App
           </Link>
         </div>
