@@ -9,6 +9,22 @@ export async function middleware(req: NextRequest) {
     },
   })
 
+  // Check for password recovery token in URL (Supabase redirects to root with token)
+  const url = req.nextUrl
+  if (url.pathname === '/' && (url.searchParams.has('token') || url.hash.includes('type=recovery'))) {
+    // Redirect to update-password page with the token
+    const redirectUrl = url.clone()
+    redirectUrl.pathname = '/auth/update-password'
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  // Also check for recovery type in hash (client-side tokens)
+  if (url.pathname === '/' && url.searchParams.get('type') === 'recovery') {
+    const redirectUrl = url.clone()
+    redirectUrl.pathname = '/auth/update-password'
+    return NextResponse.redirect(redirectUrl)
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -68,25 +84,22 @@ export async function middleware(req: NextRequest) {
     '/notifications',
     '/settings',
     '/admin',
-    '/invite', // Invite page (not API)
-    '/handoff', // Handoff confirmation pages
+    '/invite',
+    '/handoff',
   ]
 
-  // Public paths that don't require auth (even if under protected routes)
   const publicPaths = [
-    '/circles/join', // Allow non-authenticated users to view circle invite pages
+    '/circles/join',
   ]
 
   const isPublicPath = publicPaths.some(path => 
     req.nextUrl.pathname.startsWith(path)
   )
 
-  // Check if current path starts with any protected route
   const isProtectedRoute = protectedRoutes.some(route => 
     req.nextUrl.pathname.startsWith(route)
   )
 
-  // If trying to access protected route without session (and not a public path), redirect to signin
   if (isProtectedRoute && !session && !isPublicPath) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/auth/signin'
@@ -94,8 +107,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // If logged in and trying to access auth pages, redirect to circles (not dashboard to avoid loop)
-  // EXCEPT for password reset pages which need the recovery session
+  // Password reset pages should always be accessible
   const passwordResetPaths = ['/auth/reset-password', '/auth/update-password']
   const isPasswordReset = passwordResetPaths.some(path => req.nextUrl.pathname === path)
   
@@ -110,14 +122,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     * - API routes (handled by API route auth)
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
