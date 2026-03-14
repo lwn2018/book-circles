@@ -106,7 +106,8 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
     .limit(5)
 
   const isOwner = book.owner_id === user.id
-  const circle = circleVisibility?.circles
+  const circleData = circleVisibility?.circles
+  const circle = Array.isArray(circleData) ? circleData[0] : circleData
   const publishYear = book.publish_date ? new Date(book.publish_date).getFullYear().toString() : null
 
   return (
