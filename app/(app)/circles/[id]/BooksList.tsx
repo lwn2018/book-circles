@@ -1,7 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import BookCover from '@/app/components/BookCover'
 
@@ -73,7 +71,7 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
           badgeText = 'You\'re reading'
           badgeStyle = 'bg-[#F7B14B] text-[#121212]'
         } else if (book.current_borrower) {
-          badgeText = `Borrowed`
+          badgeText = 'Borrowed'
           badgeStyle = 'bg-[#F7B14B] text-[#121212]'
         } else {
           badgeText = 'Borrowed'
@@ -91,15 +89,16 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
               className="bg-[#1E293B] rounded-xl p-3 flex gap-[14px] items-start"
               style={{ minHeight: '130px' }}
             >
-              {/* Book cover thumbnail - 64px wide */}
-              <div className="flex-shrink-0 w-16 h-24 rounded-md overflow-hidden bg-[#2A3441]">
+              {/* Book cover thumbnail - 64px wide, 96px tall */}
+              <div className="relative flex-shrink-0 w-[64px] h-[96px] rounded-md overflow-hidden bg-[#2A3441]">
                 <BookCover
                   coverUrl={book.cover_url}
                   title={book.title}
                   author={book.author}
-                  width={64}
-                  height={96}
-                  className="w-full h-full object-cover"
+                  fill={true}
+                  sizes="64px"
+                  className="object-cover"
+                  status={book.status as any}
                 />
               </div>
 
