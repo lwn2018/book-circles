@@ -71,6 +71,24 @@ export default async function Settings() {
           />
         </div>
 
+        {/* Goodreads Import */}
+        <Link href="/library/import" className="block bg-[#1E293B] rounded-xl p-6 hover:bg-[#27272A] transition-colors">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-[#27272A] rounded-full flex items-center justify-center text-2xl">
+                📚
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-1">Goodreads Import</h3>
+                <p className="text-sm text-[#9CA3AF]">Import or add more books from your Goodreads library</p>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+
         {/* Onboarding Section */}
         <div className="bg-[#1E293B] rounded-xl p-6">
           <div className="flex items-center justify-between">
