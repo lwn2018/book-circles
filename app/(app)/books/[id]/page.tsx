@@ -168,10 +168,10 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
             {recentActivity.map((activity: any) => (
               <div key={activity.id} className="flex items-start gap-3">
                 <Avatar 
-                  type={activity.profiles?.avatar_type} 
-                  id={activity.profiles?.avatar_id} 
-                  url={activity.profiles?.avatar_url} 
-                  name={activity.profiles?.full_name || 'User'} 
+                  avatarType={activity.profiles?.avatar_type} 
+                  avatarId={activity.profiles?.avatar_id} 
+                  avatarUrl={activity.profiles?.avatar_url} 
+                  userName={activity.profiles?.full_name || 'User'} userId={activity.user_id} 
                   size="sm" 
                 />
                 <div className="flex-1">
