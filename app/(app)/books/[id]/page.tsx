@@ -89,7 +89,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
 
       {/* Book Cover */}
       <div className="bg-[#1E293B] rounded-xl p-6 mb-6 flex justify-center">
-        <div className="w-40 h-56 rounded-lg overflow-hidden shadow-xl">
+        <div className="relative w-40 h-56 rounded-lg overflow-hidden shadow-xl">
           <BookCover coverUrl={book.cover_url} title={book.title} author={book.author} fill className="object-cover" />
         </div>
       </div>
