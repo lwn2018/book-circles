@@ -63,7 +63,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
   // Fetch profile info for activity users (separate query since FK is to auth.users not profiles)
   const activityUserIds = [...new Set(activityEvents?.map(e => e.user_id).filter(Boolean) || [])]
   const { data: activityProfiles } = activityUserIds.length > 0 
-    ? await supabase.from('profiles').select('id, full_name, avatar_type, avatar_id, avatar_url').in('id', activityUserIds)
+    ? await supabase.from('profiles').select('id, full_name, avatar_type, avatar_id, avatar_url, avatar_slug').in('id', activityUserIds)
     : { data: [] }
   
   const profileMap = new Map(activityProfiles?.map(p => [p.id, p]) || [])
@@ -168,7 +168,8 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
                 <Avatar 
                   avatarType={activity.profiles?.avatar_type} 
                   avatarId={activity.profiles?.avatar_id} 
-                  avatarUrl={activity.profiles?.avatar_url} 
+                  avatarUrl={activity.profiles?.avatar_url}
+                  avatarSlug={activity.profiles?.avatar_slug} 
                   userName={activity.profiles?.full_name || 'User'}
                   userId={activity.user_id}
                   size="sm"
