@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import ProgressBar from '../components/ProgressBar'
 
 export default function OnboardingImport() {
   const router = useRouter()
@@ -43,7 +42,6 @@ export default function OnboardingImport() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Upload CSV to storage
       const fileName = `${user.id}-${Date.now()}.csv`
       const filePath = `goodreads-imports/${fileName}`
 
@@ -56,12 +54,10 @@ export default function OnboardingImport() {
 
       if (uploadError) throw uploadError
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('imports')
         .getPublicUrl(filePath)
 
-      // Create import record
       const { error: recordError } = await supabase
         .from('goodreads_imports')
         .insert({
@@ -72,7 +68,6 @@ export default function OnboardingImport() {
 
       if (recordError) throw recordError
 
-      // Trigger async processing
       await fetch('/api/import/goodreads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -90,41 +85,58 @@ export default function OnboardingImport() {
     }
   }
 
-  const handleManualAdd = () => {
-    router.push('/onboarding/welcome')
-  }
-
   const handleSkip = () => {
     router.push('/onboarding/welcome')
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <ProgressBar currentStep={2} />
+    <div className="min-h-screen bg-[#121212] px-6 py-12">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <button onClick={() => router.back()} className="text-white">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button onClick={handleSkip} className="text-white font-medium">
+          Skip
+        </button>
+      </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">Import your books</h1>
-        <p className="text-center text-gray-600 mb-8">
+      {/* Progress Bar */}
+      <div className="flex gap-2 mb-8">
+        <div className="flex-1 h-1 bg-gray-700 rounded-full" />
+        <div className="flex-1 h-1 bg-gray-700 rounded-full" />
+        <div className="flex-1 h-1 bg-[#55B2DE] rounded-full" />
+        <div className="flex-1 h-1 bg-gray-700 rounded-full" />
+      </div>
+
+      <div className="max-w-md mx-auto">
+        <h1 className="text-2xl font-bold text-white mb-2">Import your books</h1>
+        <p className="text-gray-400 mb-8">
           Let's build your library! You can import your books now, or add them manually later.
         </p>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-50 text-red-800 rounded-lg text-sm">
-            {error}
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
+            <p className="text-red-400 text-sm">{error}</p>
           </div>
         )}
 
         {imported ? (
           <div className="text-center py-8">
-            <div className="text-6xl mb-4">✅</div>
-            <h2 className="text-2xl font-bold text-green-600 mb-2">Import Started!</h2>
-            <p className="text-gray-600 mb-6">
-              Your books are being imported in the background. We'll email you when it's done.
-              You can continue setting up your account.
+            <div className="w-20 h-20 bg-[#55B2DE]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-10 h-10 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Import Started!</h2>
+            <p className="text-gray-400 mb-6">
+              Your books are being imported in the background. We'll let you know when it's done.
             </p>
             <button
               onClick={() => router.push('/onboarding/welcome')}
-              className="px-8 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] shadow-md"
+              className="w-full bg-[#55B2DE] hover:bg-[#4A9FCB] text-white font-semibold py-4 rounded-full transition-colors"
             >
               Continue
             </button>
@@ -132,59 +144,72 @@ export default function OnboardingImport() {
         ) : (
           <div className="space-y-4">
             {/* Import from Goodreads */}
-            <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50">
-              <h2 className="text-xl font-bold mb-4">📚 Import from Goodreads</h2>
+            <div className="bg-[#1E293B] rounded-2xl p-6">
+              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span>📚</span> Import from Goodreads
+              </h2>
               
-              <div className="bg-white rounded-lg p-4 mb-4">
-                <p className="font-medium mb-2">Step 1: Download your library</p>
-                <ol className="text-sm text-gray-700 space-y-1 mb-3 list-decimal list-inside">
-                  <li>Go to <a href="https://www.goodreads.com/review/import" target="_blank" rel="noopener noreferrer" className="text-[#55B2DE] hover:underline">Goodreads Export</a></li>
-                  <li>Click "Export Library"</li>
-                  <li>Download the CSV file</li>
+              <div className="bg-[#27272A] rounded-xl p-4 mb-4">
+                <ol className="text-sm text-gray-300 space-y-2">
+                  <li className="flex gap-2">
+                    <span className="text-gray-500">1.</span>
+                    <span>Go to <a href="https://www.goodreads.com/review/import" target="_blank" rel="noopener noreferrer" className="text-[#55B2DE] hover:underline">Goodreads Export</a></span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-gray-500">2.</span>
+                    <span>Click "Export Library"</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-gray-500">3.</span>
+                    <span>Download the CSV file</span>
+                  </li>
                 </ol>
-                
-                <p className="font-medium mb-2">Step 2: Upload here</p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                
-                {selectedFile ? (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <span className="text-2xl">📄</span>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{selectedFile.name}</p>
-                      <p className="text-xs text-gray-600">
-                        {(selectedFile.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setSelectedFile(null)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
-                  >
-                    <span className="text-4xl block mb-2">⬆️</span>
-                    <span className="text-sm text-gray-700">
-                      Tap to select your CSV file
-                    </span>
-                  </button>
-                )}
               </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              
+              {selectedFile ? (
+                <div className="flex items-center gap-3 p-4 bg-[#27272A] rounded-xl mb-4">
+                  <span className="text-2xl">📄</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-white text-sm truncate">{selectedFile.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {(selectedFile.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedFile(null)}
+                    className="text-gray-400 hover:text-white p-1"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full py-6 border-2 border-dashed border-gray-600 rounded-xl hover:border-[#55B2DE] hover:bg-[#55B2DE]/5 transition-colors mb-4"
+                >
+                  <div className="w-12 h-12 bg-[#55B2DE]/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <svg className="w-6 h-6 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-400 text-sm">Tap to select your CSV file</span>
+                </button>
+              )}
 
               <button
                 onClick={handleImport}
                 disabled={!selectedFile || uploading}
-                className="w-full py-3 bg-[#55B2DE] text-white font-medium rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                className="w-full py-4 bg-[#55B2DE] text-white font-semibold rounded-full hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {uploading ? 'Uploading...' : 'Start Import'}
               </button>
@@ -192,21 +217,20 @@ export default function OnboardingImport() {
 
             {/* Add Manually */}
             <button
-              onClick={handleManualAdd}
+              onClick={handleSkip}
               disabled={uploading}
-              className="w-full py-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="w-full py-4 bg-[#1E293B] rounded-2xl hover:bg-[#27272A] disabled:opacity-50 transition-colors"
             >
-              <span className="font-medium">✏️ Add books manually</span>
-              <p className="text-sm text-gray-600 mt-1">
-                I'll add my books one at a time
-              </p>
+              <span className="text-white font-medium flex items-center justify-center gap-2">
+                <span>✏️</span> I'll add my books one at a time
+              </span>
             </button>
 
             {/* Skip */}
             <button
               onClick={handleSkip}
               disabled={uploading}
-              className="w-full py-3 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+              className="w-full py-3 text-gray-500 hover:text-white disabled:opacity-50 transition-colors"
             >
               Don't import now
             </button>
