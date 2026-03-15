@@ -12,40 +12,38 @@ export default async function Settings() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/auth/signin')
-  }
+  if (!user) redirect('/auth/signin')
 
-  // Get user profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // Get user's circles
   const { data: memberCircles } = await supabase
     .from('circle_members')
-    .select(`
-      circle_id,
-      circles (
-        id,
-        name,
-        description,
-        owner_id
-      )
-    `)
+    .select(`circle_id, circles (id, name, description, owner_id)`)
     .eq('user_id', user.id)
 
   const circles = memberCircles?.map(m => m.circles).filter(Boolean) || []
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Settings</h1>
+    <div className="min-h-screen bg-[#121212] px-4 py-6">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <Link href="/circles" className="text-[#9CA3AF] hover:text-white transition-colors">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
+          Settings
+        </h1>
+      </div>
 
+      <div className="max-w-2xl mx-auto space-y-8">
         {/* Avatar Section */}
-        <div className="mb-8">
+        <section className="bg-[#1E293B] rounded-xl p-6">
           <AvatarSection
             userId={user.id}
             userName={profile?.full_name || user.email || 'User'}
@@ -53,61 +51,74 @@ export default async function Settings() {
             currentAvatarType={profile?.avatar_type as 'upload' | 'preset' | 'initials' | null}
             currentAvatarId={profile?.avatar_id || null}
           />
-        </div>
+        </section>
 
-        <SettingsForm 
-          user={{
-            id: user.id,
-            email: user.email || '',
-            full_name: profile?.full_name || '',
-            avatar_url: profile?.avatar_url || '',
-            contact_preference_type: profile?.contact_preference_type || null,
-            contact_preference_value: profile?.contact_preference_value || '',
-            contact_email: profile?.contact_email || null,
-            contact_phone: profile?.contact_phone || null,
-            default_browse_view: profile?.default_browse_view || 'card'
-          }}
-        />
+        {/* Profile Form */}
+        <section className="bg-[#1E293B] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
+            Profile Information
+          </h2>
+          <SettingsForm 
+            user={{
+              id: user.id,
+              email: user.email || '',
+              full_name: profile?.full_name || '',
+              avatar_url: profile?.avatar_url || '',
+              contact_preference_type: profile?.contact_preference_type || null,
+              contact_preference_value: profile?.contact_preference_value || '',
+              contact_email: profile?.contact_email || null,
+              contact_phone: profile?.contact_phone || null,
+              default_browse_view: profile?.default_browse_view || 'card'
+            }}
+          />
+        </section>
 
         {/* Onboarding Section */}
-        <div className="mt-12 bg-white rounded-lg shadow p-6">
+        <section className="bg-[#1E293B] rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold mb-1">Onboarding</h3>
-              <p className="text-sm text-gray-600">
-                Revisit the welcome flow and setup screens
-              </p>
+              <h3 className="text-lg font-semibold text-white mb-1">Onboarding</h3>
+              <p className="text-sm text-[#9CA3AF]">Revisit the welcome flow and setup screens</p>
             </div>
             <RestartOnboardingButton userId={user.id} />
           </div>
-        </div>
+        </section>
 
-        {/* Circle Management Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Circle Management</h2>
-          <CircleManagementSection circles={circles as any} userId={user.id} />
-        </div>
+        {/* Circle Management */}
+        <section>
+          <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
+            Circle Management
+          </h2>
+          <div className="bg-[#1E293B] rounded-xl p-6">
+            <CircleManagementSection circles={circles as any} userId={user.id} />
+          </div>
+        </section>
 
-        {/* Data & Privacy Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Data & Privacy</h2>
-          
-          <DownloadDataSection />
-          <CloseAccountSection userEmail={user.email || ''} />
-        </div>
+        {/* Data & Privacy */}
+        <section>
+          <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
+            Data & Privacy
+          </h2>
+          <div className="bg-[#1E293B] rounded-xl p-6 space-y-6">
+            <DownloadDataSection />
+            <div className="border-t border-[#333] pt-6">
+              <CloseAccountSection userEmail={user.email || ''} />
+            </div>
+          </div>
+        </section>
 
-        {/* Amazon Associate Disclosure */}
-        <footer className="mt-12 pt-6 border-t border-gray-200">
+        {/* Footer */}
+        <footer className="pt-6 pb-24 text-center">
           <div className="flex justify-center gap-4 mb-3">
-            <Link href="/privacy" className="text-xs text-[#55B2DE] hover:underline">
+            <Link href="/privacy" className="text-xs text-[#55B2DE] hover:text-[#6BC4EC]">
               Privacy Policy
             </Link>
-            <span className="text-xs text-gray-400">•</span>
-            <Link href="/terms" className="text-xs text-[#55B2DE] hover:underline">
+            <span className="text-xs text-[#6B7280]">•</span>
+            <Link href="/terms" className="text-xs text-[#55B2DE] hover:text-[#6BC4EC]">
               Terms of Service
             </Link>
           </div>
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-xs text-[#6B7280]">
             As an Amazon Associate PagePass earns from qualifying purchases.
           </p>
         </footer>
