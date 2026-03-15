@@ -1,7 +1,9 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
-// ============ DATA CLEANING UTILITIES ============
+const ISBNDB_API_KEY = process.env.ISBNDB_API_KEY
+
+// ============ DATA CLEANING ============
 
 function cleanTitle(title: string): string {
   if (!title) return ''
@@ -91,7 +93,77 @@ function deduplicateResults<T extends { isbn?: string | null; title: string; aut
 
 // ============ EXTERNAL SEARCH ============
 
-async function searchGoogleBooks(query: string) {
+// Simple in-memory cache for ISBNdb results (24 hour TTL)
+const searchCache = new Map<string, { results: any[]; timestamp: number }>()
+const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
+
+function getCachedResults(query: string): any[] | null {
+  const cached = searchCache.get(query.toLowerCase())
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.results
+  }
+  return null
+}
+
+function setCachedResults(query: string, results: any[]) {
+  searchCache.set(query.toLowerCase(), { results, timestamp: Date.now() })
+  // Clean old entries if cache gets too big
+  if (searchCache.size > 500) {
+    const now = Date.now()
+    for (const [key, value] of searchCache) {
+      if (now - value.timestamp > CACHE_TTL) {
+        searchCache.delete(key)
+      }
+    }
+  }
+}
+
+async function searchISBNdb(query: string): Promise<any[]> {
+  if (!ISBNDB_API_KEY) {
+    console.warn('ISBNdb API key not configured')
+    return []
+  }
+
+  // Check cache first
+  const cached = getCachedResults(query)
+  if (cached) return cached
+
+  try {
+    const url = `https://api2.isbndb.com/books/${encodeURIComponent(query)}?page=1&pageSize=15`
+    const response = await fetch(url, {
+      headers: { 'Authorization': ISBNDB_API_KEY },
+      next: { revalidate: 86400 } // 24h
+    })
+
+    if (!response.ok) {
+      console.error('ISBNdb API error:', response.status)
+      return []
+    }
+
+    const data = await response.json()
+    const results = (data.books || []).map((book: any) => ({
+      id: `isbndb-${book.isbn13 || book.isbn || Math.random().toString(36).slice(2)}`,
+      title: cleanTitle(book.title || ''),
+      author: cleanAuthor(Array.isArray(book.authors) ? book.authors.join(', ') : (book.authors || '')),
+      isbn: book.isbn13 || book.isbn || null,
+      cover_url: book.image || null,
+      description: book.synopsis || null,
+      page_count: book.pages || null,
+      published_date: book.date_published || null,
+      publisher: book.publisher || null,
+      retail_price: book.msrp || null, // Capture MSRP for "value shared" stats
+      source: 'isbndb' as const
+    }))
+
+    setCachedResults(query, results)
+    return results
+  } catch (error) {
+    console.error('ISBNdb search error:', error)
+    return []
+  }
+}
+
+async function searchGoogleBooks(query: string): Promise<any[]> {
   try {
     const response = await fetch(
       `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=15&orderBy=relevance`,
@@ -106,13 +178,10 @@ async function searchGoogleBooks(query: string) {
       isbn: item.volumeInfo.industryIdentifiers?.find((id: any) => id.type === 'ISBN_13')?.identifier || 
             item.volumeInfo.industryIdentifiers?.find((id: any) => id.type === 'ISBN_10')?.identifier || null,
       cover_url: item.volumeInfo.imageLinks?.thumbnail?.replace('http:', 'https:') || null,
-      genres: item.volumeInfo.categories || [],
       description: item.volumeInfo.description || null,
       page_count: item.volumeInfo.pageCount || null,
       published_date: item.volumeInfo.publishedDate || null,
       publisher: item.volumeInfo.publisher || null,
-      language: item.volumeInfo.language || 'en',
-      google_books_id: item.id,
       source: 'google' as const
     }))
   } catch (error) {
@@ -148,7 +217,6 @@ export async function GET(request: NextRequest) {
       .or(`title.ilike.%${query}%,author.ilike.%${query}%`)
       .limit(30)
 
-    // Get circles for user's own books
     const myBooksWithCircles = await Promise.all(
       (myBooks || []).map(async (book) => {
         const { data: visibilityData } = await supabase
@@ -173,10 +241,9 @@ export async function GET(request: NextRequest) {
 
     const circleIds = userCircles?.map(c => c.circle_id) || []
 
-    // 3. Find books visible in user's circles (via book_circle_visibility)
+    // 3. Find books visible in user's circles
     let circleBooks: any[] = []
     if (circleIds.length > 0) {
-      // First, get book IDs that are visible in user's circles
       const { data: visibleBookIds } = await supabase
         .from('book_circle_visibility')
         .select('book_id')
@@ -186,8 +253,7 @@ export async function GET(request: NextRequest) {
       const bookIds = [...new Set(visibleBookIds?.map(v => v.book_id) || [])]
 
       if (bookIds.length > 0) {
-        // Now search within those books (excluding user's own)
-        const { data: books, error } = await supabase
+        const { data: books } = await supabase
           .from('books')
           .select(`
             id, title, author, isbn, cover_url, status, gift_on_borrow, owner_id,
@@ -198,37 +264,32 @@ export async function GET(request: NextRequest) {
           .or(`title.ilike.%${query}%,author.ilike.%${query}%`)
           .limit(30)
 
-        if (error) {
-          console.error('Circle books search error:', error)
-        } else {
-          // Get circle info for each book
-          circleBooks = await Promise.all(
-            (books || []).map(async (book) => {
-              const { data: bookCircles } = await supabase
-                .from('book_circle_visibility')
-                .select('circles(id, name)')
-                .eq('book_id', book.id)
-                .eq('is_visible', true)
-                .in('circle_id', circleIds)
+        circleBooks = await Promise.all(
+          (books || []).map(async (book) => {
+            const { data: bookCircles } = await supabase
+              .from('book_circle_visibility')
+              .select('circles(id, name)')
+              .eq('book_id', book.id)
+              .eq('is_visible', true)
+              .in('circle_id', circleIds)
 
-              const circles = (bookCircles || [])
-                .filter(v => v.circles)
-                .map(v => ({ id: (v.circles as any).id, name: (v.circles as any).name }))
+            const circles = (bookCircles || [])
+              .filter(v => v.circles)
+              .map(v => ({ id: (v.circles as any).id, name: (v.circles as any).name }))
 
-              return {
-                ...book,
-                title: cleanTitle(book.title),
-                author: cleanAuthor(book.author),
-                owner_name: (book.profiles as any)?.full_name || 'Someone',
-                circles
-              }
-            })
-          )
-        }
+            return {
+              ...book,
+              title: cleanTitle(book.title),
+              author: cleanAuthor(book.author),
+              owner_name: (book.profiles as any)?.full_name || 'Someone',
+              circles
+            }
+          })
+        )
       }
     }
 
-    // Deduplicate and rank
+    // Deduplicate and rank local results
     let myLibraryResults = deduplicateResults(myBooksWithCircles || [])
     let myCirclesResults = deduplicateResults(circleBooks)
 
@@ -243,11 +304,18 @@ export async function GET(request: NextRequest) {
 
     const totalInternal = myLibraryResults.length + myCirclesResults.length
 
-    // External search if needed
+    // 4. External search: ISBNdb primary, Google Books fallback
     let externalResults: any[] = []
     if (includeExternal && totalInternal < 5) {
-      const googleResults = await searchGoogleBooks(query)
-      externalResults = deduplicateResults(googleResults)
+      // Try ISBNdb first
+      let results = await searchISBNdb(query)
+      
+      // Fall back to Google Books if ISBNdb returns nothing
+      if (results.length === 0) {
+        results = await searchGoogleBooks(query)
+      }
+
+      externalResults = deduplicateResults(results)
       externalResults.sort((a, b) => 
         computeRelevanceScore(b.title, b.author || '', query) - 
         computeRelevanceScore(a.title, a.author || '', query)

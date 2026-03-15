@@ -20,7 +20,7 @@ type SearchResult = {
   owner_name?: string
   circle_name?: string
   circles?: Array<{ id: string; name: string }>
-  source?: 'google' | 'openlibrary'
+  source?: 'google' | 'openlibrary' | 'isbndb'
   genres?: string[]
   description?: string | null
   page_count?: number | null
@@ -28,6 +28,7 @@ type SearchResult = {
   publisher?: string | null
   language?: string
   google_books_id?: string
+  retail_price?: number | null
 }
 
 export default function SearchOverlay({ userId }: { userId: string }) {
@@ -151,7 +152,8 @@ export default function SearchOverlay({ userId }: { userId: string }) {
           published_date: book.published_date || null,
           publisher: book.publisher || null,
           language: book.language || 'en',
-          google_books_id: book.google_books_id || null
+          google_books_id: book.google_books_id || null,
+          retail_price_cad: book.retail_price || null
         })
         .select()
         .single()
