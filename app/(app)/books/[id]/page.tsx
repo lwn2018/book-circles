@@ -172,7 +172,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
                   id={activity.profiles?.avatar_id} 
                   url={activity.profiles?.avatar_url} 
                   name={activity.profiles?.full_name || 'User'} 
-                  size={32} 
+                  size="sm" 
                 />
                 <div className="flex-1">
                   <p className="text-white text-sm">{getActivityText(activity.action, activity.metadata)}</p>
