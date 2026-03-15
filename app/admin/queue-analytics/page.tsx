@@ -24,7 +24,7 @@ export default async function QueueAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
+    <div className="min-h-screen p-8 bg-[#121212]">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <Link href="/admin" className="text-[#55B2DE] hover:underline">
@@ -32,7 +32,7 @@ export default async function QueueAnalyticsPage() {
           </Link>
         </div>
 
-        <h1 className="text-3xl font-bold mb-8">Queue Analytics</h1>
+        <h1 className="text-3xl font-bold mb-8 text-white">Queue Analytics</h1>
 
         {/* Will be converted to client component with date range */}
         <QueueStats 

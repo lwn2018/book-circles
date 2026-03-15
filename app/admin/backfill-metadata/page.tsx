@@ -34,21 +34,21 @@ export default function BackfillMetadataPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-[#121212] p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Metadata Backfill</h1>
+          <h1 className="text-3xl font-bold text-white">Metadata Backfill</h1>
           <button
             onClick={() => router.push('/admin')}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900"
+            className="px-4 py-2 text-[#9CA3AF] hover:text-white"
           >
             ← Back to Admin
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">What this does:</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-700 mb-6">
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 mb-6 border border-[#2D3748]">
+          <h2 className="text-xl font-semibold mb-4 text-white">What this does:</h2>
+          <ul className="list-disc list-inside space-y-2 text-[#9CA3AF] mb-6">
             <li>Queries all books missing cover art, prices, or metadata</li>
             <li>Runs comprehensive lookup: Google Books → ISBNdb → Open Library</li>
             <li>Downloads and caches cover images to Supabase Storage</li>
@@ -59,9 +59,9 @@ export default function BackfillMetadataPage() {
           <button
             onClick={runBackfill}
             disabled={running}
-            className={`w-full py-3 rounded-lg font-semibold text-white ${
+            className={`w-full py-3 rounded-xl font-semibold text-white ${
               running
-                ? 'bg-gray-400 cursor-not-allowed'
+                ? 'bg-gray-600 cursor-not-allowed'
                 : 'bg-[#55B2DE] hover:bg-[#4A9FCB]'
             }`}
           >
@@ -70,54 +70,54 @@ export default function BackfillMetadataPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800 font-semibold">Error:</p>
-            <p className="text-red-700">{error}</p>
+          <div className="bg-red-900/30 border border-red-700/30 rounded-xl p-4 mb-6">
+            <p className="text-red-400 font-semibold">Error:</p>
+            <p className="text-red-300">{error}</p>
           </div>
         )}
 
         {results && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Results</h2>
+          <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+            <h2 className="text-xl font-semibold mb-4 text-white">Results</h2>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded">
-                <p className="text-sm text-gray-600">Total Books</p>
+              <div className="bg-[#55B2DE]/20 p-4 rounded-xl border border-[#55B2DE]/30">
+                <p className="text-sm text-[#9CA3AF]">Total Books</p>
                 <p className="text-2xl font-bold text-[#55B2DE]">{results.total}</p>
               </div>
 
-              <div className="bg-green-50 p-4 rounded">
-                <p className="text-sm text-gray-600">Processed</p>
-                <p className="text-2xl font-bold text-green-600">{results.processed}</p>
+              <div className="bg-green-900/30 p-4 rounded-xl border border-green-700/30">
+                <p className="text-sm text-[#9CA3AF]">Processed</p>
+                <p className="text-2xl font-bold text-green-400">{results.processed}</p>
               </div>
 
-              <div className="bg-purple-50 p-4 rounded">
-                <p className="text-sm text-gray-600">Covers Found</p>
-                <p className="text-2xl font-bold text-purple-600">{results.coversFound}</p>
+              <div className="bg-purple-900/30 p-4 rounded-xl border border-purple-700/30">
+                <p className="text-sm text-[#9CA3AF]">Covers Found</p>
+                <p className="text-2xl font-bold text-purple-400">{results.coversFound}</p>
               </div>
 
-              <div className="bg-yellow-50 p-4 rounded">
-                <p className="text-sm text-gray-600">Prices Found</p>
-                <p className="text-2xl font-bold text-yellow-600">{results.pricesFound}</p>
+              <div className="bg-yellow-900/30 p-4 rounded-xl border border-yellow-700/30">
+                <p className="text-sm text-[#9CA3AF]">Prices Found</p>
+                <p className="text-2xl font-bold text-yellow-400">{results.pricesFound}</p>
               </div>
 
-              <div className="bg-indigo-50 p-4 rounded">
-                <p className="text-sm text-gray-600">Descriptions Found</p>
-                <p className="text-2xl font-bold text-indigo-600">{results.descriptionsFound}</p>
+              <div className="bg-indigo-900/30 p-4 rounded-xl border border-indigo-700/30">
+                <p className="text-sm text-[#9CA3AF]">Descriptions Found</p>
+                <p className="text-2xl font-bold text-indigo-400">{results.descriptionsFound}</p>
               </div>
 
               {results.errors?.length > 0 && (
-                <div className="bg-red-50 p-4 rounded">
-                  <p className="text-sm text-gray-600">Errors</p>
-                  <p className="text-2xl font-bold text-red-600">{results.errors.length}</p>
+                <div className="bg-red-900/30 p-4 rounded-xl border border-red-700/30">
+                  <p className="text-sm text-[#9CA3AF]">Errors</p>
+                  <p className="text-2xl font-bold text-red-400">{results.errors.length}</p>
                 </div>
               )}
             </div>
 
             {results.coversBySource && (
               <div className="mb-6">
-                <h3 className="font-semibold mb-2">Covers by Source:</h3>
-                <div className="space-y-1 text-sm">
+                <h3 className="font-semibold mb-2 text-white">Covers by Source:</h3>
+                <div className="space-y-1 text-sm text-[#9CA3AF]">
                   <p>Google Books: {results.coversBySource.google}</p>
                   <p>ISBNdb: {results.coversBySource.isbndb}</p>
                   <p>Open Library: {results.coversBySource.openlibrary}</p>
@@ -127,9 +127,9 @@ export default function BackfillMetadataPage() {
 
             {results.noCoverISBNs && results.noCoverISBNs.length > 0 && (
               <div>
-                <h3 className="font-semibold mb-2">ISBNs with no cover from any source:</h3>
-                <div className="bg-gray-50 p-4 rounded max-h-60 overflow-y-auto">
-                  <ul className="space-y-1 text-sm font-mono">
+                <h3 className="font-semibold mb-2 text-white">ISBNs with no cover from any source:</h3>
+                <div className="bg-[#121212] p-4 rounded-xl max-h-60 overflow-y-auto border border-[#2D3748]">
+                  <ul className="space-y-1 text-sm font-mono text-[#9CA3AF]">
                     {results.noCoverISBNs.map((isbn: string) => (
                       <li key={isbn}>{isbn}</li>
                     ))}
@@ -140,9 +140,9 @@ export default function BackfillMetadataPage() {
 
             {results.errors && results.errors.length > 0 && (
               <div className="mt-6">
-                <h3 className="font-semibold mb-2 text-red-600">Errors:</h3>
-                <div className="bg-red-50 p-4 rounded max-h-60 overflow-y-auto">
-                  <ul className="space-y-1 text-sm">
+                <h3 className="font-semibold mb-2 text-red-400">Errors:</h3>
+                <div className="bg-red-900/20 p-4 rounded-xl max-h-60 overflow-y-auto border border-red-700/30">
+                  <ul className="space-y-1 text-sm text-red-300">
                     {results.errors.map((err: string, idx: number) => (
                       <li key={idx}>{err}</li>
                     ))}

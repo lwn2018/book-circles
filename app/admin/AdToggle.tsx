@@ -38,8 +38,8 @@ export default function AdToggle({ initialEnabled }: { initialEnabled: boolean }
   return (
     <div className="flex items-center justify-between">
       <div>
-        <h3 className="font-medium">Affiliate Links / Ads</h3>
-        <p className="text-sm text-gray-600">
+        <h3 className="font-medium text-white">Affiliate Links / Ads</h3>
+        <p className="text-sm text-[#9CA3AF]">
           When enabled, "Buy This Book" affiliate links will appear on book pages
         </p>
       </div>
@@ -47,7 +47,7 @@ export default function AdToggle({ initialEnabled }: { initialEnabled: boolean }
         onClick={handleToggle}
         disabled={loading}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          enabled ? 'bg-[#55B2DE]' : 'bg-gray-300'
+          enabled ? 'bg-[#55B2DE]' : 'bg-gray-600'
         } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <span

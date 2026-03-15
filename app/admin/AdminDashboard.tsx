@@ -58,7 +58,7 @@ export default function AdminDashboard({ adsEnabled }: Props) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Loading analytics...</p>
+          <p className="text-[#9CA3AF]">Loading analytics...</p>
         </div>
       </div>
     )
@@ -73,31 +73,31 @@ export default function AdminDashboard({ adsEnabled }: Props) {
       <div className="grid md:grid-cols-3 gap-4 mb-8">
         <a 
           href="/admin/signup-analytics"
-          className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
+          className="block p-4 bg-[#1E293B] rounded-xl shadow hover:shadow-md transition border border-[#2D3748]"
         >
           <h3 className="font-semibold text-[#55B2DE] mb-1">👥 Signup Analytics</h3>
-          <p className="text-sm text-gray-600">Sources, referrers, invite tracking</p>
+          <p className="text-sm text-[#9CA3AF]">Sources, referrers, invite tracking</p>
         </a>
         <a 
           href="/admin/queue-analytics"
-          className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
+          className="block p-4 bg-[#1E293B] rounded-xl shadow hover:shadow-md transition border border-[#2D3748]"
         >
-          <h3 className="font-semibold text-purple-600 mb-1">📋 Queue Analytics</h3>
-          <p className="text-sm text-gray-600">Pass rates, wait times, acceptance</p>
+          <h3 className="font-semibold text-purple-400 mb-1">📋 Queue Analytics</h3>
+          <p className="text-sm text-[#9CA3AF]">Pass rates, wait times, acceptance</p>
         </a>
         <a 
           href="/admin/idle-books"
-          className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
+          className="block p-4 bg-[#1E293B] rounded-xl shadow hover:shadow-md transition border border-[#2D3748]"
         >
-          <h3 className="font-semibold text-[#4A9FCB] mb-1">😴 Idle Books</h3>
-          <p className="text-sm text-gray-600">Books never borrowed</p>
+          <h3 className="font-semibold text-[#55B2DE] mb-1">😴 Idle Books</h3>
+          <p className="text-sm text-[#9CA3AF]">Books never borrowed</p>
         </a>
       </div>
 
       {/* Ad Controls */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
+      <div className="bg-[#1E293B] rounded-xl shadow p-6 mb-8 border border-[#2D3748]">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Ad & Affiliate Controls</h2>
+          <h2 className="text-xl font-semibold text-white">Ad & Affiliate Controls</h2>
           <a 
             href="/admin/affiliate"
             className="text-sm text-[#55B2DE] hover:underline"
@@ -109,87 +109,87 @@ export default function AdminDashboard({ adsEnabled }: Props) {
       </div>
 
       {loading && stats && (
-        <div className="bg-blue-50 text-[#55B2DE] rounded-lg p-3 mb-6 text-sm">
+        <div className="bg-[#55B2DE]/20 text-[#55B2DE] rounded-xl p-3 mb-6 text-sm">
           Updating metrics...
         </div>
       )}
 
       {/* Real-time User Metrics (not affected by date range) */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 text-gray-700">Real-time Activity</h2>
+        <h2 className="text-lg font-semibold mb-4 text-[#9CA3AF]">Real-time Activity</h2>
         <div className="grid md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Total Users</h3>
-            <p className="text-3xl font-bold">{stats?.totalUsers || 0}</p>
+          <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+            <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Total Users</h3>
+            <p className="text-3xl font-bold text-white">{stats?.totalUsers || 0}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">DAU</h3>
-            <p className="text-3xl font-bold">{stats?.dau || 0}</p>
+          <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+            <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">DAU</h3>
+            <p className="text-3xl font-bold text-white">{stats?.dau || 0}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">WAU</h3>
-            <p className="text-3xl font-bold">{stats?.wau || 0}</p>
+          <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+            <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">WAU</h3>
+            <p className="text-3xl font-bold text-white">{stats?.wau || 0}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">MAU</h3>
-            <p className="text-3xl font-bold">{stats?.mau || 0}</p>
+          <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+            <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">MAU</h3>
+            <p className="text-3xl font-bold text-white">{stats?.mau || 0}</p>
           </div>
         </div>
       </div>
 
       {/* Date Range Metrics */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 text-gray-700">Selected Date Range</h2>
+        <h2 className="text-lg font-semibold mb-4 text-[#9CA3AF]">Selected Date Range</h2>
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">New Users</h3>
-            <p className="text-3xl font-bold">{stats?.newUsers || 0}</p>
+          <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+            <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">New Users</h3>
+            <p className="text-3xl font-bold text-white">{stats?.newUsers || 0}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Books Added</h3>
-            <p className="text-3xl font-bold">{stats?.booksAddedInRange || 0}</p>
+          <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+            <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Books Added</h3>
+            <p className="text-3xl font-bold text-white">{stats?.booksAddedInRange || 0}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Books Borrowed</h3>
-            <p className="text-3xl font-bold">{stats?.booksBorrowedInRange || 0}</p>
+          <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+            <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Books Borrowed</h3>
+            <p className="text-3xl font-bold text-white">{stats?.booksBorrowedInRange || 0}</p>
           </div>
         </div>
       </div>
 
       {/* Engagement */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Stickiness (DAU/MAU)</h3>
-          <p className="text-3xl font-bold">{stats?.stickiness || 0}%</p>
-          <p className="text-xs text-gray-500 mt-1">Target: 40%+</p>
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+          <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Stickiness (DAU/MAU)</h3>
+          <p className="text-3xl font-bold text-white">{stats?.stickiness || 0}%</p>
+          <p className="text-xs text-[#9CA3AF] mt-1">Target: 40%+</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Active Circles</h3>
-          <p className="text-3xl font-bold">{stats?.activeCircles || 0}</p>
-          <p className="text-xs text-gray-500 mt-1">In selected range</p>
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+          <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Active Circles</h3>
+          <p className="text-3xl font-bold text-white">{stats?.activeCircles || 0}</p>
+          <p className="text-xs text-[#9CA3AF] mt-1">In selected range</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Affiliate Clicks</h3>
-          <p className="text-3xl font-bold">{stats?.affiliateClicks || 0}</p>
-          <p className="text-xs text-gray-500 mt-1">In selected range</p>
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+          <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Affiliate Clicks</h3>
+          <p className="text-3xl font-bold text-white">{stats?.affiliateClicks || 0}</p>
+          <p className="text-xs text-[#9CA3AF] mt-1">In selected range</p>
         </div>
       </div>
 
       {/* Book Metrics */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Books (All Time)</h2>
+      <div className="bg-[#1E293B] rounded-xl shadow p-6 mb-8 border border-[#2D3748]">
+        <h2 className="text-xl font-semibold mb-4 text-white">Books (All Time)</h2>
         <div className="grid md:grid-cols-3 gap-6">
           <div>
-            <p className="text-sm text-gray-600">Total Books</p>
-            <p className="text-2xl font-bold">{stats?.totalBooks || 0}</p>
+            <p className="text-sm text-[#9CA3AF]">Total Books</p>
+            <p className="text-2xl font-bold text-white">{stats?.totalBooks || 0}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Currently Borrowed</p>
-            <p className="text-2xl font-bold">{stats?.booksOnLoan || 0}</p>
+            <p className="text-sm text-[#9CA3AF]">Currently Borrowed</p>
+            <p className="text-2xl font-bold text-white">{stats?.booksOnLoan || 0}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Available</p>
-            <p className="text-2xl font-bold">
+            <p className="text-sm text-[#9CA3AF]">Available</p>
+            <p className="text-2xl font-bold text-white">
               {(stats?.totalBooks || 0) - (stats?.booksOnLoan || 0)}
             </p>
           </div>
@@ -197,16 +197,16 @@ export default function AdminDashboard({ adsEnabled }: Props) {
       </div>
 
       {/* Circles */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Circles (All Time)</h2>
+      <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+        <h2 className="text-xl font-semibold mb-4 text-white">Circles (All Time)</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <p className="text-sm text-gray-600">Total Circles</p>
-            <p className="text-2xl font-bold">{stats?.totalCircles || 0}</p>
+            <p className="text-sm text-[#9CA3AF]">Total Circles</p>
+            <p className="text-2xl font-bold text-white">{stats?.totalCircles || 0}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Active in Range</p>
-            <p className="text-2xl font-bold">{stats?.activeCircles || 0}</p>
+            <p className="text-sm text-[#9CA3AF]">Active in Range</p>
+            <p className="text-2xl font-bold text-white">{stats?.activeCircles || 0}</p>
           </div>
         </div>
       </div>

@@ -45,7 +45,7 @@ export default function QueueStats({ dateRange }: Props) {
   if (loading && !stats) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Loading queue analytics...</p>
+        <p className="text-[#9CA3AF]">Loading queue analytics...</p>
       </div>
     )
   }
@@ -53,59 +53,59 @@ export default function QueueStats({ dateRange }: Props) {
   return (
     <div className="space-y-6">
       {loading && stats && (
-        <div className="bg-blue-50 text-[#55B2DE] rounded-lg p-3 text-sm">
+        <div className="bg-[#55B2DE]/20 text-[#55B2DE] rounded-xl p-3 text-sm">
           Updating metrics...
         </div>
       )}
 
       {/* Overview Metrics */}
       <div className="grid md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Total Queue Entries</h3>
-          <p className="text-3xl font-bold">{stats?.totalQueueEntries || 0}</p>
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+          <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Total Queue Entries</h3>
+          <p className="text-3xl font-bold text-white">{stats?.totalQueueEntries || 0}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Books with Queues</h3>
-          <p className="text-3xl font-bold">{stats?.booksWithQueues || 0}</p>
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+          <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Books with Queues</h3>
+          <p className="text-3xl font-bold text-white">{stats?.booksWithQueues || 0}</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Pass Rate</h3>
-          <p className="text-3xl font-bold">{stats?.passRate || 0}%</p>
-          <p className="text-xs text-gray-500 mt-1">Target: &lt;30%</p>
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+          <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Pass Rate</h3>
+          <p className="text-3xl font-bold text-white">{stats?.passRate || 0}%</p>
+          <p className="text-xs text-[#9CA3AF] mt-1">Target: &lt;30%</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Avg Wait Time</h3>
-          <p className="text-3xl font-bold">{stats?.averageWaitDays || 0}</p>
-          <p className="text-xs text-gray-500 mt-1">days</p>
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+          <h3 className="text-sm font-medium text-[#9CA3AF] mb-2">Avg Wait Time</h3>
+          <p className="text-3xl font-bold text-white">{stats?.averageWaitDays || 0}</p>
+          <p className="text-xs text-[#9CA3AF] mt-1">days</p>
         </div>
       </div>
 
       {/* Pass vs Accept */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Pass vs Accept (In Date Range)</h2>
+      <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+        <h2 className="text-xl font-semibold mb-4 text-white">Pass vs Accept (In Date Range)</h2>
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="p-4 bg-red-50 rounded-lg">
-            <p className="text-sm text-red-700 font-medium">Passes</p>
-            <p className="text-4xl font-bold text-red-600">{stats?.totalPasses || 0}</p>
+          <div className="p-4 bg-red-900/30 rounded-xl border border-red-800/50">
+            <p className="text-sm text-red-400 font-medium">Passes</p>
+            <p className="text-4xl font-bold text-red-400">{stats?.totalPasses || 0}</p>
           </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <p className="text-sm text-green-700 font-medium">Accepts</p>
-            <p className="text-4xl font-bold text-green-600">{stats?.acceptCount || 0}</p>
+          <div className="p-4 bg-green-900/30 rounded-xl border border-green-800/50">
+            <p className="text-sm text-green-400 font-medium">Accepts</p>
+            <p className="text-4xl font-bold text-green-400">{stats?.acceptCount || 0}</p>
           </div>
         </div>
       </div>
 
       {/* Pass Reasons */}
       {stats?.passReasons && Object.keys(stats.passReasons).length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Pass Reasons</h2>
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 border border-[#2D3748]">
+          <h2 className="text-xl font-semibold mb-4 text-white">Pass Reasons</h2>
           <div className="space-y-3">
             {Object.entries(stats.passReasons)
               .sort(([, a], [, b]) => b - a)
               .map(([reason, count]) => (
-                <div key={reason} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <span className="text-sm">{reason}</span>
-                  <span className="px-3 py-1 bg-[#55B2DE]/20 text-[#4A9FCB] rounded-full text-sm font-semibold">
+                <div key={reason} className="flex justify-between items-center p-3 bg-[#121212] rounded-xl border border-[#2D3748]">
+                  <span className="text-sm text-white">{reason}</span>
+                  <span className="px-3 py-1 bg-[#55B2DE]/20 text-[#55B2DE] rounded-full text-sm font-semibold">
                     {count}
                   </span>
                 </div>

@@ -66,7 +66,7 @@ export default async function IdleBooksPage() {
 
   if (!booksWithDetails || booksWithDetails.length === 0) {
     return (
-      <div className="min-h-screen p-8 bg-gray-50">
+      <div className="min-h-screen p-8 bg-[#121212]">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <Link href="/admin" className="text-[#55B2DE] hover:underline">
@@ -74,11 +74,11 @@ export default async function IdleBooksPage() {
             </Link>
           </div>
 
-          <h1 className="text-3xl font-bold mb-8">Idle Books</h1>
+          <h1 className="text-3xl font-bold mb-8 text-white">Idle Books</h1>
 
-          <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="bg-[#1E293B] rounded-xl shadow p-12 text-center border border-[#2D3748]">
             <p className="text-2xl mb-2">🎉</p>
-            <p className="text-gray-600">No idle books found! All books added in the past 30+ days have been borrowed.</p>
+            <p className="text-[#9CA3AF]">No idle books found! All books added in the past 30+ days have been borrowed.</p>
           </div>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default async function IdleBooksPage() {
   }))
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
+    <div className="min-h-screen p-8 bg-[#121212]">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <Link href="/admin" className="text-[#55B2DE] hover:underline">
@@ -116,29 +116,29 @@ export default async function IdleBooksPage() {
         </div>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Idle Books</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold mb-2 text-white">Idle Books</h1>
+          <p className="text-[#9CA3AF]">
             Books that have been available for 30+ days but never borrowed
           </p>
         </div>
 
         {/* Summary */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-[#1E293B] rounded-xl shadow p-6 mb-8 border border-[#2D3748]">
           <div className="grid md:grid-cols-3 gap-6">
             <div>
-              <p className="text-sm text-gray-600">Total Idle Books</p>
-              <p className="text-3xl font-bold">{booksWithIdleDays.length}</p>
+              <p className="text-sm text-[#9CA3AF]">Total Idle Books</p>
+              <p className="text-3xl font-bold text-white">{booksWithIdleDays.length}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Longest Idle</p>
-              <p className="text-3xl font-bold">
+              <p className="text-sm text-[#9CA3AF]">Longest Idle</p>
+              <p className="text-3xl font-bold text-white">
                 {Math.max(...booksWithIdleDays.map(b => b.idleDays), 0)}
                 <span className="text-lg ml-1">days</span>
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Average Idle Time</p>
-              <p className="text-3xl font-bold">
+              <p className="text-sm text-[#9CA3AF]">Average Idle Time</p>
+              <p className="text-3xl font-bold text-white">
                 {booksWithIdleDays.length > 0 
                   ? Math.round(booksWithIdleDays.reduce((sum, b) => sum + b.idleDays, 0) / booksWithIdleDays.length)
                   : 0}
@@ -149,14 +149,14 @@ export default async function IdleBooksPage() {
         </div>
 
         {/* Idle Books List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold">Books Never Borrowed</h2>
+        <div className="bg-[#1E293B] rounded-xl shadow overflow-hidden border border-[#2D3748]">
+          <div className="p-6 border-b border-[#2D3748]">
+            <h2 className="text-xl font-semibold text-white">Books Never Borrowed</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr className="text-left">
+              <thead className="bg-[#121212] border-b border-[#2D3748]">
+                <tr className="text-left text-[#9CA3AF]">
                   <th className="px-6 py-3">Book</th>
                   <th className="px-6 py-3">Owner</th>
                   <th className="px-6 py-3">Circle</th>
@@ -166,29 +166,29 @@ export default async function IdleBooksPage() {
               </thead>
               <tbody>
                 {booksWithIdleDays.map((book, idx) => (
-                  <tr key={book.id} className={`border-b ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                  <tr key={book.id} className={`border-b border-[#2D3748] ${idx % 2 === 0 ? 'bg-[#1E293B]' : 'bg-[#121212]'}`}>
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-medium">{book.title}</p>
-                        {book.author && <p className="text-gray-600 text-xs">by {book.author}</p>}
-                        {book.isbn && <p className="text-gray-400 text-xs mt-1">ISBN: {book.isbn}</p>}
+                        <p className="font-medium text-white">{book.title}</p>
+                        {book.author && <p className="text-[#9CA3AF] text-xs">by {book.author}</p>}
+                        {book.isbn && <p className="text-[#6B7280] text-xs mt-1">ISBN: {book.isbn}</p>}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-gray-900">{book.owner?.full_name}</p>
-                      <p className="text-gray-500 text-xs">{book.owner?.email}</p>
+                      <p className="text-white">{book.owner?.full_name}</p>
+                      <p className="text-[#9CA3AF] text-xs">{book.owner?.email}</p>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{book.circle?.name || '-'}</td>
-                    <td className="px-6 py-4 text-gray-600">
+                    <td className="px-6 py-4 text-[#9CA3AF]">{book.circle?.name || '-'}</td>
+                    <td className="px-6 py-4 text-[#9CA3AF]">
                       {new Date(book.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         book.idleDays > 90 
-                          ? 'bg-red-100 text-red-700'
+                          ? 'bg-red-900/30 text-red-400'
                           : book.idleDays > 60
-                          ? 'bg-[#55B2DE]/20 text-[#4A9FCB]'
-                          : 'bg-yellow-100 text-yellow-700'
+                          ? 'bg-[#55B2DE]/20 text-[#55B2DE]'
+                          : 'bg-yellow-900/30 text-yellow-400'
                       }`}>
                         {book.idleDays} days
                       </span>

@@ -96,8 +96,8 @@ export default function DateRangePicker({ onChange }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-6">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">Date Range</h3>
+    <div className="bg-[#1E293B] rounded-xl shadow p-4 mb-6 border border-[#2D3748]">
+      <h3 className="text-sm font-semibold text-[#9CA3AF] mb-3">Date Range</h3>
       
       {/* Preset buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -105,7 +105,7 @@ export default function DateRangePicker({ onChange }: Props) {
           <button
             key={preset.label}
             onClick={() => handlePresetClick(preset)}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#55B2DE]"
+            className="px-3 py-1.5 text-sm border border-[#3B4252] rounded-lg hover:bg-[#2D3748] text-white focus:ring-2 focus:ring-[#55B2DE]"
           >
             {preset.label}
           </button>
@@ -113,7 +113,7 @@ export default function DateRangePicker({ onChange }: Props) {
         <button
           onClick={() => setShowCustom(!showCustom)}
           className={`px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-[#55B2DE] ${
-            showCustom ? 'bg-[#55B2DE] text-white border-[#55B2DE]' : 'border-gray-300 hover:bg-gray-50'
+            showCustom ? 'bg-[#55B2DE] text-white border-[#55B2DE]' : 'border-[#3B4252] hover:bg-[#2D3748] text-white'
           }`}
         >
           Custom
@@ -124,29 +124,29 @@ export default function DateRangePicker({ onChange }: Props) {
       {showCustom && (
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
+            <label className="block text-xs font-medium text-[#9CA3AF] mb-1">Start Date</label>
             <input
               type="date"
               value={dateRange.start}
               onChange={(e) => handleCustomChange('start', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE]"
+              className="w-full px-3 py-2 border border-[#3B4252] rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE] bg-[#121212] text-white"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
+            <label className="block text-xs font-medium text-[#9CA3AF] mb-1">End Date</label>
             <input
               type="date"
               value={dateRange.end}
               onChange={(e) => handleCustomChange('end', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE]"
+              className="w-full px-3 py-2 border border-[#3B4252] rounded-lg text-sm focus:ring-2 focus:ring-[#55B2DE] bg-[#121212] text-white"
             />
           </div>
         </div>
       )}
 
       {/* Current selection display */}
-      <div className="mt-3 text-xs text-gray-600">
-        Showing data from <span className="font-semibold">{dateRange.start}</span> to <span className="font-semibold">{dateRange.end}</span>
+      <div className="mt-3 text-xs text-[#9CA3AF]">
+        Showing data from <span className="font-semibold text-white">{dateRange.start}</span> to <span className="font-semibold text-white">{dateRange.end}</span>
       </div>
     </div>
   )
