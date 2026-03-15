@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import Link from 'next/link'
 
 export default function OnboardingProfile() {
   const router = useRouter()
@@ -14,12 +13,11 @@ export default function OnboardingProfile() {
   const [email, setEmail] = useState('')
   const [countryCode, setCountryCode] = useState('+1')
   const [phoneNumber, setPhoneNumber] = useState('')
-  const [allowCalls, setAllowCalls] = useState(true)
-  const [allowTexts, setAllowTexts] = useState(true)
+  const [shareEmail, setShareEmail] = useState(true)
+  const [sharePhone, setSharePhone] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Pre-populate with data from signup
   useEffect(() => {
     const loadUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -54,14 +52,13 @@ export default function OnboardingProfile() {
       const fullName = lastName ? `${firstName.trim()} ${lastName.trim()}` : firstName.trim()
       const fullPhone = phoneNumber ? `${countryCode}${phoneNumber.replace(/\D/g, '')}` : null
 
+      // Only save contact info if the corresponding checkbox is checked
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
           full_name: fullName,
-          contact_email: email || null,
-          contact_phone: fullPhone
-          
-          
+          contact_email: shareEmail && email ? email : null,
+          contact_phone: sharePhone && fullPhone ? fullPhone : null
         })
         .eq('id', user.id)
 
@@ -163,26 +160,34 @@ export default function OnboardingProfile() {
           When you share a book, how should people contact you?
         </h2>
 
-        {/* Email */}
+        {/* Email with checkbox */}
         <div className="mb-4">
-          <label className="block text-white font-medium mb-2">Enter Email</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-white font-medium">Email</label>
+            <Checkbox checked={shareEmail} onChange={() => setShareEmail(!shareEmail)} label="Share email" />
+          </div>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Jordancris@gmail.com"
-            className="w-full bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
+            placeholder="you@example.com"
+            className={`w-full bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500 ${!shareEmail ? 'opacity-50' : ''}`}
+            disabled={!shareEmail}
           />
         </div>
 
-        {/* Phone */}
+        {/* Phone with checkbox */}
         <div className="mb-6">
-          <label className="block text-white font-medium mb-2">Enter Phone Number</label>
-          <div className="flex gap-2">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-white font-medium">Phone Number</label>
+            <Checkbox checked={sharePhone} onChange={() => setSharePhone(!sharePhone)} label="Share phone" />
+          </div>
+          <div className={`flex gap-2 ${!sharePhone ? 'opacity-50' : ''}`}>
             <div className="relative">
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
+                disabled={!sharePhone}
                 className="appearance-none bg-[#1E1E1E] text-white rounded-full px-4 py-4 pr-10 outline-none focus:ring-2 focus:ring-[#55B2DE]"
               >
                 <option value="+1">+1</option>
@@ -198,21 +203,16 @@ export default function OnboardingProfile() {
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="11 22 333 44"
+              placeholder="555 123 4567"
+              disabled={!sharePhone}
               className="flex-1 bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
             />
           </div>
         </div>
 
-        {/* Checkboxes */}
-        <div className="space-y-4 mb-4">
-          <Checkbox checked={allowCalls} onChange={() => setAllowCalls(!allowCalls)} label="Allow calls" />
-          <Checkbox checked={allowTexts} onChange={() => setAllowTexts(!allowTexts)} label="Allow text messages" />
-        </div>
-
         {/* Info text */}
         <p className="text-gray-500 text-sm mb-8">
-          People who request to borrow your book will use this information to contact you directly.
+          Only checked contact methods will be shared with people who want to borrow your books.
         </p>
 
         {/* Next Button */}
