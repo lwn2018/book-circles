@@ -68,7 +68,7 @@ export default function NotificationsList() {
     }
   }
 
-  const markNotificationAsRead = async (notificationId: string, event: React.MouseEvent) => {
+  const dismissNotification = async (notificationId: string, event: React.MouseEvent) => {
     event.stopPropagation()
     try {
       await fetch(`/api/notifications/${notificationId}`, {
@@ -78,22 +78,14 @@ export default function NotificationsList() {
       })
       fetchNotifications()
     } catch (error) {
-      console.error('Failed to mark notification as read:', error)
+      console.error('Failed to dismiss notification:', error)
     }
   }
 
   const handleNotificationClick = (notification: Notification) => {
-    // Don't navigate if it's a soft reminder (has action buttons)
-    if (notification.type === 'soft_reminder') {
-      return
-    }
-
-    if (!notification.read) {
-      markAsRead(notification.id)
-    }
-    if (notification.action_url) {
-      router.push(notification.action_url)
-    }
+    if (notification.type === 'soft_reminder') return
+    if (!notification.read) markAsRead(notification.id)
+    if (notification.action_url) router.push(notification.action_url)
   }
 
   const handleStillReading = async (notification: Notification) => {
@@ -106,23 +98,16 @@ export default function NotificationsList() {
           notification_id: notification.id
         })
       })
-
       const data = await response.json()
-
       if (data.success) {
-        alert(data.message) // "No rush — enjoy!"
         fetchNotifications()
-      } else {
-        alert(`Error: ${data.error}`)
       }
     } catch (error) {
       console.error('Failed to handle still reading:', error)
-      alert('Failed to process action')
     }
   }
 
   const handleReadyToPagepass = (notification: Notification) => {
-    // Navigate to My Shelf (borrowed books)
     markAsRead(notification.id)
     router.push('/dashboard/borrowed')
   }
@@ -136,6 +121,7 @@ export default function NotificationsList() {
       case 'invite_accepted': return '🎉'
       case 'new_book': return '✨'
       case 'soft_reminder': return '📖'
+      case 'badge_earned': return '🏆'
       default: return '🔔'
     }
   }
@@ -157,24 +143,24 @@ export default function NotificationsList() {
   return (
     <div>
       {/* Filters */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+      <div className="flex items-center justify-between p-4 border-b border-[#333]">
         <div className="flex gap-2">
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               filter === 'all'
                 ? 'bg-[#55B2DE] text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                : 'bg-[#27272A] text-[#9CA3AF] hover:text-white'
             }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter('unread')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               filter === 'unread'
                 ? 'bg-[#55B2DE] text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                : 'bg-[#27272A] text-[#9CA3AF] hover:text-white'
             }`}
           >
             Unread {unreadCount > 0 && `(${unreadCount})`}
@@ -184,7 +170,7 @@ export default function NotificationsList() {
         {unreadCount > 0 && filter === 'all' && (
           <button
             onClick={markAllAsRead}
-            className="text-sm text-[#55B2DE] hover:underline"
+            className="text-sm text-[#55B2DE] hover:text-[#6BC4EC] transition-colors"
           >
             Mark all as read
           </button>
@@ -193,32 +179,32 @@ export default function NotificationsList() {
 
       {/* Notifications */}
       {loading ? (
-        <div className="p-12 text-center text-gray-500">
-          <p>Loading notifications...</p>
+        <div className="p-12 text-center">
+          <p className="text-[#9CA3AF]">Loading notifications...</p>
         </div>
       ) : notifications.length === 0 ? (
-        <div className="p-12 text-center text-gray-500">
-          <p className="text-5xl mb-3">🔔</p>
-          <p className="font-medium">
+        <div className="p-12 text-center">
+          <p className="text-5xl mb-4">🔔</p>
+          <p className="font-medium text-white mb-2">
             {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
           </p>
-          <p className="text-sm mt-2">
+          <p className="text-sm text-[#9CA3AF]">
             {filter === 'unread' 
               ? "You're all caught up!"
               : "You'll be notified when books are ready, due soon, and more."}
           </p>
         </div>
       ) : (
-        <div className="divide-y">
+        <div className="divide-y divide-[#333]">
           {notifications.map((notification) => (
             <div
               key={notification.id}
               onClick={() => handleNotificationClick(notification)}
-              className={`p-5 pl-8 hover:bg-gray-50 transition cursor-pointer relative ${
-                !notification.read ? 'bg-blue-50' : ''
+              className={`p-5 pl-8 hover:bg-[#27272A] transition cursor-pointer relative ${
+                !notification.read ? 'bg-[#55B2DE]/10' : ''
               }`}
             >
-              {/* Unread indicator dot on left */}
+              {/* Unread indicator dot */}
               {!notification.read && (
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 bg-[#55B2DE] rounded-full" />
               )}
@@ -229,27 +215,32 @@ export default function NotificationsList() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-3 mb-1">
-                    <h3 className="font-semibold text-base">{notification.message}</h3>
+                    <h3 
+                      className="font-medium text-white"
+                      style={{ fontFamily: 'var(--font-inter)' }}
+                    >
+                      {notification.message}
+                    </h3>
                     <button
-                      onClick={(e) => markNotificationAsRead(notification.id, e)}
-                      className="text-gray-400 hover:text-gray-600 flex-shrink-0 p-1"
+                      onClick={(e) => dismissNotification(notification.id, e)}
+                      className="text-[#6B7280] hover:text-white flex-shrink-0 p-1 transition-colors"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{formatTime(notification.created_at)}</p>
+                  <p className="text-sm text-[#6B7280] mt-1">{formatTime(notification.created_at)}</p>
                   
                   {/* Action Buttons for Soft Reminders */}
                   {notification.type === 'soft_reminder' && notification.metadata?.action_buttons && (
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-3 mt-4">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           handleStillReading(notification)
                         }}
-                        className="px-4 py-2 bg-[#55B2DE] text-white text-sm rounded hover:bg-[#4A9FCB]"
+                        className="px-4 py-2 bg-[#55B2DE] text-white text-sm font-medium rounded-lg hover:bg-[#4A9FCB] transition-colors"
                       >
                         Still reading
                       </button>
@@ -258,7 +249,7 @@ export default function NotificationsList() {
                           e.stopPropagation()
                           handleReadyToPagepass(notification)
                         }}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50"
+                        className="px-4 py-2 bg-[#27272A] text-white text-sm font-medium rounded-lg hover:bg-[#3F3F46] transition-colors"
                       >
                         Ready to pagepass
                       </button>
