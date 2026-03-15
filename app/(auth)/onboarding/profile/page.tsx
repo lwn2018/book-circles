@@ -52,13 +52,15 @@ export default function OnboardingProfile() {
       const fullName = lastName ? `${firstName.trim()} ${lastName.trim()}` : firstName.trim()
       const fullPhone = phoneNumber ? `${countryCode}${phoneNumber.replace(/\D/g, '')}` : null
 
-      // Only save contact info if the corresponding checkbox is checked
+      // Save all contact info, plus preferences for what to share
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
           full_name: fullName,
-          contact_email: shareEmail && email ? email : null,
-          contact_phone: sharePhone && fullPhone ? fullPhone : null
+          contact_email: email || null,
+          contact_phone: fullPhone,
+          share_email: shareEmail,
+          share_phone: sharePhone
         })
         .eq('id', user.id)
 
@@ -160,34 +162,29 @@ export default function OnboardingProfile() {
           When you share a book, how should people contact you?
         </h2>
 
-        {/* Email with checkbox */}
+        {/* Email */}
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-white font-medium">Email</label>
-            <Checkbox checked={shareEmail} onChange={() => setShareEmail(!shareEmail)} label="Share email" />
-          </div>
+          <label className="block text-white font-medium mb-2">Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className={`w-full bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500 ${!shareEmail ? 'opacity-50' : ''}`}
-            disabled={!shareEmail}
+            className="w-full bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
           />
+          <div className="mt-2">
+            <Checkbox checked={shareEmail} onChange={() => setShareEmail(!shareEmail)} label="Share email with borrowers" />
+          </div>
         </div>
 
-        {/* Phone with checkbox */}
+        {/* Phone */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-white font-medium">Phone Number</label>
-            <Checkbox checked={sharePhone} onChange={() => setSharePhone(!sharePhone)} label="Share phone" />
-          </div>
-          <div className={`flex gap-2 ${!sharePhone ? 'opacity-50' : ''}`}>
+          <label className="block text-white font-medium mb-2">Phone Number</label>
+          <div className="flex gap-2">
             <div className="relative">
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
-                disabled={!sharePhone}
                 className="appearance-none bg-[#1E1E1E] text-white rounded-full px-4 py-4 pr-10 outline-none focus:ring-2 focus:ring-[#55B2DE]"
               >
                 <option value="+1">+1</option>
@@ -204,15 +201,17 @@ export default function OnboardingProfile() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="555 123 4567"
-              disabled={!sharePhone}
               className="flex-1 bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
             />
+          </div>
+          <div className="mt-2">
+            <Checkbox checked={sharePhone} onChange={() => setSharePhone(!sharePhone)} label="Share phone with borrowers" />
           </div>
         </div>
 
         {/* Info text */}
         <p className="text-gray-500 text-sm mb-8">
-          Only checked contact methods will be shared with people who want to borrow your books.
+          Only checked contact methods will be shown to people who want to borrow your books.
         </p>
 
         {/* Next Button */}
