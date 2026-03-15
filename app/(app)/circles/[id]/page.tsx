@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import Avatar from '@/app/components/Avatar'
 import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
 
