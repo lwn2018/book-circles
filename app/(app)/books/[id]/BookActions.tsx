@@ -34,6 +34,21 @@ export default function BookActions({ book, userId, circleId, isOwner, isBorrowe
   const canBorrow = !isOwner && isAvailable && !isOffShelf
   const canQueue = !isOwner && !isAvailable && !inQueue && !isBorrower && !isOffShelf
 
+  // Log event to user_events table
+  const logEvent = async (eventType: string, metadata: Record<string, any> = {}) => {
+    try {
+      await supabase.from('user_events').insert({
+        user_id: userId,
+        event_type: eventType,
+        book_id: book.id,
+        metadata: { book_title: book.title, ...metadata },
+        created_at: new Date().toISOString()
+      })
+    } catch (err) {
+      console.error('Failed to log event:', err)
+    }
+  }
+
   const handleBorrow = async () => {
     if (loading) return
     setLoading(true)
@@ -48,6 +63,7 @@ export default function BookActions({ book, userId, circleId, isOwner, isBorrowe
         if (!circleId) throw new Error('Circle not found')
         const result = await completeGiftTransfer(book.id, userId, circleId)
         if (result.error) throw new Error(result.error)
+        await logEvent('book_gifted', { from_owner: book.owner?.full_name })
         router.refresh()
         return
       }
@@ -70,6 +86,9 @@ export default function BookActions({ book, userId, circleId, isOwner, isBorrowe
         borrower_id: userId,
         due_date: dueDate.toISOString()
       })
+
+      // Log the borrow event
+      await logEvent('book_borrowed', { owner_name: book.owner?.full_name })
 
       router.refresh()
     } catch (err: any) {
@@ -100,6 +119,10 @@ export default function BookActions({ book, userId, circleId, isOwner, isBorrowe
       })
 
       if (error) throw error
+
+      // Log the queue join event
+      await logEvent('queue_joined', { position: nextPosition })
+
       router.refresh()
     } catch (err: any) {
       alert(`Error: ${err.message}`)

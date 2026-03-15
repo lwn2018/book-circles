@@ -55,7 +55,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
 
   const { data: recentActivity } = await supabase
     .from('user_events')
-    .select('id, action, metadata, created_at, user_id, profiles(full_name, avatar_type, avatar_id, avatar_url)')
+    .select('id, event_type, metadata, created_at, user_id, profiles(full_name, avatar_type, avatar_id, avatar_url)')
     .eq('book_id', id)
     .order('created_at', { ascending: false })
     .limit(5)
@@ -162,7 +162,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
                   size="sm"
                 />
                 <div className="flex-1">
-                  <p className="text-white text-sm">{getActivityText(activity.action, activity.metadata)}</p>
+                  <p className="text-white text-sm">{getActivityText(activity.event_type, activity.metadata)}</p>
                   <p className="text-[#6B7280] text-xs">{formatTimeAgo(activity.created_at)}</p>
                 </div>
               </div>
