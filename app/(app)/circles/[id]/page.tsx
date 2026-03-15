@@ -37,7 +37,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
 
   const { data: members } = await supabase
     .from('circle_members')
-    .select(`*, profiles (id, full_name, email)`)
+    .select(`*, profiles (id, full_name, email, avatar_slug)`)
     .eq('circle_id', id)
 
   const { data: memberIds } = await supabase
@@ -109,11 +109,16 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
             {members?.slice(0, 5).map((member: any, index: number) => (
               <div 
                 key={member.profiles?.id || index}
-                className={`w-10 h-10 rounded-full bg-[#334155] flex items-center justify-center text-white font-medium border-2 border-[#121212] ${index > 0 ? '-ml-3' : ''}`}
-                style={{ fontFamily: 'var(--font-inter)' }}
+                className={`${index > 0 ? '-ml-3' : ''}`}
                 title={member.profiles?.full_name || 'Member'}
               >
-                {(member.profiles?.full_name || 'M').charAt(0).toUpperCase()}
+                <Avatar
+                  avatarSlug={member.profiles?.avatar_slug}
+                  userName={member.profiles?.full_name || 'Member'}
+                  userId={member.profiles?.id || ''}
+                  size="sm"
+                  className="border-2 border-[#121212]"
+                />
               </div>
             ))}
             {memberCount > 5 && (

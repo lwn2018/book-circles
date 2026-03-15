@@ -1,55 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import Avatar from '@/app/components/Avatar'
 
 type Member = {
   id: string
   profiles: {
     id: string
     full_name: string
+    avatar_slug?: string
   }
 }
 
 type Props = {
   members: Member[]
-}
-
-// Generate avatar color based on name
-function getAvatarColor(name: string): string {
-  const colors = [
-    'bg-[#55B2DE]',
-    'bg-amber-500', 
-    'bg-yellow-500',
-    'bg-lime-500',
-    'bg-green-500',
-    'bg-emerald-500',
-    'bg-teal-500',
-    'bg-cyan-500',
-    'bg-sky-500',
-    'bg-blue-500',
-    'bg-indigo-500',
-    'bg-violet-500',
-    'bg-purple-500',
-    'bg-fuchsia-500',
-    'bg-pink-500',
-    'bg-rose-500',
-  ]
-  
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  
-  return colors[Math.abs(hash) % colors.length]
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
 }
 
 export default function CollapsibleMembersList({ members }: Props) {
@@ -69,11 +33,12 @@ export default function CollapsibleMembersList({ members }: Props) {
             key={member.id} 
             className="flex flex-col items-center gap-1.5"
           >
-            <div 
-              className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm ${getAvatarColor(member.profiles.full_name)}`}
-            >
-              {getInitials(member.profiles.full_name)}
-            </div>
+            <Avatar
+              avatarSlug={member.profiles.avatar_slug}
+              userName={member.profiles.full_name}
+              userId={member.profiles.id}
+              size="md"
+            />
             <span className="text-xs text-gray-400 max-w-[60px] truncate text-center">
               {member.profiles.full_name.split(' ')[0]}
             </span>
