@@ -10,6 +10,7 @@ interface DoneReadingButtonProps {
   status: string
   ownerName?: string
   isOwner?: boolean
+  variant?: 'solid' | 'outline'
 }
 
 export default function DoneReadingButton({ 
@@ -17,16 +18,14 @@ export default function DoneReadingButton({
   bookTitle, 
   status, 
   ownerName,
-  isOwner = false
+  isOwner = false,
+  variant = 'solid'
 }: DoneReadingButtonProps) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState<{ receiverName?: string, isOwnBook?: boolean } | null>(null)
   const router = useRouter()
 
-  // Don't show button if handoff already in progress
-  if (status === 'in_transit' || status === 'passing') {
-    return null
-  }
+  if (status === 'in_transit' || status === 'passing') return null
 
   const handleDoneReading = async () => {
     if (loading) return
@@ -35,9 +34,7 @@ export default function DoneReadingButton({
       ? `Finished with "${bookTitle}"?\n\nThis will mark it as available on your shelf.`
       : `Ready to return "${bookTitle}"?\n\nWe'll notify ${ownerName || 'the owner'} to arrange the handoff.`
 
-    const confirmed = confirm(confirmMessage)
-
-    if (!confirmed) return
+    if (!confirm(confirmMessage)) return
 
     setLoading(true)
 
@@ -66,7 +63,6 @@ export default function DoneReadingButton({
     }
   }
 
-  // Show success state
   if (success) {
     if (success.isOwnBook) {
       return (
@@ -82,12 +78,12 @@ export default function DoneReadingButton({
     )
   }
 
+  const buttonStyles = variant === 'outline'
+    ? 'w-full px-4 py-3 border-2 border-[#55B2DE] text-[#55B2DE] hover:bg-[#55B2DE]/10 rounded-xl text-sm font-medium transition-colors disabled:opacity-50'
+    : 'w-full px-4 py-2.5 bg-[#27272A] hover:bg-[#3F3F46] text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 border border-[#333]'
+
   return (
-    <button
-      onClick={handleDoneReading}
-      disabled={loading}
-      className="w-full px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700"
-    >
+    <button onClick={handleDoneReading} disabled={loading} className={buttonStyles}>
       {loading ? (
         <span className="flex items-center justify-center gap-2">
           <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -97,7 +93,12 @@ export default function DoneReadingButton({
           Processing...
         </span>
       ) : (
-        'Done reading'
+        <span className="flex items-center justify-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Done Reading
+        </span>
       )}
     </button>
   )
