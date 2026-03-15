@@ -37,7 +37,7 @@ export default async function AccountSettingsPage() {
           <p className="text-white/50 text-sm mb-4">
             Reset your onboarding experience (for testing)
           </p>
-          <RestartOnboardingButton />
+          <RestartOnboardingButton userId={user.id} />
         </div>
 
         {/* Danger Zone */}
