@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { formatPhoneNumber } from '@/lib/formatPhone'
 
 export default function OnboardingProfile() {
   const router = useRouter()
@@ -11,7 +12,6 @@ export default function OnboardingProfile() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
-  const [countryCode, setCountryCode] = useState('+1')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [shareEmail, setShareEmail] = useState(true)
   const [sharePhone, setSharePhone] = useState(false)
@@ -35,6 +35,10 @@ export default function OnboardingProfile() {
     loadUserData()
   }, [supabase])
 
+  const handlePhoneChange = (value: string) => {
+    setPhoneNumber(formatPhoneNumber(value))
+  }
+
   const handleNext = async () => {
     setError('')
 
@@ -50,17 +54,17 @@ export default function OnboardingProfile() {
       if (!user) throw new Error('Not authenticated')
 
       const fullName = lastName ? `${firstName.trim()} ${lastName.trim()}` : firstName.trim()
-      const fullPhone = phoneNumber ? `${countryCode}${phoneNumber.replace(/\D/g, '')}` : null
+      // Store phone as digits only with +1 prefix
+      const phoneDigits = phoneNumber.replace(/\D/g, '')
+      const fullPhone = phoneDigits ? `+1${phoneDigits}` : null
 
-      // Save all contact info, plus preferences for what to share
+      // Save profile - share_email/share_phone may not exist yet
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
           full_name: fullName,
           contact_email: email || null,
-          contact_phone: fullPhone,
-          share_email: shareEmail,
-          share_phone: sharePhone
+          contact_phone: fullPhone
         })
         .eq('id', user.id)
 
@@ -180,30 +184,13 @@ export default function OnboardingProfile() {
         {/* Phone */}
         <div className="mb-6">
           <label className="block text-white font-medium mb-2">Phone Number</label>
-          <div className="flex gap-2">
-            <div className="relative">
-              <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className="appearance-none bg-[#1E1E1E] text-white rounded-full px-4 py-4 pr-10 outline-none focus:ring-2 focus:ring-[#55B2DE]"
-              >
-                <option value="+1">+1</option>
-                <option value="+44">+44</option>
-                <option value="+61">+61</option>
-                <option value="+91">+91</option>
-              </select>
-              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="555 123 4567"
-              className="flex-1 bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
-            />
-          </div>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            placeholder="(555) 123-4567"
+            className="w-full bg-[#1E1E1E] text-white rounded-full px-5 py-4 outline-none focus:ring-2 focus:ring-[#55B2DE] placeholder-gray-500"
+          />
           <div className="mt-2">
             <Checkbox checked={sharePhone} onChange={() => setSharePhone(!sharePhone)} label="Share phone with borrowers" />
           </div>
