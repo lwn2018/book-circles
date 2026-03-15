@@ -166,7 +166,7 @@ export async function initiateDoneReading(bookId: string) {
         message: isPagepass 
           ? `Nice! ${receiverName} is next — arrange the handoff.`
           : `We've let ${receiverName} know you're ready to return "${book.title}".`,
-        link: `/shelf`,
+        link: `/handoff/${handoff.id}`,
         data: { handoffId: handoff.id, bookId }
       }),
       // Notify receiver (next in queue or owner)
@@ -175,7 +175,7 @@ export async function initiateDoneReading(bookId: string) {
         type: 'book_ready',
         title: '📬 Book Ready for Pickup',
         message: `Time to pick up "${book.title}" from ${giverName}!`,
-        link: `/shelf`,
+        link: `/handoff/${handoff.id}`,
         data: { handoffId: handoff.id, bookId }
       })
     ])

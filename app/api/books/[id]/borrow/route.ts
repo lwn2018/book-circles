@@ -157,7 +157,7 @@ export async function POST(
           book_id: bookId,
           sender_id: user.id,
           message: ownerMessage,
-          action_url: `/shelf`,
+          action_url: `/handoff/${handoffId}`,
           read: false
         },
         {
@@ -166,7 +166,7 @@ export async function POST(
           book_id: bookId,
           sender_id: book.owner_id,
           message: borrowerMessage,
-          action_url: `/shelf`,
+          action_url: `/handoff/${handoffId}`,
           read: false
         }
       ])
