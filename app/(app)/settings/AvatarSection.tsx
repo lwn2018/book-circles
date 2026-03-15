@@ -1,168 +1,37 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-
-const PRESET_AVATARS = [
-  { id: 'preset-1', emoji: '📚', color: 'bg-blue-100' },
-  { id: 'preset-2', emoji: '🌟', color: 'bg-yellow-100' },
-  { id: 'preset-3', emoji: '🎨', color: 'bg-purple-100' },
-  { id: 'preset-4', emoji: '🌈', color: 'bg-pink-100' },
-  { id: 'preset-5', emoji: '🚀', color: 'bg-indigo-100' },
-  { id: 'preset-6', emoji: '🌻', color: 'bg-green-100' },
-  { id: 'preset-7', emoji: '🎭', color: 'bg-red-100' },
-  { id: 'preset-8', emoji: '⭐', color: 'bg-[#55B2DE]/20' }
-]
+import { AVATARS, AvatarSlug, DEFAULT_AVATAR, getAvatarBySlug } from '@/lib/avatars'
 
 type AvatarSectionProps = {
   userId: string
   userName: string
-  currentAvatarUrl: string | null
-  currentAvatarType: 'upload' | 'preset' | 'initials' | null
-  currentAvatarId: string | null
+  currentAvatarSlug: AvatarSlug | string | null
 }
 
 export default function AvatarSection({
   userId,
   userName,
-  currentAvatarUrl,
-  currentAvatarType,
-  currentAvatarId
+  currentAvatarSlug
 }: AvatarSectionProps) {
   const supabase = createClient()
   const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [avatarType, setAvatarType] = useState<'upload' | 'preset' | 'initials'>(
-    currentAvatarType || 'initials'
+  const [selectedSlug, setSelectedSlug] = useState<AvatarSlug>(
+    (currentAvatarSlug as AvatarSlug) || DEFAULT_AVATAR
   )
-  const [selectedPreset, setSelectedPreset] = useState<string | null>(currentAvatarId)
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
-  const [uploadedPreview, setUploadedPreview] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
-  // Sync local state with props when they change (after router.refresh())
+  // Sync local state with props when they change
   useEffect(() => {
-    setAvatarType(currentAvatarType || 'initials')
-    setSelectedPreset(currentAvatarId)
-  }, [currentAvatarType, currentAvatarId])
+    setSelectedSlug((currentAvatarSlug as AvatarSlug) || DEFAULT_AVATAR)
+  }, [currentAvatarSlug])
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file')
-      return
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be smaller than 5MB')
-      return
-    }
-
-    setUploadedFile(file)
-    setAvatarType('upload')
-    setSelectedPreset(null)
-    setError('')
-    setMessage('')
-
-    // Create preview
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setUploadedPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const handlePresetSelect = (presetId: string) => {
-    setAvatarType('preset')
-    setSelectedPreset(presetId)
-    setUploadedFile(null)
-    setUploadedPreview(null)
-    setError('')
-    setMessage('')
-  }
-
-  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        let { width, height } = img
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width
-            width = maxWidth
-          }
-        } else {
-          if (height > maxHeight) {
-            width = (width * maxHeight) / height
-            height = maxHeight
-          }
-        }
-
-        canvas.width = width
-        canvas.height = height
-
-        const ctx = canvas.getContext('2d')
-        ctx?.drawImage(img, 0, 0, width, height)
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob)
-            else reject(new Error('Failed to create blob'))
-          },
-          file.type,
-          0.85
-        )
-      }
-      img.onerror = reject
-      img.src = URL.createObjectURL(file)
-    })
-  }
-
-  const uploadAvatar = async (file: File): Promise<string | null> => {
-    try {
-      setUploading(true)
-
-      // Resize and compress image (client-side)
-      const resizedBlob = await resizeImage(file, 256, 256)
-
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${userId}-${Date.now()}.${fileExt}`
-      const filePath = `avatars/${fileName}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, resizedBlob, {
-          contentType: file.type,
-          upsert: true
-        })
-
-      if (uploadError) throw uploadError
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath)
-
-      return publicUrl
-    } catch (err: any) {
-      console.error('Upload error:', err)
-      setError('Failed to upload image')
-      return null
-    } finally {
-      setUploading(false)
-    }
-  }
+  const selectedAvatar = getAvatarBySlug(selectedSlug)
 
   const handleSaveAvatar = async () => {
     setError('')
@@ -170,39 +39,19 @@ export default function AvatarSection({
     setSaving(true)
 
     try {
-      let avatarUrl: string | null = null
-
-      // Upload if needed
-      if (avatarType === 'upload' && uploadedFile) {
-        avatarUrl = await uploadAvatar(uploadedFile)
-        if (!avatarUrl) {
-          setSaving(false)
-          return
-        }
-      }
-
-      // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          avatar_type: avatarType,
-          avatar_id: avatarType === 'preset' ? selectedPreset : null,
-          avatar_url: avatarType === 'upload' ? avatarUrl : null
+          avatar_slug: selectedSlug,
+          avatar_type: null,  // Clear legacy fields
+          avatar_id: null,
+          avatar_url: null
         })
         .eq('id', userId)
 
       if (updateError) throw updateError
 
-      setMessage('✅ Avatar updated successfully!')
-      
-      // Clear uploaded file/preview (but keep preset selection)
-      if (avatarType === 'upload') {
-        setUploadedFile(null)
-        setUploadedPreview(null)
-      }
-      
-      // Refresh to show new avatar across the app
-      // The useEffect will sync local state with updated props
+      setMessage('✅ Avatar updated!')
       router.refresh()
     } catch (err: any) {
       setError(`❌ ${err.message || 'Failed to save avatar'}`)
@@ -211,150 +60,81 @@ export default function AvatarSection({
     }
   }
 
-  // Helper to get initials from name
-  const getInitials = (name: string): string => {
-    const parts = name.trim().split(/\s+/)
-    if (parts.length === 0) return '?'
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
-  }
-
-  // Helper to get color for user
-  const getUserColor = (id: string): string => {
-    const colors = [
-      '#8B9D83', '#C89F9C', '#6B7C93', '#C07D5F', '#8B6F8F',
-      '#6B9696', '#CCA15C', '#9B8FAB', '#A67B5B', '#5D8D8D'
-    ]
-    let hash = 5381
-    for (let i = 0; i < id.length; i++) {
-      hash = ((hash << 5) + hash) + id.charCodeAt(i)
-    }
-    return colors[Math.abs(hash) % colors.length]
-  }
-
-  // Get current avatar preview
-  const getCurrentAvatar = () => {
-    console.log('[Settings Avatar] Rendering:', { avatarType, selectedPreset, currentAvatarUrl, uploadedPreview })
-    
-    if (avatarType === 'upload' && uploadedPreview) {
-      return (
-        <img
-          src={uploadedPreview}
-          alt="Avatar preview"
-          className="w-full h-full object-cover rounded-full"
-        />
-      )
-    }
-
-    if (avatarType === 'upload' && currentAvatarUrl) {
-      return (
-        <img
-          src={currentAvatarUrl}
-          alt="Avatar"
-          className="w-full h-full object-cover rounded-full"
-        />
-      )
-    }
-
-    if (avatarType === 'preset' && selectedPreset) {
-      const preset = PRESET_AVATARS.find(p => p.id === selectedPreset)
-      console.log('[Settings Avatar] Preset lookup:', { selectedPreset, preset })
-      if (preset) {
-        return (
-          <div className={`w-full h-full rounded-full ${preset.color} flex items-center justify-center`}>
-            <span className="text-6xl">{preset.emoji}</span>
-          </div>
-        )
-      }
-    }
-
-    // Default initials
-    console.log('[Settings Avatar] Falling back to initials')
-    return (
-      <div
-        className="w-full h-full rounded-full flex items-center justify-center font-semibold text-white text-4xl"
-        style={{ backgroundColor: getUserColor(userId) }}
-      >
-        {getInitials(userName)}
-      </div>
-    )
-  }
+  const hasChanges = selectedSlug !== (currentAvatarSlug || DEFAULT_AVATAR)
 
   return (
     <div className="bg-[#27272A] rounded-xl p-6">
-      <h2 className="text-xl font-semibold mb-4">Profile Picture</h2>
+      <h2 className="text-xl font-semibold text-white mb-4">Profile Picture</h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-800 rounded-lg text-sm border border-red-200">
+        <div className="mb-4 p-3 bg-red-900/30 text-red-400 rounded-lg text-sm border border-red-800">
           {error}
         </div>
       )}
 
       {message && (
-        <div className="mb-4 p-3 bg-green-50 text-green-800 rounded-lg text-sm border border-green-200">
+        <div className="mb-4 p-3 bg-green-900/30 text-green-400 rounded-lg text-sm border border-green-800">
           {message}
         </div>
       )}
 
-      {/* Current Avatar Display */}
-      <div className="flex justify-center mb-6">
-        <div className="relative w-32 h-32">
-          {getCurrentAvatar()}
-        </div>
-      </div>
-
-      {/* Preset Avatar Options */}
-      <div className="mb-6">
-        <h3 className="text-sm font-medium text-white mb-3">
-          Or choose a preset avatar:
-        </h3>
-        <div className="grid grid-cols-4 gap-3">
-          {PRESET_AVATARS.map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => handlePresetSelect(preset.id)}
-              disabled={uploading || saving}
-              className={`w-full aspect-square rounded-full ${preset.color} flex items-center justify-center text-3xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                selectedPreset === preset.id && avatarType === 'preset'
-                  ? 'ring-4 ring-[#55B2DE] scale-105'
-                  : 'hover:scale-105'
-              }`}
-            >
-              {preset.emoji}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Use Initials Option */}
-      <div className="mb-6">
-        <button
-          onClick={() => {
-            setAvatarType('initials')
-            setSelectedPreset(null)
-            setUploadedFile(null)
-            setUploadedPreview(null)
-            setError('')
-            setMessage('')
+      {/* Current Avatar Preview */}
+      <div className="flex flex-col items-center mb-6">
+        <div 
+          className="w-28 h-28 rounded-full overflow-hidden"
+          style={{
+            boxShadow: '0 0 0 2.5px #55B2DE, 0 0 12px rgba(85,178,222,0.28)'
           }}
-          disabled={uploading || saving}
-          className={`w-full px-4 py-3 border-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-            avatarType === 'initials'
-              ? 'border-[#55B2DE] bg-blue-50 text-blue-700'
-              : 'border-[#333] hover:border-gray-400'
-          }`}
-        >
-          Use my initials ({userName.split(' ').map(n => n[0]).join('').toUpperCase()})
-        </button>
+          dangerouslySetInnerHTML={{ __html: selectedAvatar.svg }}
+        />
+        <p className="mt-3 italic text-[#6A7490]">
+          {selectedAvatar.name}
+        </p>
+      </div>
+
+      {/* Avatar Grid - 3x2 layout */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {AVATARS.map((avatar) => {
+          const isSelected = avatar.slug === selectedSlug
+          return (
+            <button
+              key={avatar.slug}
+              onClick={() => {
+                setSelectedSlug(avatar.slug)
+                setMessage('')
+                setError('')
+              }}
+              disabled={saving}
+              className="flex flex-col items-center disabled:opacity-50"
+              aria-label={`${avatar.name} ${avatar.description}`}
+              aria-pressed={isSelected}
+            >
+              <div 
+                className={`w-20 h-20 rounded-full overflow-hidden transition-all duration-200 ${
+                  isSelected ? 'scale-105' : 'hover:scale-102'
+                }`}
+                style={isSelected ? {
+                  boxShadow: '0 0 0 2.5px #55B2DE, 0 0 12px rgba(85,178,222,0.28)'
+                } : {
+                  boxShadow: '0 0 0 2px transparent'
+                }}
+                dangerouslySetInnerHTML={{ __html: avatar.svg }}
+              />
+              <p className="mt-2 text-xs italic text-[#6A7490]">
+                {avatar.name}
+              </p>
+            </button>
+          )
+        })}
       </div>
 
       {/* Save Button */}
       <button
         onClick={handleSaveAvatar}
-        disabled={saving || uploading}
-        className="w-full px-4 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
+        disabled={saving || !hasChanges}
+        className="w-full px-4 py-3 bg-[#55B2DE] text-[#0A1828] rounded-xl font-semibold hover:bg-[#6BC4EC] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {uploading ? 'Uploading...' : saving ? 'Saving...' : 'Save Avatar'}
+        {saving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved'}
       </button>
     </div>
   )

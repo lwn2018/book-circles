@@ -12,6 +12,7 @@ type User = {
   avatar_url?: string
   avatar_type?: string
   avatar_id?: string
+  avatar_slug?: string
 }
 
 export default function UserMenu({ user }: { user: User }) {
@@ -32,6 +33,7 @@ export default function UserMenu({ user }: { user: User }) {
           avatarType={user.avatar_type as any}
           avatarId={user.avatar_id}
           avatarUrl={user.avatar_url}
+          avatarSlug={user.avatar_slug}
           userName={user.full_name || user.email}
           userId={user.id}
           size="sm"

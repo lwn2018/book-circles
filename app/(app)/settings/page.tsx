@@ -42,9 +42,7 @@ export default async function Settings() {
         <AvatarSection
           userId={user.id}
           userName={profile?.full_name || user.email || 'User'}
-          currentAvatarUrl={profile?.avatar_url || null}
-          currentAvatarType={profile?.avatar_type as 'upload' | 'preset' | 'initials' | null}
-          currentAvatarId={profile?.avatar_id || null}
+          currentAvatarSlug={profile?.avatar_slug || null}
         />
 
         <div className="bg-[#1E293B] rounded-xl p-6">

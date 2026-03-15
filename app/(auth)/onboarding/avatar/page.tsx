@@ -3,33 +3,18 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { AVATARS, AvatarSlug, DEFAULT_AVATAR } from '@/lib/avatars'
 import ProgressBar from '../components/ProgressBar'
-
-const PRESET_AVATARS = [
-  { id: 'preset-1', emoji: '📚', color: 'bg-amber-900/60' },
-  { id: 'preset-2', emoji: '🌟', color: 'bg-yellow-900/60' },
-  { id: 'preset-3', emoji: '🎨', color: 'bg-purple-900/60' },
-  { id: 'preset-4', emoji: '🌈', color: 'bg-pink-900/60' },
-  { id: 'preset-5', emoji: '🚀', color: 'bg-indigo-900/60' },
-  { id: 'preset-6', emoji: '🌻', color: 'bg-green-900/60' },
-  { id: 'preset-7', emoji: '🎭', color: 'bg-red-900/60' },
-  { id: 'preset-8', emoji: '⭐', color: 'bg-[#55B2DE]/60' }
-]
 
 export default function OnboardingAvatar() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [avatarType, setAvatarType] = useState<'preset' | 'initials'>('initials')
-  const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
+  const [selectedSlug, setSelectedSlug] = useState<AvatarSlug>(DEFAULT_AVATAR)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handlePresetSelect = (presetId: string) => {
-    setAvatarType('preset')
-    setSelectedPreset(presetId)
-    setError('')
-  }
+  const selectedAvatar = AVATARS.find(a => a.slug === selectedSlug) || AVATARS[0]
 
   const handleNext = async () => {
     setError('')
@@ -39,13 +24,14 @@ export default function OnboardingAvatar() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      console.log('[Onboarding Avatar] Saving:', { avatarType, selectedPreset, userId: user.id })
+      console.log('[Onboarding Avatar] Saving:', { avatarSlug: selectedSlug, userId: user.id })
       
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          avatar_type: avatarType,
-          avatar_id: avatarType === 'preset' ? selectedPreset : null,
+          avatar_slug: selectedSlug,
+          avatar_type: null,  // Clear legacy fields
+          avatar_id: null,
           avatar_url: null
         })
         .eq('id', user.id)
@@ -65,25 +51,34 @@ export default function OnboardingAvatar() {
   }
 
   const handleSkip = async () => {
+    // Set default avatar when skipping
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ avatar_slug: DEFAULT_AVATAR })
+          .eq('id', user.id)
+      }
+    } catch (e) {
+      // Silent fail - not critical
+    }
     router.push('/onboarding/profile')
   }
 
-  // Get selected preset for preview
-  const selectedAvatarData = selectedPreset 
-    ? PRESET_AVATARS.find(p => p.id === selectedPreset)
-    : null
-
   return (
-    <div className="max-w-md mx-auto pt-8">
-      <ProgressBar currentStep={0} />
+    <div className="min-h-screen bg-[#1A2236] px-4 py-8">
+      <div className="max-w-md mx-auto">
+        <ProgressBar currentStep={0} />
 
-      <div className="bg-[#1a1a1a] rounded-2xl shadow-xl p-8 border border-gray-800">
-        <h1 className="text-2xl font-bold text-center mb-2 text-white">
-          Choose Your Avatar
-        </h1>
-        <p className="text-center text-gray-400 mb-8">
-          Select any avatar to get started
-        </p>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-white mb-2">
+            Welcome to PagePass
+          </h1>
+          <p className="text-white/60">
+            Choose an avatar to represent you in the community.
+          </p>
+        </div>
 
         {error && (
           <div className="mb-6 p-3 bg-red-900/30 text-red-400 rounded-lg text-sm border border-red-800">
@@ -91,55 +86,74 @@ export default function OnboardingAvatar() {
           </div>
         )}
 
-        {/* Current Avatar Preview */}
-        <div className="flex justify-center mb-8">
+        {/* Large Preview */}
+        <div className="flex flex-col items-center mb-8">
           <div 
-            className={`relative w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300 ${
-              selectedAvatarData 
-                ? `${selectedAvatarData.color} ring-4 ring-[#55B2DE] ring-offset-4 ring-offset-[#1a1a1a]` 
-                : 'bg-gray-800'
-            }`}
+            className="w-28 h-28 rounded-full overflow-hidden"
+            style={{
+              boxShadow: '0 0 0 2.5px #55B2DE, 0 0 16px rgba(85,178,222,0.28)'
+            }}
+            dangerouslySetInnerHTML={{ __html: selectedAvatar.svg }}
+            aria-label={`${selectedAvatar.name} ${selectedAvatar.description}`}
+          />
+          <p 
+            className="mt-3 italic"
+            style={{ color: '#6A7490', fontFamily: 'var(--font-inter)' }}
           >
-            <span className="text-5xl">
-              {selectedAvatarData ? selectedAvatarData.emoji : '👤'}
-            </span>
-          </div>
+            {selectedAvatar.name}
+          </p>
         </div>
 
-        {/* Avatar Grid - 2x4 layout */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          {PRESET_AVATARS.map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => handlePresetSelect(preset.id)}
-              className={`aspect-square rounded-full ${preset.color} flex items-center justify-center text-3xl transition-all duration-200 ${
-                selectedPreset === preset.id
-                  ? 'ring-3 ring-[#55B2DE] scale-110 shadow-lg shadow-[#55B2DE]'
-                  : 'hover:scale-105 hover:ring-2 hover:ring-[#55B2DE]/50'
-              }`}
-            >
-              {preset.emoji}
-            </button>
-          ))}
+        {/* Avatar Grid - 3x2 layout */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          {AVATARS.map((avatar) => {
+            const isSelected = avatar.slug === selectedSlug
+            return (
+              <button
+                key={avatar.slug}
+                onClick={() => setSelectedSlug(avatar.slug)}
+                className="flex flex-col items-center"
+                aria-label={`${avatar.name} ${avatar.description}`}
+                aria-pressed={isSelected}
+              >
+                <div 
+                  className={`w-24 h-24 rounded-full overflow-hidden transition-all duration-200 ${
+                    isSelected ? 'scale-105' : 'hover:scale-102'
+                  }`}
+                  style={isSelected ? {
+                    boxShadow: '0 0 0 2.5px #55B2DE, 0 0 12px rgba(85,178,222,0.28)'
+                  } : {
+                    boxShadow: '0 0 0 2.5px transparent'
+                  }}
+                  dangerouslySetInnerHTML={{ __html: avatar.svg }}
+                />
+                <p 
+                  className="mt-2 text-sm italic"
+                  style={{ color: '#6A7490' }}
+                >
+                  {avatar.name}
+                </p>
+              </button>
+            )
+          })}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={handleSkip}
-            disabled={loading}
-            className="flex-1 py-3 border border-gray-600 text-gray-300 rounded-xl hover:bg-gray-800 disabled:opacity-50 transition-colors"
-          >
-            Skip
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={loading}
-            className="flex-1 py-3 bg-[#55B2DE] text-white rounded-xl hover:bg-[#4A9FCB] disabled:opacity-50 shadow-lg shadow-[#55B2DE] font-semibold transition-all"
-          >
-            {loading ? 'Saving...' : 'Continue'}
-          </button>
-        </div>
+        <button
+          onClick={handleNext}
+          disabled={loading}
+          className="w-full py-4 bg-[#55B2DE] text-[#0A1828] rounded-xl font-semibold hover:bg-[#6BC4EC] disabled:opacity-50 transition-colors mb-4"
+        >
+          {loading ? 'Saving...' : 'Next'}
+        </button>
+
+        <button
+          onClick={handleSkip}
+          disabled={loading}
+          className="w-full py-3 text-white/60 hover:text-white transition-colors"
+        >
+          Skip for now
+        </button>
       </div>
     </div>
   )
