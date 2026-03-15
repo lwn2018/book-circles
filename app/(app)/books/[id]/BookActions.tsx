@@ -34,21 +34,6 @@ export default function BookActions({ book, userId, circleId, isOwner, isBorrowe
   const canBorrow = !isOwner && isAvailable && !isOffShelf
   const canQueue = !isOwner && !isAvailable && !inQueue && !isBorrower && !isOffShelf
 
-  // Log event to user_events table
-  const logEvent = async (eventType: string, metadata: Record<string, any> = {}) => {
-    try {
-      await supabase.from('user_events').insert({
-        user_id: userId,
-        event_type: eventType,
-        book_id: book.id,
-        metadata: { book_title: book.title, ...metadata },
-        created_at: new Date().toISOString()
-      })
-    } catch (err) {
-      console.error('Failed to log event:', err)
-    }
-  }
-
   const handleBorrow = async () => {
     if (loading) return
     setLoading(true)
@@ -63,34 +48,25 @@ export default function BookActions({ book, userId, circleId, isOwner, isBorrowe
         if (!circleId) throw new Error('Circle not found')
         const result = await completeGiftTransfer(book.id, userId, circleId)
         if (result.error) throw new Error(result.error)
-        await logEvent('book_gifted', { from_owner: book.owner?.full_name })
         router.refresh()
         return
       }
 
-      // Regular borrow
-      const dueDate = new Date()
-      dueDate.setDate(dueDate.getDate() + 14)
-
-      const { error } = await supabase.from('books').update({
-        status: 'borrowed',
-        borrowed_in_circle_id: circleId,
-        current_borrower_id: userId,
-        borrowed_at: new Date().toISOString(),
-        due_date: dueDate.toISOString()
-      }).eq('id', book.id)
-
-      if (error) throw error
-
-      await supabase.from('borrow_history').insert({
-        book_id: book.id,
-        borrower_id: userId,
-        due_date: dueDate.toISOString()
+      // Use the proper borrow API with handoff flow
+      const response = await fetch(`/api/books/${book.id}/borrow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ circle_id: circleId })
       })
 
-      // Log the borrow event
-      await logEvent('book_borrowed', { owner_name: book.owner?.full_name })
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to borrow')
+      }
 
+      // Navigate to shelf to see pending handoff
+      router.push('/shelf')
       router.refresh()
     } catch (err: any) {
       alert(`Error: ${err.message}`)
@@ -120,10 +96,6 @@ export default function BookActions({ book, userId, circleId, isOwner, isBorrowe
       })
 
       if (error) throw error
-
-      // Log the queue join event
-      await logEvent('queue_joined', { position: nextPosition })
-
       router.refresh()
     } catch (err: any) {
       alert(`Error: ${err.message}`)
