@@ -49,7 +49,6 @@ export default function BooksListWithFilters({
   const [activeFilter, setActiveFilter] = useState<'all' | 'available' | 'borrowed' | 'in_queue'>('all')
   const [displayCount, setDisplayCount] = useState(20)
   const [searchFilter, setSearchFilter] = useState('')
-  const [viewMode, setViewMode] = useState<'card' | 'list'>(defaultBrowseView)
 
   // Handle search param from URL
   useEffect(() => {
@@ -155,17 +154,15 @@ export default function BooksListWithFilters({
         onFilterChange={setActiveFilter}
         totalBooks={books.length}
         filteredCount={filteredAndSortedBooks.length}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
       />
 
-      {/* Books List */}
+      {/* Books List - uses global browse view preference */}
       <BooksList
         books={displayedBooks}
         userId={userId}
         circleId={circleId}
         circleMemberIds={circleMemberIds}
-        viewMode={viewMode}
+        viewMode={defaultBrowseView}
       />
 
       {/* Load more indicator */}
