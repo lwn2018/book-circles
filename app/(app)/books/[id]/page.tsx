@@ -53,12 +53,24 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
     .limit(1)
     .single()
 
-  const { data: recentActivity } = await supabase
+  const { data: activityEvents } = await supabase
     .from('user_events')
-    .select('id, event_type, metadata, created_at, user_id, profiles(full_name, avatar_type, avatar_id, avatar_url)')
+    .select('id, event_type, metadata, created_at, user_id')
     .eq('book_id', id)
     .order('created_at', { ascending: false })
     .limit(5)
+
+  // Fetch profile info for activity users (separate query since FK is to auth.users not profiles)
+  const activityUserIds = [...new Set(activityEvents?.map(e => e.user_id).filter(Boolean) || [])]
+  const { data: activityProfiles } = activityUserIds.length > 0 
+    ? await supabase.from('profiles').select('id, full_name, avatar_type, avatar_id, avatar_url').in('id', activityUserIds)
+    : { data: [] }
+  
+  const profileMap = new Map(activityProfiles?.map(p => [p.id, p]) || [])
+  const recentActivity = activityEvents?.map(e => ({
+    ...e,
+    profiles: profileMap.get(e.user_id) || null
+  })) || []
 
   const isOwner = book.owner_id === user.id
   const isBorrower = book.current_borrower_id === user.id
