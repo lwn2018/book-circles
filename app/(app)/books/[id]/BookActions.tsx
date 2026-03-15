@@ -74,6 +74,7 @@ export default function BookActions({ book, userId, circleId, isOwner, isBorrowe
 
       const { error } = await supabase.from('books').update({
         status: 'borrowed',
+        borrowed_in_circle_id: circleId,
         current_borrower_id: userId,
         borrowed_at: new Date().toISOString(),
         due_date: dueDate.toISOString()
