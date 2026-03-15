@@ -59,9 +59,9 @@ export default function OnboardingProfile() {
         .update({
           full_name: fullName,
           contact_email: email || null,
-          contact_phone: fullPhone,
-          allow_calls: allowCalls,
-          allow_texts: allowTexts
+          contact_phone: fullPhone
+          
+          
         })
         .eq('id', user.id)
 
