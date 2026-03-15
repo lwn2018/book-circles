@@ -63,13 +63,24 @@ export default async function MyShelfTab() {
     .eq('status', 'borrowed')
 
   // Get reading history (returned books)
-  const { data: readingHistory } = await supabase
+  const { data: readingHistoryEvents } = await supabase
     .from('user_events')
-    .select('*, metadata')
+    .select('id, metadata, timestamp, created_at')
     .eq('user_id', user.id)
     .eq('event_type', 'book_returned')
     .order('timestamp', { ascending: false })
     .limit(5)
+
+  // Fetch book details for reading history
+  const historyBookIds = readingHistoryEvents?.map(e => e.metadata?.book_id).filter(Boolean) || []
+  const { data: historyBooks } = historyBookIds.length > 0
+    ? await supabase.from('books').select('id, title, cover_url, author').in('id', historyBookIds)
+    : { data: [] }
+  const historyBookMap = new Map(historyBooks?.map(b => [b.id, b]) || [])
+  const readingHistory = readingHistoryEvents?.map(e => ({
+    ...e,
+    book: historyBookMap.get(e.metadata?.book_id) || null
+  })) || []
 
   const borrowedCount = borrowedBooks?.length || 0
   const queueCount = queueEntries?.length || 0
@@ -388,7 +399,7 @@ export default async function MyShelfTab() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-white truncate">
-                    {event.metadata?.title || 'Unknown Book'}
+                    {event.book?.title || 'Unknown Book'}
                   </h3>
                   <p className="text-sm text-[#9CA3AF]">
                     Returned {new Date(event.timestamp).toLocaleDateString()}
