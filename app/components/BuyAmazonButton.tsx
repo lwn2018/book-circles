@@ -17,10 +17,21 @@ type Props = {
     | 'gift_purchase'
     | 'post_pagepass_self'
     | 'post_pagepass_gift'
+    | 'search_fallback'
   circleId?: string
   searchQuery?: string
   variant?: 'primary' | 'secondary' | 'link'
   children?: React.ReactNode
+}
+
+/**
+ * Build Amazon.ca search URL with affiliate tag
+ * Uses i=stripbooks to restrict to Books department
+ */
+function buildAmazonUrl(query: string): string {
+  const affiliateTag = 'pagepass-20'
+  const encodedQuery = encodeURIComponent(query.trim())
+  return `https://www.amazon.ca/s?k=${encodedQuery}&i=stripbooks&tag=${affiliateTag}`
 }
 
 export default function BuyAmazonButton({
@@ -31,12 +42,12 @@ export default function BuyAmazonButton({
   variant = 'primary',
   children
 }: Props) {
-  // Generate Amazon affiliate URL
-  const affiliateTag = 'pagepass04-20'
+  // Build search query: prefer ISBN, then title + author
   const query = book.isbn 
-    ? encodeURIComponent(book.isbn)
-    : encodeURIComponent(`${book.title} ${book.author || ''}`.trim())
-  const amazonUrl = `https://www.amazon.ca/s?k=${query}&tag=${affiliateTag}`
+    ? book.isbn
+    : `${book.title} ${book.author || ''}`.trim()
+  
+  const amazonUrl = buildAmazonUrl(query)
 
   // Track click asynchronously (fire and forget)
   const trackClick = () => {
@@ -54,9 +65,21 @@ export default function BuyAmazonButton({
         affiliate_url: amazonUrl
       })
     }).catch(err => console.error('Failed to track purchase click:', err))
+
+    // Also log to user_events for analytics
+    fetch('/api/events/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'amazon_link_clicked',
+        metadata: {
+          query: searchQuery || query,
+          book_title: book.title
+        }
+      })
+    }).catch(() => {})
   }
 
-  // Handle click - use external browser on native, normal behavior on web
   const handleClick = async (e: React.MouseEvent) => {
     trackClick()
     
@@ -64,19 +87,15 @@ export default function BuyAmazonButton({
       e.preventDefault()
       await openExternal(amazonUrl)
     }
-    // On web, let the anchor tag handle it normally
   }
 
-  // Style variants
   const baseStyles = 'inline-flex items-center justify-center font-medium rounded transition'
   const variantStyles = {
-    primary: 'px-4 py-2 bg-[#4A9FCB] text-white hover:bg-[#3D8AAF]',
-    secondary: 'px-3 py-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50',
-    link: 'text-[#55B2DE] hover:underline'
+    primary: 'px-4 py-2 bg-[#FF9900] text-[#232F3E] hover:bg-[#FFB84D]',
+    secondary: 'px-3 py-1.5 bg-[#27272A] text-[#9CA3AF] hover:bg-[#3F3F46]',
+    link: 'text-[#FF9900] hover:underline'
   }
 
-  // Use anchor tag - Safari NEVER blocks regular anchor tags
-  // On native, we intercept and use Browser plugin to open in system browser
   return (
     <a
       href={amazonUrl}
@@ -89,3 +108,6 @@ export default function BuyAmazonButton({
     </a>
   )
 }
+
+// Export URL builder for use elsewhere
+export { buildAmazonUrl }

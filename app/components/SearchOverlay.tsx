@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { completeGiftTransfer } from '@/lib/gift-actions'
 import RequestConfirmationDialog from './RequestConfirmationDialog'
-import BuyAmazonButton from './BuyAmazonButton'
+import { buildAmazonUrl } from './BuyAmazonButton'
 import BookCover from './BookCover'
 
 type SearchResult = {
@@ -63,6 +63,30 @@ export default function SearchOverlay({ userId }: { userId: string }) {
     }
   }, [isOpen])
 
+  // Log search event
+  const logSearchEvent = (searchQuery: string, localCount: number) => {
+    fetch('/api/events/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'search_performed',
+        metadata: { query: searchQuery, local_results_count: localCount }
+      })
+    }).catch(() => {})
+  }
+
+  // Log Amazon click
+  const logAmazonClick = (searchQuery: string) => {
+    fetch('/api/events/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'amazon_link_clicked',
+        metadata: { query: searchQuery }
+      })
+    }).catch(() => {})
+  }
+
   const performSearch = useCallback(async (searchQuery: string) => {
     if (searchQuery.length < 3) {
       setMyLibrary([])
@@ -77,6 +101,10 @@ export default function SearchOverlay({ userId }: { userId: string }) {
       setMyLibrary(data.myLibrary || [])
       setMyCircles(data.myCircles || [])
       setExternal(data.external || [])
+      
+      // Log search event
+      const localCount = (data.myLibrary?.length || 0) + (data.myCircles?.length || 0)
+      logSearchEvent(searchQuery, localCount)
     } catch (error) {
       console.error('Search error:', error)
     } finally {
@@ -93,7 +121,7 @@ export default function SearchOverlay({ userId }: { userId: string }) {
       setSearching(false)
       return
     }
-    searchTimerRef.current = setTimeout(() => performSearch(query), 400)
+    searchTimerRef.current = setTimeout(() => performSearch(query), 500)
     return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current) }
   }, [query, performSearch])
 
@@ -164,8 +192,9 @@ export default function SearchOverlay({ userId }: { userId: string }) {
 
   if (!isOpen) return null
 
-  const totalResults = myLibrary.length + myCircles.length + external.length
-  const showEmptyState = query.length >= 3 && totalResults === 0 && !searching
+  const totalLocal = myLibrary.length + myCircles.length
+  const showEmptyState = query.length >= 3 && totalLocal === 0 && external.length === 0 && !searching
+  const amazonUrl = buildAmazonUrl(query)
 
   return (
     <>
@@ -203,7 +232,7 @@ export default function SearchOverlay({ userId }: { userId: string }) {
               </div>
             )}
 
-            {query.length >= 3 && searching && totalResults === 0 && (
+            {query.length >= 3 && searching && totalLocal === 0 && (
               <div className="text-center py-12 text-[#9CA3AF]">
                 <div className="inline-block w-6 h-6 border-2 border-[#55B2DE] border-t-transparent rounded-full animate-spin mb-2" />
                 <p>Searching...</p>
@@ -213,7 +242,18 @@ export default function SearchOverlay({ userId }: { userId: string }) {
             {showEmptyState && (
               <div className="text-center py-12">
                 <p className="text-white mb-2">No books found for "{query}"</p>
-                <p className="text-sm text-[#6B7280]">Try a different spelling or search by author name</p>
+                <p className="text-sm text-[#6B7280] mb-6">Try a different spelling or search by author name</p>
+                
+                {/* Primary Amazon CTA when no results */}
+                <a
+                  href={amazonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => logAmazonClick(query)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF9900] text-[#232F3E] font-semibold rounded-full hover:bg-[#FFB84D] transition"
+                >
+                  Buy on Amazon →
+                </a>
               </div>
             )}
 
@@ -261,19 +301,36 @@ export default function SearchOverlay({ userId }: { userId: string }) {
                             >
                               {addingBook === book.id ? 'Adding...' : 'Add to Library'}
                             </button>
-                            <BuyAmazonButton
-                              book={{ id: book.id, title: book.title, author: book.author, isbn: book.isbn }}
-                              context="browsing_recommendation"
-                              searchQuery={query}
-                              variant="secondary"
+                            <a
+                              href={buildAmazonUrl(book.isbn || `${book.title} ${book.author || ''}`)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => logAmazonClick(query)}
+                              className="px-3 py-1.5 bg-[#FF9900] text-[#232F3E] text-xs font-semibold rounded-full hover:bg-[#FFB84D] transition"
                             >
                               Buy
-                            </BuyAmazonButton>
+                            </a>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Amazon fallback link - always show when there's a query */}
+              {query.length >= 3 && !searching && (totalLocal > 0 || external.length > 0) && (
+                <div className="pt-4 border-t border-[#334155] text-center">
+                  <p className="text-[#6B7280] text-sm mb-2">Can't find it?</p>
+                  <a
+                    href={amazonUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => logAmazonClick(query)}
+                    className="inline-flex items-center gap-1 text-[#FF9900] font-medium hover:underline"
+                  >
+                    Buy on Amazon →
+                  </a>
                 </div>
               )}
             </div>

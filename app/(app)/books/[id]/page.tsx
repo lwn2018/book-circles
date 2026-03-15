@@ -130,7 +130,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
       {/* Buy on Amazon */}
       {book.isbn && (
         <a
-          href={`https://www.amazon.ca/s?k=${book.isbn}&tag=pagepass-20`}
+          href={`https://www.amazon.ca/s?k=${encodeURIComponent(book.isbn || `${book.title} ${book.author || ""}`)}&i=stripbooks&tag=pagepass-20`}
           target="_blank"
           rel="noopener noreferrer"
           className="block bg-[#FF9900] rounded-xl p-4 mb-6 flex items-center justify-center gap-3 hover:bg-[#FFB84D] transition-colors"
