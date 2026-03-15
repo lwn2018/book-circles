@@ -33,6 +33,7 @@ type BooksListProps = {
   userId: string
   circleId: string
   circleMemberIds: string[]
+  viewMode?: 'card' | 'list'
 }
 
 // Simple color hash for placeholder backgrounds
@@ -43,7 +44,7 @@ function hashColor(str: string): string {
   return COVER_COLORS[Math.abs(hash) % COVER_COLORS.length]
 }
 
-export default function BooksList({ books, userId, circleId, circleMemberIds }: BooksListProps) {
+export default function BooksList({ books, userId, circleId, circleMemberIds, viewMode = 'card' }: BooksListProps) {
   const router = useRouter()
   const [loadingBookId, setLoadingBookId] = useState<string | null>(null)
 
@@ -108,7 +109,7 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={viewMode === 'list' ? 'flex flex-col gap-2' : 'flex flex-col gap-3'}>
       {books.map((book) => {
         const isOwner = book.owner_id === userId
         const isBorrower = book.current_borrower_id === userId
@@ -169,10 +170,10 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
             className="block"
           >
             {/* Horizontal row card */}
-            <div className="bg-[#1E293B] rounded-xl p-3 flex gap-[14px] items-start min-h-[130px]">
-              {/* Book cover thumbnail - 64px wide */}
+            <div className={`bg-[#1E293B] rounded-xl flex gap-[14px] items-start ${viewMode === 'list' ? 'p-2 min-h-[60px]' : 'p-3 min-h-[130px]'}`}>
+              {/* Book cover thumbnail */}
               <div 
-                className="flex-shrink-0 w-[64px] h-[96px] rounded-md overflow-hidden flex items-center justify-center"
+                className={`flex-shrink-0 rounded-md overflow-hidden flex items-center justify-center ${viewMode === 'list' ? 'w-[40px] h-[60px]' : 'w-[64px] h-[96px]'}`}
                 style={{ backgroundColor: book.cover_url ? '#2A3441' : hashColor(book.title) }}
               >
                 {book.cover_url ? (
@@ -195,7 +196,7 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
               <div className="flex-1 min-w-0 flex flex-col">
                 {/* Status badge */}
                 <span 
-                  className="inline-flex items-center self-start px-3 py-1 rounded-full mb-2"
+                  className={`inline-flex items-center self-start rounded-full ${viewMode === 'list' ? 'px-2 py-0.5 text-[10px] mb-1' : 'px-3 py-1 mb-2'}`}
                   style={{ 
                     fontFamily: 'var(--font-inter)', 
                     fontSize: '11px', 
