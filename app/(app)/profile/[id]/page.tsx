@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import BackButton from '@/app/components/BackButton'
 import Avatar from '@/app/components/Avatar'
 
 // Badge data with descriptions
@@ -95,7 +96,7 @@ export default async function UserProfilePage({
   return (
     <div className="min-h-screen bg-[#121212] px-4 py-6">
       {/* Back Arrow */}
-      <Link href="/circles" className="inline-block mb-6">
+      <BackButton fallbackHref="/circles" className="mb-6" />
         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>

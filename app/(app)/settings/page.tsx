@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import BackButton from '@/app/components/BackButton'
 import SettingsForm from './SettingsForm'
 import DownloadDataSection from './DownloadDataSection'
 import CloseAccountSection from './CloseAccountSection'
@@ -31,18 +32,13 @@ export default async function Settings() {
     <div className="min-h-screen bg-[#121212] px-4 py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/circles" className="text-[#9CA3AF] hover:text-white transition-colors">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </Link>
+        <BackButton fallbackHref="/circles" />
         <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
           Settings
         </h1>
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Avatar Section */}
         <AvatarSection
           userId={user.id}
           userName={profile?.full_name || user.email || 'User'}
@@ -51,7 +47,6 @@ export default async function Settings() {
           currentAvatarId={profile?.avatar_id || null}
         />
 
-        {/* Profile Form */}
         <div className="bg-[#1E293B] rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
             Profile Information
@@ -71,13 +66,10 @@ export default async function Settings() {
           />
         </div>
 
-        {/* Goodreads Import */}
         <Link href="/library/import" className="block bg-[#1E293B] rounded-xl p-6 hover:bg-[#27272A] transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#27272A] rounded-full flex items-center justify-center text-2xl">
-                📚
-              </div>
+              <div className="w-12 h-12 bg-[#27272A] rounded-full flex items-center justify-center text-2xl">📚</div>
               <div>
                 <h3 className="text-lg font-semibold text-white mb-1">Goodreads Import</h3>
                 <p className="text-sm text-[#9CA3AF]">Import or add more books from your Goodreads library</p>
@@ -89,7 +81,6 @@ export default async function Settings() {
           </div>
         </Link>
 
-        {/* Onboarding Section */}
         <div className="bg-[#1E293B] rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -100,7 +91,6 @@ export default async function Settings() {
           </div>
         </div>
 
-        {/* Circle Management */}
         <div className="bg-[#1E293B] rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
             Circle Management
@@ -108,7 +98,6 @@ export default async function Settings() {
           <CircleManagementSection circles={circles as any} userId={user.id} />
         </div>
 
-        {/* Data & Privacy */}
         <div className="bg-[#1E293B] rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
             Data & Privacy
@@ -119,7 +108,6 @@ export default async function Settings() {
           </div>
         </div>
 
-        {/* Footer */}
         <footer className="pt-6 pb-24 text-center">
           <div className="flex justify-center gap-4 mb-3">
             <Link href="/privacy" className="text-xs text-[#55B2DE] hover:text-[#6BC4EC]">Privacy Policy</Link>
