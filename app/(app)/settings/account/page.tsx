@@ -29,7 +29,7 @@ export default async function AccountSettingsPage() {
         </div>
 
         {/* Download Data */}
-        <DownloadDataSection userId={user.id} />
+        <DownloadDataSection />
 
         {/* Restart Onboarding (dev/debug) */}
         <div className="bg-[#1E293B] rounded-xl p-6">
@@ -41,7 +41,7 @@ export default async function AccountSettingsPage() {
         </div>
 
         {/* Danger Zone */}
-        <CloseAccountSection userId={user.id} userEmail={user.email || ''} />
+        <CloseAccountSection userEmail={user.email || ''} />
       </div>
     </div>
   )
