@@ -124,8 +124,8 @@ export default function BooksList({ books, userId, circleId, circleMemberIds }: 
           badgeText = 'Off Shelf'
           badgeColor = '#6B7280'
         } else if (book.status === 'available') {
-          badgeText = 'Available'
-          badgeColor = '#32D74B'
+          badgeText = book.gift_on_borrow ? '🎁 Gift' : 'Available'
+          badgeColor = book.gift_on_borrow ? '#EC4899' : '#32D74B'
         } else if (book.status === 'in_transit') {
           badgeText = 'In Transit'
           badgeColor = '#55B2DE'
