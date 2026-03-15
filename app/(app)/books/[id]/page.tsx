@@ -19,10 +19,10 @@ function formatTimeAgo(dateString: string) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function getActivityText(action: string, metadata: any) {
+function getActivityText(action: string, metadata: any, profileName: string | null) {
   switch (action) {
-    case 'book_borrowed': return `${metadata?.borrower_name || 'Someone'} borrowed this book`
-    case 'queue_joined': return `${metadata?.user_name || 'Someone'} joined the queue`
+    case 'book_borrowed': return `${profileName || metadata?.borrower_name || 'Someone'} borrowed this book`
+    case 'queue_joined': return `${profileName || metadata?.user_name || 'Someone'} joined the queue`
     case 'book_returned': return 'Book was returned'
     case 'book_added': return 'Added to library'
     case 'book_gifted': return `Gifted to ${metadata?.receiver_name || 'someone'}`
@@ -174,7 +174,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
                   size="sm"
                 />
                 <div className="flex-1">
-                  <p className="text-white text-sm">{getActivityText(activity.event_type, activity.metadata)}</p>
+                  <p className="text-white text-sm">{getActivityText(activity.event_type, activity.metadata, activity.profiles?.full_name)}</p>
                   <p className="text-[#6B7280] text-xs">{formatTimeAgo(activity.created_at)}</p>
                 </div>
               </div>
