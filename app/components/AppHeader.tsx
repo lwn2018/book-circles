@@ -43,37 +43,45 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
   // Detect if we're on a circle detail page
   const isCircleDetailPage = pathname?.match(/^\/circles\/[^/]+$/) && !pathname.endsWith('/create') && !pathname.endsWith('/join')
   
-  return (
-    <div className="bg-[#121212] border-b border-[#334155] sticky top-0 z-40 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Left: Back button on circle detail, otherwise Search Icon */}
-          {isCircleDetailPage ? (
+  // Circle detail page: simple back arrow only, no other header elements
+  if (isCircleDetailPage) {
+    return (
+      <div className="bg-[#121212] sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-14">
             <button 
               onClick={() => router.back()}
-              className="flex items-center gap-2 hover:opacity-80 transition text-[#55B2DE]"
+              className="flex items-center hover:opacity-80 transition text-white"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium text-sm hidden sm:inline">Back</span>
             </button>
-          ) : (
-            <button
-              onClick={() => {
-                // Trigger search overlay
-                if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('openSearch'))
-                }
-              }}
-              className="p-2 rounded-lg hover:bg-[#1E1E1E] transition"
-              aria-label="Search"
-            >
-              <svg className="w-6 h-6 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // Default header for other pages
+  return (
+    <div className="bg-[#121212] border-b border-[#334155] sticky top-0 z-40 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Left: Search Icon */}
+          <button
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('openSearch'))
+              }
+            }}
+            className="p-2 rounded-lg hover:bg-[#1E1E1E] transition"
+            aria-label="Search"
+          >
+            <svg className="w-6 h-6 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
 
           {/* Center: Add Book Button */}
           <div className="absolute left-1/2 transform -translate-x-1/2">
