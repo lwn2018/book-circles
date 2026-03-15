@@ -10,6 +10,27 @@ export default async function MyShelfTab() {
 
   if (!user) redirect('/auth/signin')
 
+  // Get pending handoffs (incoming and outgoing)
+  const { data: pendingHandoffs } = await supabase
+    .from('handoff_confirmations')
+    .select(`
+      id,
+      giver_id,
+      receiver_id,
+      giver_confirmed_at,
+      receiver_confirmed_at,
+      books:book_id (id, title, author, cover_url, isbn),
+      giver:profiles!handoff_confirmations_giver_id_fkey (id, full_name, avatar_type, avatar_id),
+      receiver:profiles!handoff_confirmations_receiver_id_fkey (id, full_name, avatar_type, avatar_id)
+    `)
+    .is('both_confirmed_at', null)
+    .or(`giver_id.eq.${user.id},receiver_id.eq.${user.id}`)
+    .order('created_at', { ascending: false })
+
+  // Split into incoming (user is receiver) and outgoing (user is giver)
+  const incomingHandoffs = pendingHandoffs?.filter(h => h.receiver_id === user.id) || []
+  const outgoingHandoffs = pendingHandoffs?.filter(h => h.giver_id === user.id) || []
+
   // Get books user is currently borrowing
   const { data: borrowedBooks } = await supabase
     .from('books')
@@ -103,6 +124,128 @@ export default async function MyShelfTab() {
           </div>
         </div>
       </div>
+
+      {/* Incoming Books - User is receiver */}
+      {incomingHandoffs.length > 0 && (
+        <section className="mb-8">
+          <h2 
+            className="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            <span>📥</span> Incoming Books
+          </h2>
+          
+          <div className="space-y-3">
+            {incomingHandoffs.map((handoff: any) => {
+              const book = handoff.books
+              const giver = handoff.giver
+              if (!book) return null
+
+              return (
+                <div key={handoff.id} className="bg-[#1E293B] rounded-xl p-4 border border-emerald-500/30">
+                  <div className="flex gap-4">
+                    <BookCover
+                      coverUrl={book.cover_url}
+                      title={book.title}
+                      author={book.author}
+                      isbn={book.isbn}
+                      className="w-20 h-28 rounded-lg shadow-lg flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      {/* From badge */}
+                      <span className="inline-block px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-full mb-2">
+                        From {giver?.full_name || 'Unknown'}
+                      </span>
+                      
+                      <h3 className="font-semibold text-white truncate">{book.title}</h3>
+                      <p className="text-sm text-[#9CA3AF] truncate">{book.author}</p>
+                      
+                      {/* Confirm Pickup Button */}
+                      <Link 
+                        href={`/handoff/${handoff.id}`}
+                        className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Confirm Pickup
+                      </Link>
+                    </div>
+                    
+                    {/* Chevron */}
+                    <Link href={`/books/${book.id}`} className="flex items-center text-[#6B7280]">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Pending Handoffs - User is giver */}
+      {outgoingHandoffs.length > 0 && (
+        <section className="mb-8">
+          <h2 
+            className="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            <span>📤</span> Pending Handoffs
+          </h2>
+          
+          <div className="space-y-3">
+            {outgoingHandoffs.map((handoff: any) => {
+              const book = handoff.books
+              const receiver = handoff.receiver
+              if (!book) return null
+
+              return (
+                <div key={handoff.id} className="bg-[#1E293B] rounded-xl p-4 border border-amber-500/30">
+                  <div className="flex gap-4">
+                    <BookCover
+                      coverUrl={book.cover_url}
+                      title={book.title}
+                      author={book.author}
+                      isbn={book.isbn}
+                      className="w-20 h-28 rounded-lg shadow-lg flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      {/* To badge */}
+                      <span className="inline-block px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-full mb-2">
+                        To {receiver?.full_name || 'Unknown'}
+                      </span>
+                      
+                      <h3 className="font-semibold text-white truncate">{book.title}</h3>
+                      <p className="text-sm text-[#9CA3AF] truncate">{book.author}</p>
+                      
+                      {/* Confirm Handoff Button */}
+                      <Link 
+                        href={`/handoff/${handoff.id}`}
+                        className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Confirm Handoff
+                      </Link>
+                    </div>
+                    
+                    {/* Chevron */}
+                    <Link href={`/books/${book.id}`} className="flex items-center text-[#6B7280]">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Currently Borrowed */}
       {borrowedCount > 0 && (
