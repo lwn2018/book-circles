@@ -20,17 +20,17 @@ export default function CircleManagementSection({
 }) {
   if (circles.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+      <div className="bg-[#27272A] rounded-lg shadow-sm p-6 mb-6">
         <h3 className="text-xl font-semibold mb-4">Circle Management</h3>
-        <p className="text-gray-600 text-sm">You are not a member of any circles yet.</p>
+        <p className="text-[#9CA3AF] text-sm">You are not a member of any circles yet.</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div className="bg-[#27272A] rounded-lg shadow-sm p-6 mb-6">
       <h3 className="text-xl font-semibold mb-4">Circle Management</h3>
-      <p className="text-gray-600 text-sm mb-4">
+      <p className="text-[#9CA3AF] text-sm mb-4">
         Manage your circle memberships. You cannot leave circles you own.
       </p>
       
@@ -74,11 +74,11 @@ function CircleRow({ circle, userId }: { circle: Circle; userId: string }) {
 
   return (
     <>
-      <div className="flex justify-between items-center p-4 border border-gray-200 rounded-lg">
+      <div className="flex justify-between items-center p-4 border border-[#333] rounded-lg">
         <div>
           <h4 className="font-medium">{circle.name}</h4>
           {circle.description && (
-            <p className="text-sm text-gray-600 mt-1">{circle.description}</p>
+            <p className="text-sm text-[#9CA3AF] mt-1">{circle.description}</p>
           )}
           {isOwner && (
             <span className="inline-block mt-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
@@ -99,12 +99,12 @@ function CircleRow({ circle, userId }: { circle: Circle; userId: string }) {
 
       {showConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+          <div className="bg-[#27272A] rounded-lg max-w-md w-full p-6">
             <h3 className="text-xl font-semibold mb-4">Leave "{circle.name}"?</h3>
             
             <div className="space-y-3 mb-6 text-sm">
               <p>When you leave this circle:</p>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
+              <ul className="list-disc list-inside space-y-1 text-white">
                 <li>You must return all borrowed books first</li>
                 <li>Your books will be automatically recalled</li>
                 <li>Your books will be hidden from this circle</li>
@@ -119,7 +119,7 @@ function CircleRow({ circle, userId }: { circle: Circle; userId: string }) {
               <button
                 onClick={() => setShowConfirm(false)}
                 disabled={loading}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-[#3F3F46]"
               >
                 Cancel
               </button>

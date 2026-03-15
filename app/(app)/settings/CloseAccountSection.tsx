@@ -100,21 +100,21 @@ export default function CloseAccountSection({ userEmail }: { userEmail: string }
     const lentOutCount = active_borrows.lent_out?.length || 0
 
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+      <div className="bg-red-500/10 border border-red-200 rounded-lg p-4 mb-4">
         <p className="font-semibold text-red-900 mb-3">
           You have {lentOutCount} book{lentOutCount !== 1 ? 's' : ''} currently lent out 
           and are borrowing {borrowingCount} book{borrowingCount !== 1 ? 's' : ''}.
         </p>
-        <p className="text-sm text-red-800 mb-2">
+        <p className="text-sm text-red-400 mb-2">
           Please return borrowed books and recall your lent books before closing your account.
         </p>
         
         {blockers.has_active_borrows && active_borrows.borrowing.length > 0 && (
           <div className="mb-3 mt-4">
-            <p className="text-sm font-medium text-red-800 mb-1">
+            <p className="text-sm font-medium text-red-400 mb-1">
               Books you're currently borrowing:
             </p>
-            <ul className="text-sm text-red-700 list-disc list-inside ml-2">
+            <ul className="text-sm text-red-400 list-disc list-inside ml-2">
               {active_borrows.borrowing.map((book: any) => (
                 <li key={book.id}>{book.title} {book.author ? `by ${book.author}` : ''}</li>
               ))}
@@ -124,10 +124,10 @@ export default function CloseAccountSection({ userEmail }: { userEmail: string }
 
         {blockers.has_lent_books && active_borrows.lent_out.length > 0 && (
           <div className="mb-3">
-            <p className="text-sm font-medium text-red-800 mb-1">
+            <p className="text-sm font-medium text-red-400 mb-1">
               Your books currently lent out:
             </p>
-            <ul className="text-sm text-red-700 list-disc list-inside ml-2">
+            <ul className="text-sm text-red-400 list-disc list-inside ml-2">
               {active_borrows.lent_out.map((book: any) => (
                 <li key={book.id}>
                   {book.title} {book.author ? `by ${book.author}` : ''} 
@@ -140,10 +140,10 @@ export default function CloseAccountSection({ userEmail }: { userEmail: string }
 
         {blockers.has_pending_handoffs && active_borrows.pending_handoffs.length > 0 && (
           <div>
-            <p className="text-sm font-medium text-red-800 mb-1">
+            <p className="text-sm font-medium text-red-400 mb-1">
               Pending handoff confirmations:
             </p>
-            <ul className="text-sm text-red-700 list-disc list-inside ml-2">
+            <ul className="text-sm text-red-400 list-disc list-inside ml-2">
               {active_borrows.pending_handoffs.map((handoff: any) => (
                 <li key={handoff.id}>{handoff.book?.title || 'Book'}</li>
               ))}
@@ -157,38 +157,38 @@ export default function CloseAccountSection({ userEmail }: { userEmail: string }
   // Goodbye screen after successful deletion
   if (showGoodbye) {
     return (
-      <div className="bg-white rounded-lg shadow p-8 text-center">
+      <div className="bg-[#27272A] rounded-lg shadow p-8 text-center">
         <h2 className="text-2xl font-bold mb-4">We're sorry to see you go</h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-[#9CA3AF] mb-6">
           Your account has been closed. Your data will be permanently deleted in 30 days.
         </p>
         
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-[#9CA3AF] mb-4">
           Want to help us improve? Let us know why you're leaving (optional):
         </p>
         
         <div className="space-y-2 mb-6">
           <button
             onClick={() => handleFeedbackAndExit('too_complicated')}
-            className="w-full px-4 py-2 text-left text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="w-full px-4 py-2 text-left text-sm border border-[#333] rounded-lg hover:bg-gray-50"
           >
             Too complicated
           </button>
           <button
             onClick={() => handleFeedbackAndExit('not_enough_friends')}
-            className="w-full px-4 py-2 text-left text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="w-full px-4 py-2 text-left text-sm border border-[#333] rounded-lg hover:bg-gray-50"
           >
             Not enough friends using it
           </button>
           <button
             onClick={() => handleFeedbackAndExit('privacy_concerns')}
-            className="w-full px-4 py-2 text-left text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="w-full px-4 py-2 text-left text-sm border border-[#333] rounded-lg hover:bg-gray-50"
           >
             Privacy concerns
           </button>
           <button
             onClick={() => handleFeedbackAndExit('other')}
-            className="w-full px-4 py-2 text-left text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="w-full px-4 py-2 text-left text-sm border border-[#333] rounded-lg hover:bg-gray-50"
           >
             Other
           </button>
@@ -205,19 +205,19 @@ export default function CloseAccountSection({ userEmail }: { userEmail: string }
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-6 border-2 border-red-200">
+    <div className="bg-[#27272A] rounded-lg shadow p-6 mb-6 border-2 border-red-200">
       <h2 className="text-xl font-bold mb-4 text-red-900">Close Account</h2>
       
       {!showConfirmation ? (
         <>
-          <p className="text-gray-600 mb-4">
+          <p className="text-[#9CA3AF] mb-4">
             Permanently close your PagePass account. This action cannot be undone after 30 days.
           </p>
 
           {checkResult && renderBlockers()}
 
           {error && !checkResult && (
-            <div className="bg-red-50 border border-red-200 rounded p-3 mb-4 text-sm text-red-700">
+            <div className="bg-red-500/10 border border-red-200 rounded p-3 mb-4 text-sm text-red-400">
               {error}
             </div>
           )}
@@ -242,7 +242,7 @@ export default function CloseAccountSection({ userEmail }: { userEmail: string }
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded p-3 mb-4 text-sm text-red-700">
+            <div className="bg-red-500/10 border border-red-200 rounded p-3 mb-4 text-sm text-red-400">
               {error}
             </div>
           )}
@@ -256,7 +256,7 @@ export default function CloseAccountSection({ userEmail }: { userEmail: string }
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="DELETE or your email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-[#333] rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
 

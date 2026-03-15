@@ -43,9 +43,9 @@ export default function DownloadDataSection() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-6">
+    <div className="bg-transparent rounded-lg shadow p-6 mb-6">
       <h2 className="text-xl font-bold mb-4">Download My Data</h2>
-      <p className="text-gray-600 mb-4">
+      <p className="text-[#9CA3AF] mb-4">
         Download a copy of all your PagePass data including your profile, books, circle memberships, 
         borrow history, and feedback.
       </p>

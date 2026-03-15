@@ -41,20 +41,18 @@ export default async function Settings() {
         </h1>
       </div>
 
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Avatar Section */}
-        <section className="bg-[#1E293B] rounded-xl p-6">
-          <AvatarSection
-            userId={user.id}
-            userName={profile?.full_name || user.email || 'User'}
-            currentAvatarUrl={profile?.avatar_url || null}
-            currentAvatarType={profile?.avatar_type as 'upload' | 'preset' | 'initials' | null}
-            currentAvatarId={profile?.avatar_id || null}
-          />
-        </section>
+        <AvatarSection
+          userId={user.id}
+          userName={profile?.full_name || user.email || 'User'}
+          currentAvatarUrl={profile?.avatar_url || null}
+          currentAvatarType={profile?.avatar_type as 'upload' | 'preset' | 'initials' | null}
+          currentAvatarId={profile?.avatar_id || null}
+        />
 
         {/* Profile Form */}
-        <section className="bg-[#1E293B] rounded-xl p-6">
+        <div className="bg-[#1E293B] rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
             Profile Information
           </h2>
@@ -71,10 +69,10 @@ export default async function Settings() {
               default_browse_view: profile?.default_browse_view || 'card'
             }}
           />
-        </section>
+        </div>
 
         {/* Onboarding Section */}
-        <section className="bg-[#1E293B] rounded-xl p-6">
+        <div className="bg-[#1E293B] rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-white mb-1">Onboarding</h3>
@@ -82,45 +80,35 @@ export default async function Settings() {
             </div>
             <RestartOnboardingButton userId={user.id} />
           </div>
-        </section>
+        </div>
 
         {/* Circle Management */}
-        <section>
+        <div className="bg-[#1E293B] rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
             Circle Management
           </h2>
-          <div className="bg-[#1E293B] rounded-xl p-6">
-            <CircleManagementSection circles={circles as any} userId={user.id} />
-          </div>
-        </section>
+          <CircleManagementSection circles={circles as any} userId={user.id} />
+        </div>
 
         {/* Data & Privacy */}
-        <section>
+        <div className="bg-[#1E293B] rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
             Data & Privacy
           </h2>
-          <div className="bg-[#1E293B] rounded-xl p-6 space-y-6">
-            <DownloadDataSection />
-            <div className="border-t border-[#333] pt-6">
-              <CloseAccountSection userEmail={user.email || ''} />
-            </div>
+          <DownloadDataSection />
+          <div className="mt-6">
+            <CloseAccountSection userEmail={user.email || ''} />
           </div>
-        </section>
+        </div>
 
         {/* Footer */}
         <footer className="pt-6 pb-24 text-center">
           <div className="flex justify-center gap-4 mb-3">
-            <Link href="/privacy" className="text-xs text-[#55B2DE] hover:text-[#6BC4EC]">
-              Privacy Policy
-            </Link>
+            <Link href="/privacy" className="text-xs text-[#55B2DE] hover:text-[#6BC4EC]">Privacy Policy</Link>
             <span className="text-xs text-[#6B7280]">•</span>
-            <Link href="/terms" className="text-xs text-[#55B2DE] hover:text-[#6BC4EC]">
-              Terms of Service
-            </Link>
+            <Link href="/terms" className="text-xs text-[#55B2DE] hover:text-[#6BC4EC]">Terms of Service</Link>
           </div>
-          <p className="text-xs text-[#6B7280]">
-            As an Amazon Associate PagePass earns from qualifying purchases.
-          </p>
+          <p className="text-xs text-[#6B7280]">As an Amazon Associate PagePass earns from qualifying purchases.</p>
         </footer>
       </div>
     </div>

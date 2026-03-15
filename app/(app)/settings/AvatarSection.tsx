@@ -281,7 +281,7 @@ export default function AvatarSection({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-[#27272A] rounded-xl p-6">
       <h2 className="text-xl font-semibold mb-4">Profile Picture</h2>
 
       {error && (
@@ -305,7 +305,7 @@ export default function AvatarSection({
 
       {/* Preset Avatar Options */}
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">
+        <h3 className="text-sm font-medium text-white mb-3">
           Or choose a preset avatar:
         </h3>
         <div className="grid grid-cols-4 gap-3">
@@ -341,7 +341,7 @@ export default function AvatarSection({
           className={`w-full px-4 py-3 border-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
             avatarType === 'initials'
               ? 'border-[#55B2DE] bg-blue-50 text-blue-700'
-              : 'border-gray-300 hover:border-gray-400'
+              : 'border-[#333] hover:border-gray-400'
           }`}
         >
           Use my initials ({userName.split(' ').map(n => n[0]).join('').toUpperCase()})
