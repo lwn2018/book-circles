@@ -116,14 +116,34 @@ export default function AddBookModal({
     }
   }
 
-  const selectSearchResult = (result: any) => {
+  const selectSearchResult = async (result: any) => {
     setTitle(result.title)
     setAuthor(result.author || '')
     setIsbn(result.isbn || '')
-    setBookSource('search')
     setCoverUrl(result.coverUrl || '')
     setTitleSearchResults([])
     setShowTitleDropdown(false)
+    setBookSource('search')
+    
+    // If we have an ISBN, do full lookup to get all metadata (page count, description, etc.)
+    if (result.isbn) {
+      setLookupStatus('Fetching book details...')
+      try {
+        const response = await fetch(`/api/isbn-lookup?isbn=${result.isbn}`)
+        const data = await response.json()
+        if (response.ok && data.fullMetadata) {
+          setFullMetadata(data.fullMetadata)
+          if (data.coverUrl) setCoverUrl(data.coverUrl)
+          setLookupStatus('✓ Got full details')
+          setTimeout(() => setLookupStatus(''), 2000)
+        } else {
+          setLookupStatus('')
+        }
+      } catch (err) {
+        console.error('Failed to fetch full metadata:', err)
+        setLookupStatus('')
+      }
+    }
   }
 
   const toggleCircle = (circleId: string) => {
