@@ -279,15 +279,6 @@ export default async function MyShelfTab() {
         </div>
       )}
 
-      {/* FAB */}
-      <Link
-        href="/library"
-        className="fixed bottom-24 right-4 w-14 h-14 bg-[#55B2DE] rounded-full flex items-center justify-center shadow-lg hover:bg-[#4A9BC5] transition-colors"
-      >
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </Link>
     </div>
   )
 }
