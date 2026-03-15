@@ -3,7 +3,27 @@
 import { useState, useEffect } from 'react'
 import { confirmHandoff } from '@/lib/handoff-actions'
 import { useRouter } from 'next/navigation'
-import { phoneToSmsLink } from '@/lib/formatPhone'
+import Avatar from '@/app/components/Avatar'
+import BookCover from '@/app/components/BookCover'
+import Link from 'next/link'
+
+type Person = {
+  id: string
+  full_name: string
+  avatar_type?: 'upload' | 'preset' | 'initials' | null
+  avatar_id?: string | null
+  avatar_url?: string | null
+  contact_preference_type?: string | null
+  contact_preference_value?: string | null
+}
+
+type RecentHandoff = {
+  id: string
+  both_confirmed_at: string
+  book: { id: string; title: string; cover_url: string | null }
+  giver: Person
+  receiver: Person
+}
 
 type HandoffCardProps = {
   handoff: {
@@ -14,22 +34,18 @@ type HandoffCardProps = {
     book: {
       id: string
       title: string
+      author?: string | null
       cover_url: string | null
     }
+    giver: Person
+    receiver: Person
   }
   role: 'giver' | 'receiver'
   userId: string
-  otherPerson: {
-    id: string
-    full_name: string
-    contact_preference_type: string | null
-    contact_preference_value: string | null
-    contact_email?: string | null
-    contact_phone?: string | null
-  }
+  recentHandoffs?: RecentHandoff[] | null
 }
 
-export default function HandoffCard({ handoff, role, userId, otherPerson }: HandoffCardProps) {
+export default function HandoffCard({ handoff, role, userId, recentHandoffs }: HandoffCardProps) {
   const [loading, setLoading] = useState(false)
   const [confirmed, setConfirmed] = useState(
     role === 'giver' ? !!handoff.giver_confirmed_at : !!handoff.receiver_confirmed_at
@@ -41,9 +57,12 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
     role === 'giver' ? !!handoff.receiver_confirmed_at : !!handoff.giver_confirmed_at
   )
 
+  const currentHolder = handoff.giver
+  const nextReader = handoff.receiver
+
   // Poll for updates when waiting for other person to confirm
   useEffect(() => {
-    if (!confirmed || otherConfirmed || showSuccess) return // Only poll when waiting
+    if (!confirmed || otherConfirmed || showSuccess) return
 
     const checkStatus = async () => {
       try {
@@ -62,10 +81,7 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
       }
     }
 
-    // Check every 5 seconds
     const interval = setInterval(checkStatus, 5000)
-    
-    // Also check immediately
     checkStatus()
 
     return () => clearInterval(interval)
@@ -75,7 +91,6 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
     setLoading(true)
     try {
       const result = await confirmHandoff(handoff.id, userId, role)
-      console.log('Confirmation result:', result)
       
       if (result.error) {
         console.error('Confirmation error:', result.error)
@@ -84,19 +99,12 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
         return
       }
 
-    setConfirmed(true)
-    setLoading(false)
+      setConfirmed(true)
+      setLoading(false)
 
       if (result.bothConfirmed) {
-        // Both confirmed! Show success screen with navigation options
-        setLoading(false)
-        setConfirmed(true)
         setShowSuccess(true)
-        // No auto-redirect - let user choose where to go
       } else {
-        // Just this person confirmed - refresh to show updated state
-        setLoading(false)
-        setConfirmed(true)
         router.refresh()
       }
     } catch (error: any) {
@@ -106,65 +114,59 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
     }
   }
 
-  // Already complete
-  if (handoff.both_confirmed_at) {
-    return (
-      <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-        <div className="text-6xl mb-4">✅</div>
-        <h1 className="text-2xl font-bold mb-2">Handoff Complete!</h1>
-        <p className="text-gray-600 mb-6">
-          "{handoff.book.title}" is now with {role === 'giver' ? otherPerson.full_name : 'you'}.
-        </p>
-        <button
-          onClick={() => router.push(role === 'giver' ? '/library' : '/dashboard/borrowed')}
-          className="px-6 py-2 bg-[#55B2DE] text-white rounded hover:bg-[#4A9FCB]"
-        >
-          Done
-        </button>
-      </div>
-    )
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    return `${diffDays}d ago`
   }
 
-  // Success screen (no animation - just a clear success message with navigation)
-  if (showSuccess) {
+  // Success screen
+  if (showSuccess || handoff.both_confirmed_at) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-        {/* Book Cover */}
-        <div className="mb-6">
-          {handoff.book.cover_url ? (
-            <img 
-              src={handoff.book.cover_url} 
-              alt={handoff.book.title}
-              className="w-32 h-48 object-cover rounded shadow-md mx-auto"
-            />
-          ) : (
-            <div className="w-32 h-48 bg-gray-200 rounded flex items-center justify-center mx-auto">
-              <span className="text-5xl">📚</span>
-            </div>
-          )}
+      <div className="flex flex-col items-center">
+        {/* Success checkmark */}
+        <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center mb-6">
+          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
         </div>
 
-        {/* Success message */}
-        <div className="text-6xl mb-4">✅</div>
-        <h2 className="text-2xl font-bold text-green-600 mb-2">Handoff Complete!</h2>
-        <p className="text-gray-600 mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">Handoff Complete!</h2>
+        <p className="text-white/60 text-center mb-8">
           {role === 'receiver' 
             ? `Enjoy "${handoff.book.title}"!`
-            : `"${handoff.book.title}" is on its way!`
+            : `"${handoff.book.title}" is now with ${nextReader.full_name}!`
           }
         </p>
 
+        {/* Book cover */}
+        <div className="mb-8">
+          <BookCover
+            coverUrl={handoff.book.cover_url}
+            title={handoff.book.title}
+            author={handoff.book.author}
+            className="w-32 h-48 object-cover rounded-lg shadow-xl"
+          />
+        </div>
+
         {/* Navigation buttons */}
-        <div className="flex flex-col gap-3">
+        <div className="w-full max-w-sm space-y-3">
           <button
             onClick={() => router.push('/shelf')}
-            className="w-full px-6 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] font-medium"
+            className="w-full py-4 bg-[#55B2DE] text-white rounded-xl font-semibold hover:bg-[#4A9FCB] transition-colors"
           >
             Go to My Shelf
           </button>
           <button
             onClick={() => router.push('/circles')}
-            className="w-full px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+            className="w-full py-4 border border-white/30 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors"
           >
             Browse Circles
           </button>
@@ -174,120 +176,197 @@ export default function HandoffCard({ handoff, role, userId, otherPerson }: Hand
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8">
-      {/* Book Cover */}
-      <div className="text-center mb-6">
-        {handoff.book.cover_url ? (
-          <img 
-            src={handoff.book.cover_url} 
-            alt={handoff.book.title}
-            className="w-32 h-48 object-cover rounded shadow-md mx-auto"
-          />
-        ) : (
-          <div className="w-32 h-48 bg-gray-200 rounded flex items-center justify-center mx-auto">
-            <span className="text-5xl">📚</span>
+    <div className="space-y-6">
+      {/* Book Display Section */}
+      <div className="relative">
+        {/* Pending badge */}
+        <div className="absolute top-4 left-4 z-10">
+          <span className="px-3 py-1.5 bg-orange-500 text-white text-xs font-bold rounded-full uppercase tracking-wide">
+            Pending Handoff
+          </span>
+        </div>
+
+        {/* Angled book cover */}
+        <div className="flex justify-center py-8">
+          <div className="transform rotate-[-3deg] shadow-2xl">
+            <BookCover
+              coverUrl={handoff.book.cover_url}
+              title={handoff.book.title}
+              author={handoff.book.author}
+              className="w-40 h-60 object-cover rounded-lg"
+            />
+          </div>
+        </div>
+
+        {/* Book title and author */}
+        <div className="text-center mt-4">
+          <h2 className="text-xl font-bold text-white">{handoff.book.title}</h2>
+          {handoff.book.author && (
+            <p className="text-white/50 text-sm mt-1">{handoff.book.author}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Two-Person Handoff Visual */}
+      <div className="bg-white/5 rounded-2xl p-6">
+        <div className="flex items-center justify-center gap-4">
+          {/* Current Holder */}
+          <div className="flex flex-col items-center text-center">
+            <div className="ring-2 ring-orange-500 ring-offset-2 ring-offset-[#121212] rounded-full">
+              <Avatar
+                avatarType={currentHolder.avatar_type}
+                avatarId={currentHolder.avatar_id}
+                avatarUrl={currentHolder.avatar_url}
+                userName={currentHolder.full_name}
+                userId={currentHolder.id}
+                size="md"
+              />
+            </div>
+            <p className="text-white text-sm font-medium mt-2 max-w-[80px] truncate">
+              {currentHolder.full_name}
+            </p>
+            <p className="text-orange-400 text-[10px] font-bold uppercase tracking-wider mt-0.5">
+              Current Holder
+            </p>
+          </div>
+
+          {/* Arrow */}
+          <div className="flex-shrink-0 px-2">
+            <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </div>
+
+          {/* Next Reader */}
+          <div className="flex flex-col items-center text-center">
+            <div className="ring-2 ring-orange-500 ring-offset-2 ring-offset-[#121212] rounded-full">
+              <Avatar
+                avatarType={nextReader.avatar_type}
+                avatarId={nextReader.avatar_id}
+                avatarUrl={nextReader.avatar_url}
+                userName={nextReader.full_name}
+                userId={nextReader.id}
+                size="md"
+              />
+            </div>
+            <p className="text-white text-sm font-medium mt-2 max-w-[80px] truncate">
+              {nextReader.full_name}
+            </p>
+            <p className="text-orange-400 text-[10px] font-bold uppercase tracking-wider mt-0.5">
+              Next Reader
+            </p>
+          </div>
+        </div>
+
+        <p className="text-white/60 text-sm text-center mt-4">
+          Confirm that the book has been passed to the next reader.
+        </p>
+
+        {/* Status indicators */}
+        {confirmed && !otherConfirmed && (
+          <div className="mt-4 bg-green-500/20 border border-green-500/30 rounded-xl p-3 text-center">
+            <p className="text-sm text-green-400">
+              ✓ You confirmed! Waiting for {role === 'giver' ? nextReader.full_name : currentHolder.full_name}...
+            </p>
+          </div>
+        )}
+
+        {!confirmed && otherConfirmed && (
+          <div className="mt-4 bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-3 text-center">
+            <p className="text-sm text-yellow-400">
+              {role === 'giver' ? nextReader.full_name : currentHolder.full_name} confirmed! Your turn.
+            </p>
           </div>
         )}
       </div>
 
-      {/* Title */}
-      <h1 className="text-2xl font-bold text-center mb-2">{handoff.book.title}</h1>
-      
-      {/* Role-specific content */}
-      {role === 'giver' ? (
-        <div className="mb-6">
-          <p className="text-center text-gray-600 mb-4">
-            Hand this book to <strong>{otherPerson.full_name}</strong>
-          </p>
-          {!confirmed && (
-            <p className="text-sm text-gray-500 text-center">
-              They'll reach out to arrange pickup
-            </p>
-          )}
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        {!confirmed ? (
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="w-full py-4 bg-[#55B2DE] text-white rounded-xl font-semibold hover:bg-[#4A9FCB] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Confirming...' : 'Confirm Handoff'}
+          </button>
+        ) : (
+          <button
+            disabled
+            className="w-full py-4 bg-green-600 text-white rounded-xl font-semibold cursor-not-allowed"
+          >
+            ✓ Confirmed - Waiting for {role === 'giver' ? nextReader.full_name : currentHolder.full_name}
+          </button>
+        )}
+        
+        <Link
+          href="/support/handoff-issue"
+          className="block w-full py-4 border border-white/30 text-white text-center rounded-xl font-semibold hover:bg-white/10 transition-colors"
+        >
+          Report Issue
+        </Link>
+      </div>
+
+      {/* Batch Confirm Section */}
+      <div className="bg-white/5 rounded-2xl p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-[#55B2DE] font-semibold">Batch Confirm</h3>
+            <p className="text-white/50 text-sm">Confirm multiple book handoffs at once</p>
+          </div>
+          <Link
+            href="/handoffs/batch"
+            className="px-4 py-2 bg-[#55B2DE] text-white text-sm font-medium rounded-full hover:bg-[#4A9FCB] transition-colors"
+          >
+            Select Books
+          </Link>
         </div>
-      ) : (
-        <div className="mb-6">
-          <p className="text-center text-gray-600 mb-4">
-            Pick up from <strong>{otherPerson.full_name}</strong>
-          </p>
-          
-          {/* Show contact info ONLY for receiver and ONLY during active handoff */}
-          {(otherPerson.contact_email || otherPerson.contact_phone) && (
-            <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
-              <p className="text-sm font-medium text-blue-900 mb-2">
-                Contact {otherPerson.full_name}:
-              </p>
-              <div className="space-y-1">
-                {otherPerson.contact_email && (
-                  <a 
-                    href={`mailto:${otherPerson.contact_email}`}
-                    className="block text-sm text-blue-700 hover:underline"
-                  >
-                    📧 {otherPerson.contact_email}
-                  </a>
-                )}
-                {otherPerson.contact_phone && (
-                  <a 
-                    href={phoneToSmsLink(otherPerson.contact_phone)}
-                    className="block text-sm text-blue-700 hover:underline"
-                  >
-                    📱 {otherPerson.contact_phone}
-                  </a>
+      </div>
+
+      {/* Recent Handoffs Section */}
+      {recentHandoffs && recentHandoffs.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-white font-semibold">Recent Handoffs</h3>
+            <Link href="/handoffs" className="text-[#55B2DE] text-sm font-medium hover:underline">
+              View All
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {recentHandoffs.map((h) => (
+              <div key={h.id} className="bg-white/5 rounded-xl p-3 flex items-center gap-3">
+                <Avatar
+                  avatarType={h.giver.avatar_type}
+                  avatarId={h.giver.avatar_id}
+                  avatarUrl={h.giver.avatar_url}
+                  userName={h.giver.full_name}
+                  userId={h.giver.id}
+                  size="sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm truncate">
+                    <span className="font-medium">{h.giver.full_name}</span>
+                    <span className="text-white/50"> passed </span>
+                    <span className="font-medium">{h.book.title}</span>
+                    <span className="text-white/50"> to </span>
+                    <span className="font-medium">{h.receiver.full_name}</span>
+                  </p>
+                  <p className="text-white/40 text-xs">
+                    {formatTimeAgo(h.both_confirmed_at)}
+                  </p>
+                </div>
+                {h.book.cover_url && (
+                  <div className="flex-shrink-0">
+                    <BookCover
+                      coverUrl={h.book.cover_url}
+                      title={h.book.title}
+                      className="w-10 h-14 object-cover rounded"
+                    />
+                  </div>
                 )}
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Status indicators */}
-      {confirmed && !otherConfirmed && (
-        <div className="bg-green-50 border border-green-200 rounded p-4 mb-4 text-center">
-          <p className="text-sm text-green-700">
-            ✓ You confirmed! Waiting for {otherPerson.full_name} to confirm...
-          </p>
-        </div>
-      )}
-
-      {!confirmed && otherConfirmed && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-4 text-center">
-          <p className="text-sm text-yellow-700">
-            {otherPerson.full_name} confirmed! Please confirm when you {role === 'giver' ? 'gave' : 'received'} the book.
-          </p>
-        </div>
-      )}
-
-      {/* Confirmation button */}
-      {!confirmed && (
-        <button
-          onClick={handleConfirm}
-          disabled={loading}
-          className="w-full py-3 bg-[#55B2DE] text-white text-lg font-semibold rounded hover:bg-[#4A9FCB] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Confirming...' : role === 'giver' ? 'I Gave It' : 'I Got It'}
-        </button>
-      )}
-
-      {confirmed && (
-        <div className="text-center">
-          <p className="text-sm text-gray-500 mb-6">
-            Waiting for {otherPerson.full_name} to confirm
-          </p>
-          
-          {/* Navigation buttons - so user isn't stuck */}
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={() => router.push('/shelf')}
-              className="w-full px-6 py-3 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] font-medium"
-            >
-              Go to My Shelf
-            </button>
-            <button
-              onClick={() => router.push('/circles')}
-              className="w-full px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
-            >
-              Browse Circles
-            </button>
+            ))}
           </div>
         </div>
       )}
