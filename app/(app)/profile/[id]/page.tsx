@@ -4,7 +4,6 @@ import Link from 'next/link'
 import BackButton from '@/app/components/BackButton'
 import Avatar from '@/app/components/Avatar'
 
-// Badge data with descriptions
 const BADGE_DATA: Record<string, { icon: string; name: string; description: string }> = {
   'shelf_starter': { icon: '📚', name: 'Shelf Starter', description: 'Added first book' },
   'circle_maker': { icon: '🌐', name: 'Circle Champ', description: 'Founded a circle' },
@@ -29,11 +28,7 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString()
 }
 
-export default async function UserProfilePage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: profileId } = await params
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -50,23 +45,9 @@ export default async function UserProfilePage({
 
   const isOwnProfile = user.id === profileId
 
-  // Get stats
-  const { data: ownedBooks } = await supabase
-    .from('books')
-    .select('id')
-    .eq('owner_id', profileId)
-
-  const { data: lendEvents } = await supabase
-    .from('user_events')
-    .select('id')
-    .eq('user_id', profileId)
-    .eq('event_type', 'book_lent')
-
-  const { data: borrowEvents } = await supabase
-    .from('user_events')
-    .select('id')
-    .eq('user_id', profileId)
-    .eq('event_type', 'book_borrowed')
+  const { data: ownedBooks } = await supabase.from('books').select('id').eq('owner_id', profileId)
+  const { data: lendEvents } = await supabase.from('user_events').select('id').eq('user_id', profileId).eq('event_type', 'book_lent')
+  const { data: borrowEvents } = await supabase.from('user_events').select('id').eq('user_id', profileId).eq('event_type', 'book_borrowed')
 
   const stats = {
     shared: ownedBooks?.length || 0,
@@ -74,7 +55,6 @@ export default async function UserProfilePage({
     totalRead: (lendEvents?.length || 0) + (borrowEvents?.length || 0)
   }
 
-  // Get badges
   const { data: userBadges } = await supabase
     .from('user_badges')
     .select(`*, badges (id, slug, name, description)`)
@@ -82,7 +62,6 @@ export default async function UserProfilePage({
     .order('earned_at', { ascending: false })
     .limit(3)
 
-  // Get recent activity
   const { data: recentActivity } = await supabase
     .from('user_events')
     .select('*')
@@ -96,15 +75,10 @@ export default async function UserProfilePage({
   return (
     <div className="min-h-screen bg-[#121212] px-4 py-6">
       {/* Back Arrow */}
-      <BackButton fallbackHref="/circles" className="mb-6" />
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </Link>
+      <BackButton fallbackHref="/circles" />
 
       {/* Profile Header */}
-      <div className="flex flex-col items-center mb-8">
-        {/* Avatar with edit icon */}
+      <div className="flex flex-col items-center mb-8 mt-6">
         <div className="relative">
           <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-[#55B2DE]/30">
             <Avatar
@@ -118,10 +92,7 @@ export default async function UserProfilePage({
             />
           </div>
           {isOwnProfile && (
-            <Link 
-              href="/settings"
-              className="absolute bottom-0 right-0 w-8 h-8 bg-[#55B2DE] rounded-full flex items-center justify-center shadow-lg"
-            >
+            <Link href="/settings" className="absolute bottom-0 right-0 w-8 h-8 bg-[#55B2DE] rounded-full flex items-center justify-center shadow-lg">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
@@ -129,20 +100,12 @@ export default async function UserProfilePage({
           )}
         </div>
 
-        {/* Name */}
-        <h1 
-          className="mt-4 text-2xl font-bold text-white"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
+        <h1 className="mt-4 text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
           {profile.full_name || 'Anonymous User'}
         </h1>
-
-        {/* Bio */}
         <p className="mt-2 text-[#9CA3AF] text-center max-w-xs">
           {profile.bio || '"Fiction lover. Always passing books forward."'}
         </p>
-
-        {/* Member since pill */}
         <div className="mt-4 px-4 py-2 bg-[#1E293B] rounded-full">
           <span className="text-sm text-white">Member since {memberYear}</span>
         </div>
@@ -150,26 +113,18 @@ export default async function UserProfilePage({
 
       {/* Reading Stats */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
-          Reading Stats
-        </h2>
+        <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>Reading Stats</h2>
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
-              {stats.shared}
-            </p>
+            <p className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>{stats.shared}</p>
             <p className="text-xs text-[#55B2DE] uppercase tracking-wide mt-1">Shared</p>
           </div>
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
-              {stats.borrowed}
-            </p>
+            <p className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>{stats.borrowed}</p>
             <p className="text-xs text-[#55B2DE] uppercase tracking-wide mt-1">Borrowed</p>
           </div>
           <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
-              {stats.totalRead}
-            </p>
+            <p className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>{stats.totalRead}</p>
             <p className="text-xs text-[#55B2DE] uppercase tracking-wide mt-1">Total Read</p>
           </div>
         </div>
@@ -177,9 +132,7 @@ export default async function UserProfilePage({
 
       {/* Badges */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
-          Badge
-        </h2>
+        <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>Badge</h2>
         <div className="grid grid-cols-3 gap-3">
           {userBadges && userBadges.length > 0 ? (
             userBadges.map((ub) => {
@@ -212,9 +165,7 @@ export default async function UserProfilePage({
 
       {/* Recent Activity */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>
-          Recent Activity
-        </h2>
+        <h2 className="text-lg font-semibold text-white mb-4" style={{ fontFamily: 'var(--font-display)' }}>Recent Activity</h2>
         <div className="space-y-3">
           {recentActivity && recentActivity.length > 0 ? (
             recentActivity.map((activity) => {
@@ -233,9 +184,7 @@ export default async function UserProfilePage({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm">
-                      <span className="font-semibold">You</span> {actionText}
-                    </p>
+                    <p className="text-white text-sm"><span className="font-semibold">You</span> {actionText}</p>
                     <p className="text-xs text-[#6B7280] mt-1">{formatTimeAgo(activity.timestamp)}</p>
                   </div>
                 </div>
@@ -252,10 +201,7 @@ export default async function UserProfilePage({
       {/* Menu Items */}
       {isOwnProfile && (
         <section className="space-y-3 pb-24">
-          <Link 
-            href="/settings" 
-            className="bg-[#1E293B] rounded-xl p-4 flex items-center gap-4 hover:bg-[#27272A] transition-colors"
-          >
+          <Link href="/settings" className="bg-[#1E293B] rounded-xl p-4 flex items-center gap-4 hover:bg-[#27272A] transition-colors">
             <div className="w-10 h-10 rounded-full bg-[#27272A] flex items-center justify-center">
               <svg className="w-5 h-5 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -266,11 +212,7 @@ export default async function UserProfilePage({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
-
-          <Link 
-            href="/circles" 
-            className="bg-[#1E293B] rounded-xl p-4 flex items-center gap-4 hover:bg-[#27272A] transition-colors"
-          >
+          <Link href="/circles" className="bg-[#1E293B] rounded-xl p-4 flex items-center gap-4 hover:bg-[#27272A] transition-colors">
             <div className="w-10 h-10 rounded-full bg-[#27272A] flex items-center justify-center">
               <svg className="w-5 h-5 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -281,11 +223,7 @@ export default async function UserProfilePage({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
-
-          <Link 
-            href="/notifications" 
-            className="bg-[#1E293B] rounded-xl p-4 flex items-center gap-4 hover:bg-[#27272A] transition-colors"
-          >
+          <Link href="/notifications" className="bg-[#1E293B] rounded-xl p-4 flex items-center gap-4 hover:bg-[#27272A] transition-colors">
             <div className="w-10 h-10 rounded-full bg-[#27272A] flex items-center justify-center">
               <svg className="w-5 h-5 text-[#55B2DE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
