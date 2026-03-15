@@ -393,22 +393,34 @@ export default async function MyShelfTab() {
           
           <div className="space-y-3">
             {readingHistory.map((event: any) => (
-              <div key={event.id} className="bg-[#1E293B] rounded-xl p-4 flex items-center gap-4">
-                <div className="w-12 h-16 bg-[#27272A] rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
-                  📖
-                </div>
+              <Link 
+                key={event.id} 
+                href={event.metadata?.book_id ? `/books/${event.metadata.book_id}` : '#'}
+                className="bg-[#1E293B] rounded-xl p-4 flex items-center gap-4 hover:bg-[#253449] transition"
+              >
+                {event.book?.cover_url ? (
+                  <img 
+                    src={event.book.cover_url} 
+                    alt={event.book.title || 'Book cover'}
+                    className="w-12 h-16 object-cover rounded-lg flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-16 bg-[#27272A] rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
+                    📖
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-white truncate">
                     {event.book?.title || 'Unknown Book'}
                   </h3>
                   <p className="text-sm text-[#9CA3AF]">
-                    Returned {new Date(event.timestamp).toLocaleDateString()}
+                    Returned {new Date(event.timestamp || event.created_at).toLocaleDateString()}
                   </p>
                 </div>
                 <svg className="w-5 h-5 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
