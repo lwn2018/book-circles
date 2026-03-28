@@ -12,6 +12,8 @@ export default function CreateCircle() {
   const [description, setDescription] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [createdCircleId, setCreatedCircleId] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -74,50 +76,181 @@ export default function CreateCircle() {
       invite_source: 'creator'
     })
 
-    router.push(`/circles/${circle.id}`)
-    router.refresh()
+    setLoading(false)
+    setCreatedCircleId(circle.id)
+    setShowSuccess(true)
+  }
+
+  const handleContinue = () => {
+    if (createdCircleId) {
+      router.push(`/circles/${createdCircleId}`)
+      router.refresh()
+    }
   }
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Create a Circle</h1>
-        <form onSubmit={handleCreate} className="space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium mb-1">Circle Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
-              placeholder="e.g., Sarah's Book Club"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Description (optional)</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#55B2DE] focus:border-transparent"
-              rows={3}
-              placeholder="e.g., Our neighbourhood book swap"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-2 bg-[#55B2DE] text-white rounded-lg hover:bg-[#4A9FCB] disabled:opacity-50"
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
+      {/* Header with back button */}
+      <div className="p-4">
+        <Link 
+          href="/circles" 
+          className="inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-[var(--background-card)] transition-colors"
+        >
+          <svg 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className="text-[var(--foreground)]"
           >
-            {loading ? 'Creating...' : 'Create Circle'}
-          </button>
-        </form>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </Link>
       </div>
+
+      {/* Main content */}
+      <div className="px-6 pb-8">
+        <div className="max-w-md mx-auto">
+          {/* Title and subtitle */}
+          <h1 
+            className="text-2xl font-bold mb-2" 
+            style={{ color: 'var(--foreground)' }}
+          >
+            Create a Circle
+          </h1>
+          <p 
+            className="text-base mb-8" 
+            style={{ color: 'var(--foreground-muted)' }}
+          >
+            Invite friends and build your reading circle.
+          </p>
+
+          <form onSubmit={handleCreate} className="space-y-6">
+            {error && (
+              <div 
+                className="p-3 rounded-lg text-sm"
+                style={{ 
+                  backgroundColor: 'rgba(255, 59, 48, 0.1)',
+                  color: 'var(--error)'
+                }}
+              >
+                {error}
+              </div>
+            )}
+            
+            {/* Circle Name field */}
+            <div>
+              <label 
+                className="block text-sm font-medium mb-2"
+                style={{ color: 'var(--foreground)' }}
+              >
+                Circle Name
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="input"
+                placeholder="e.g., Sarah's Book Club"
+                required
+              />
+            </div>
+
+            {/* Description field */}
+            <div>
+              <label 
+                className="block text-sm font-medium mb-2"
+                style={{ color: 'var(--foreground)' }}
+              >
+                Description <span style={{ color: 'var(--foreground-muted)' }}>(optional)</span>
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="input"
+                rows={3}
+                placeholder="e.g., Our neighbourhood book swap"
+                style={{ resize: 'none' }}
+              />
+            </div>
+
+            {/* Create button */}
+            <button
+              type="submit"
+              disabled={loading || !name.trim()}
+              className="w-full py-4 rounded-full font-semibold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: 'var(--primary)',
+                color: 'var(--foreground)'
+              }}
+            >
+              {loading ? 'Creating...' : 'Create Circle'}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Success Modal */}
+      {showSuccess && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 px-6"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)' }}
+        >
+          <div 
+            className="w-full max-w-sm rounded-2xl p-8 text-center"
+            style={{ backgroundColor: 'var(--background-card)' }}
+          >
+            {/* Green checkmark icon */}
+            <div 
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ backgroundColor: 'var(--success)' }}
+            >
+              <svg 
+                width="32" 
+                height="32" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="white" 
+                strokeWidth="3" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+
+            {/* Success text */}
+            <h2 
+              className="text-xl font-bold mb-3"
+              style={{ color: 'var(--foreground)' }}
+            >
+              Successful
+            </h2>
+            <p 
+              className="text-sm mb-8"
+              style={{ color: 'var(--foreground-muted)' }}
+            >
+              Your circle has been created. Invite friends to start sharing books.
+            </p>
+
+            {/* Continue button */}
+            <button
+              onClick={handleContinue}
+              className="w-full py-4 rounded-full font-semibold text-base transition-all"
+              style={{
+                backgroundColor: 'var(--primary)',
+                color: 'var(--foreground)'
+              }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
