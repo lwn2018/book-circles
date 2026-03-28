@@ -130,17 +130,17 @@ export default function BooksListWithFilters({
 
   return (
     <div>
-      {/* Filter pills + View Toggle */}
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1">
+      {/* Filter Pills - Horizontal Scroll */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 -mx-4 px-4 pb-1">
           {filters.map((filter) => (
             <button
               key={filter.key}
               onClick={() => setActiveFilter(filter.key)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-full whitespace-nowrap transition-all flex-shrink-0 ${
                 activeFilter === filter.key
                   ? 'bg-[#55B2DE] text-white'
-                  : 'bg-[#1E293B] text-[#94A3B8] border border-[#334155] hover:bg-[#334155]'
+                  : 'bg-transparent text-[#94A3B8] border border-[#334155] hover:bg-[#1E293B] hover:border-[#4A5568]'
               }`}
               style={{ fontFamily: 'var(--font-figtree)', fontSize: '14px', fontWeight: 500 }}
             >
@@ -157,6 +157,7 @@ export default function BooksListWithFilters({
               viewMode === 'card' ? 'bg-[#55B2DE] text-white' : 'text-[#94A3B8] hover:text-white'
             }`}
             title="Card view"
+            aria-label="Card view"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -168,6 +169,7 @@ export default function BooksListWithFilters({
               viewMode === 'list' ? 'bg-[#55B2DE] text-white' : 'text-[#94A3B8] hover:text-white'
             }`}
             title="List view"
+            aria-label="List view"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -189,6 +191,15 @@ export default function BooksListWithFilters({
       {displayCount < filteredBooks.length && (
         <div className="text-center py-4">
           <p className="text-gray-500 text-sm">Scroll for more...</p>
+        </div>
+      )}
+      
+      {/* Empty state */}
+      {filteredBooks.length === 0 && activeFilter !== 'all' && (
+        <div className="text-center py-12">
+          <p className="text-[#9F9FA9] text-sm" style={{ fontFamily: 'var(--font-figtree)' }}>
+            No books match this filter
+          </p>
         </div>
       )}
     </div>

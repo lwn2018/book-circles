@@ -1,10 +1,46 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import Avatar from '@/app/components/Avatar'
 import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
+import RecentlyAddedCarousel from './RecentlyAddedCarousel'
 
 export const revalidate = 0
+
+// StackedAvatars component for member display
+function StackedAvatars({ members, maxDisplay = 5 }: { members: any[], maxDisplay?: number }) {
+  const displayMembers = members.slice(0, maxDisplay)
+  const remaining = members.length - maxDisplay
+
+  return (
+    <div className="flex items-center">
+      {displayMembers.map((member, index) => (
+        <div 
+          key={member.profiles?.id || index}
+          className={`${index > 0 ? '-ml-3' : ''}`}
+          title={member.profiles?.full_name || 'Member'}
+        >
+          <Avatar
+            avatarSlug={member.profiles?.avatar_slug}
+            userName={member.profiles?.full_name || 'Member'}
+            userId={member.profiles?.id || ''}
+            size="sm"
+            className="border-2 border-[#121212]"
+          />
+        </div>
+      ))}
+      {remaining > 0 && (
+        <div 
+          className="-ml-3 w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center text-[#94A3B8] text-sm font-medium border-2 border-[#121212]"
+          style={{ fontFamily: 'var(--font-inter)' }}
+        >
+          +{remaining}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default async function CirclePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -69,6 +105,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
   const hiddenBookIds = new Set(hiddenBooks?.map(h => h.book_id) || [])
   const visibleBooks = allBooks?.filter(book => !hiddenBookIds.has(book.id)) || []
 
+  // Deduplicate books by ISBN or title+author
   const seenBooks = new Map<string, any>()
   const books = visibleBooks.filter(book => {
     const key = book.isbn 
@@ -79,72 +116,87 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
     return true
   })
 
+  // Stats
   const memberCount = members?.length || 0
   const sharedCount = books.length
   const activeCount = books.filter(b => b.status === 'borrowed').length
 
-  const foundedDate = new Date(circle.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  // Recently added books (last 10, sorted by created_at)
+  const recentlyAdded = [...books]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 10)
+
+  // Format founded date
+  const foundedDate = new Date(circle.created_at).toLocaleDateString('en-US', { 
+    month: 'short', 
+    year: 'numeric' 
+  })
 
   return (
     <div className="min-h-screen bg-[#121212]">
       <div className="px-4 py-6">
-        {/* Circle Name - Montreal 24px bold */}
-        <h1 
-          className="text-2xl font-bold text-white"
-          style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700 }}
-        >
-          {circle.name}
-        </h1>
-        
-        {/* Subtitle - Figtree 14px regular */}
+        {/* Header Section */}
+        <div className="flex items-start justify-between mb-2">
+          {/* Back arrow + Title */}
+          <div className="flex items-center gap-3">
+            <Link 
+              href="/circles" 
+              className="text-[#94A3B8] hover:text-white transition-colors p-1 -ml-1"
+              aria-label="Back to circles"
+            >
+              <svg 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+            </Link>
+            <h1 
+              className="text-2xl font-bold text-white"
+              style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700 }}
+            >
+              {circle.name}
+            </h1>
+          </div>
+          
+          {/* Invite Button */}
+          <InviteLink inviteCode={circle.invite_code} variant="pill" />
+        </div>
+
+        {/* Subtitle */}
         <p 
-          className="text-[#9F9FA9] mt-1"
+          className="text-[#9F9FA9] ml-9 mb-4"
           style={{ fontFamily: 'var(--font-figtree)', fontSize: '14px', fontWeight: 400 }}
         >
           Founded {foundedDate} • {circle.is_private ? 'Private' : 'Public'} Circle
         </p>
 
         {/* Members Row */}
-        <div className="flex items-center gap-4 mt-6 mb-6">
-          <div className="flex items-center">
-            {members?.slice(0, 5).map((member: any, index: number) => (
-              <div 
-                key={member.profiles?.id || index}
-                className={`${index > 0 ? '-ml-3' : ''}`}
-                title={member.profiles?.full_name || 'Member'}
-              >
-                <Avatar
-                  avatarSlug={member.profiles?.avatar_slug}
-                  userName={member.profiles?.full_name || 'Member'}
-                  userId={member.profiles?.id || ''}
-                  size="sm"
-                  className="border-2 border-[#121212]"
-                />
-              </div>
-            ))}
-            {memberCount > 5 && (
-              <div 
-                className="-ml-3 w-10 h-10 rounded-full bg-[#1E293B] flex items-center justify-center text-[#94A3B8] text-sm font-medium border-2 border-[#121212]"
-                style={{ fontFamily: 'var(--font-inter)' }}
-              >
-                +{memberCount - 5}
-              </div>
-            )}
-          </div>
-          <InviteLink inviteCode={circle.invite_code} variant="pill" />
+        <div className="flex items-center gap-3 ml-9 mb-6">
+          <StackedAvatars members={members || []} maxDisplay={5} />
+          <span 
+            className="text-[#9F9FA9] text-sm"
+            style={{ fontFamily: 'var(--font-figtree)' }}
+          >
+            {memberCount} Active Member{memberCount !== 1 ? 's' : ''}
+          </span>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-[#1E293B] rounded-xl p-4 text-center">
-            {/* Label - Figtree 10px regular */}
+          <div className="bg-[#1E293B] rounded-xl p-4 text-center border border-[#334155]">
             <p 
-              className="text-[#9F9FA9] uppercase tracking-wide mb-1"
-              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 400 }}
+              className="text-[#9F9FA9] uppercase tracking-wider mb-1"
+              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 500, letterSpacing: '0.05em' }}
             >
               Members
             </p>
-            {/* Number - Montreal 24px bold */}
             <p 
               className="text-[#55B2DE]"
               style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700 }}
@@ -152,10 +204,10 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
               {memberCount}
             </p>
           </div>
-          <div className="bg-[#1E293B] rounded-xl p-4 text-center">
+          <div className="bg-[#1E293B] rounded-xl p-4 text-center border border-[#334155]">
             <p 
-              className="text-[#9F9FA9] uppercase tracking-wide mb-1"
-              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 400 }}
+              className="text-[#9F9FA9] uppercase tracking-wider mb-1"
+              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 500, letterSpacing: '0.05em' }}
             >
               Shared
             </p>
@@ -166,10 +218,10 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
               {sharedCount}
             </p>
           </div>
-          <div className="bg-[#1E293B] rounded-xl p-4 text-center">
+          <div className="bg-[#1E293B] rounded-xl p-4 text-center border border-[#334155]">
             <p 
-              className="text-[#9F9FA9] uppercase tracking-wide mb-1"
-              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 400 }}
+              className="text-[#9F9FA9] uppercase tracking-wider mb-1"
+              style={{ fontFamily: 'var(--font-figtree)', fontSize: '10px', fontWeight: 500, letterSpacing: '0.05em' }}
             >
               Active
             </p>
@@ -182,7 +234,16 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* Books Section */}
+        {/* Recently Added Section */}
+        {recentlyAdded.length > 0 && (
+          <RecentlyAddedCarousel 
+            books={recentlyAdded} 
+            userId={user.id}
+            circleId={id}
+          />
+        )}
+
+        {/* Books Section with Filters */}
         <BooksListWithFilters 
           books={(books as any) || []} 
           userId={user.id} 
