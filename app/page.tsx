@@ -179,24 +179,23 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
+    <div className="min-h-screen bg-gray-50 dark:bg-[#121212]">
       {/* Sticky Nav */}
-      <nav className="sticky top-0 z-50 px-4 py-3 backdrop-blur-md" style={{ backgroundColor: 'rgba(18, 18, 18, 0.9)', borderBottom: '1px solid var(--border-muted)' }}>
+      <nav className="sticky top-0 z-50 px-4 py-3 backdrop-blur-md bg-white/90 dark:bg-[#121212]/90 border-b border-gray-200 dark:border-[#1E293B]">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold font-display" style={{ color: 'var(--foreground)' }}>
+          <Link href="/" className="text-xl font-bold font-display text-gray-900 dark:text-white">
             PagePass
           </Link>
           <div className="flex items-center gap-4">
             <Link 
               href="/auth/signin" 
-              className="text-sm font-medium transition-colors hover:opacity-80"
-              style={{ color: 'var(--foreground-muted)' }}
+              className="text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             >
               Sign In
             </Link>
             <Link 
               href="/auth/signup" 
-              className="btn-primary text-sm px-4 py-2"
+              className="bg-[#55B2DE] hover:bg-[#4A9FCB] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
             >
               Get Started
             </Link>
@@ -207,60 +206,29 @@ export default function LandingPage() {
       {/* SECTION 1: Hero */}
       <section className="px-4 pt-12 pb-16 md:pt-20 md:pb-24">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6" style={{ color: 'var(--foreground)' }}>
+          <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-gray-900 dark:text-white">
             You lend books because you love them.
             <br />
-            <span style={{ color: 'var(--primary)' }}>PagePass makes sure they find their way back.</span>
+            <span className="text-[#55B2DE]">PagePass makes sure they find their way back.</span>
           </h1>
-          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto" style={{ color: 'var(--foreground-muted)' }}>
+          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-600 dark:text-gray-400">
             Share books with friends, track who has what, and let books pass directly between readers — no awkward "do you still have my copy?" texts required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <Link 
               href="/auth/signup" 
-              className="btn-primary text-lg px-8 py-3 w-full sm:w-auto"
+              className="bg-[#55B2DE] hover:bg-[#4A9FCB] text-white text-lg font-semibold px-8 py-3 rounded-lg transition-colors w-full sm:w-auto text-center"
             >
               Get Started
             </Link>
             <a 
               href="#how-it-works" 
-              className="flex items-center gap-2 text-base font-medium transition-colors hover:opacity-80"
-              style={{ color: 'var(--foreground-muted)' }}
+              className="flex items-center gap-2 text-base font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             >
               See how it works <ChevronDownIcon />
             </a>
           </div>
-
-          {/* App Store Buttons */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <a 
-              href="#" 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-colors hover:bg-white/10"
-              style={{ 
-                borderColor: 'var(--foreground-muted)', 
-                color: 'var(--foreground)'
-              }}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-              </svg>
-              <span className="text-sm font-medium">Get iOS App</span>
-            </a>
-            <a 
-              href="#" 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-colors hover:bg-white/10"
-              style={{ 
-                borderColor: 'var(--foreground-muted)', 
-                color: 'var(--foreground)'
-              }}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.69 12l-9.85 9.85c-.5-.25-.84-.76-.84-1.35m13.81-5.38L6.05 21.34l8.49-8.49 2.27 2.27m3.35-4.31c.34.27.55.69.55 1.19 0 .51-.21.93-.55 1.19l-2.63 1.52-2.5-2.5 2.5-2.5 2.63 1.1M6.05 2.66l10.76 6.22-2.27 2.27-8.49-8.49z"/>
-              </svg>
-              <span className="text-sm font-medium">Get Android App</span>
-            </a>
-          </div>
-
+          
           {/* Book spines visual texture */}
           <div className="flex items-end justify-center gap-1 opacity-40 overflow-hidden">
             {bookSpineColors.map((color, i) => (
@@ -271,9 +239,9 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 2: The Problem */}
-      <section className="px-4 py-16 md:py-24" style={{ backgroundColor: 'var(--background-card)' }}>
+      <section className="px-4 py-16 md:py-24 bg-white dark:bg-[#1E293B]">
         <div className="max-w-5xl mx-auto">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12" style={{ color: 'var(--foreground)' }}>
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
             Sound familiar?
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -296,16 +264,15 @@ export default function LandingPage() {
             ].map((item, i) => (
               <div 
                 key={i} 
-                className="p-6 rounded-xl"
-                style={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}
+                className="p-6 rounded-xl bg-gray-50 dark:bg-[#121212] border border-gray-200 dark:border-[#334155]"
               >
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--background-card)', color: 'var(--primary)' }}>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-white dark:bg-[#1E293B] text-[#55B2DE]">
                   {item.icon}
                 </div>
-                <h3 className="font-display text-lg font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
+                <h3 className="font-display text-lg font-semibold mb-2 text-gray-900 dark:text-white">
                   {item.title}
                 </h3>
-                <p style={{ color: 'var(--foreground-muted)' }}>
+                <p className="text-gray-600 dark:text-gray-400">
                   {item.description}
                 </p>
               </div>
@@ -317,10 +284,10 @@ export default function LandingPage() {
       {/* SECTION 3: How It Works */}
       <section id="how-it-works" className="px-4 py-16 md:py-24 scroll-mt-20">
         <div className="max-w-4xl mx-auto">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-4" style={{ color: 'var(--foreground)' }}>
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">
             Sharing books should be easy.
           </h2>
-          <p className="text-center text-lg mb-12" style={{ color: 'var(--primary)' }}>
+          <p className="text-center text-lg mb-12 text-[#55B2DE]">
             Now it is.
           </p>
           <div className="space-y-8 md:space-y-12">
@@ -346,16 +313,15 @@ export default function LandingPage() {
             ].map((item, i) => (
               <div key={i} className="flex gap-6 items-start">
                 <div 
-                  className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold"
-                  style={{ backgroundColor: 'var(--primary)', color: 'var(--background)' }}
+                  className="flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold bg-[#55B2DE] text-white"
                 >
                   {item.step}
                 </div>
                 <div className="flex-1 pt-1">
-                  <h3 className="font-display text-xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>
+                  <h3 className="font-display text-xl font-semibold mb-2 text-gray-900 dark:text-white">
                     {item.title}
                   </h3>
-                  <p className="text-base" style={{ color: 'var(--foreground-muted)' }}>
+                  <p className="text-base text-gray-600 dark:text-gray-400">
                     {item.description}
                   </p>
                 </div>
@@ -366,12 +332,12 @@ export default function LandingPage() {
       </section>
 
       {/* SECTION 4: The Pass-Along Differentiator */}
-      <section className="px-4 py-16 md:py-24" style={{ backgroundColor: 'var(--background-card)' }}>
+      <section className="px-4 py-16 md:py-24 bg-white dark:bg-[#1E293B]">
         <div className="max-w-4xl mx-auto">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-6" style={{ color: 'var(--foreground)' }}>
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-6 text-gray-900 dark:text-white">
             Your book. Their hands. Your peace of mind.
           </h2>
-          <p className="text-center text-lg mb-12 max-w-2xl mx-auto" style={{ color: 'var(--foreground-muted)' }}>
+          <p className="text-center text-lg mb-12 max-w-2xl mx-auto text-gray-600 dark:text-gray-400">
             Most book-sharing is a two-way street: you lend it out, it comes back, you lend it again. PagePass turns it into a circle. Your book can pass from reader to reader without returning to your shelf each time. You stay in the loop at every step — you see who has it, who's next, and when it's coming home.
           </p>
           
@@ -386,20 +352,19 @@ export default function LandingPage() {
               <div key={i} className="flex items-center gap-4 md:gap-6">
                 <div className="text-center">
                   <div 
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mb-2"
-                    style={{ 
-                      backgroundColor: i === 0 || i === 3 ? 'var(--primary)' : 'var(--background)',
-                      color: i === 0 || i === 3 ? 'var(--background)' : 'var(--foreground)',
-                      border: i === 0 || i === 3 ? 'none' : '2px solid var(--border)'
-                    }}
+                    className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold mb-2 ${
+                      i === 0 || i === 3 
+                        ? 'bg-[#55B2DE] text-white' 
+                        : 'bg-gray-100 dark:bg-[#121212] text-gray-900 dark:text-white border-2 border-gray-300 dark:border-[#334155]'
+                    }`}
                   >
                     {person.label[0]}
                   </div>
-                  <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{person.label}</p>
-                  <p className="text-xs" style={{ color: 'var(--foreground-muted)' }}>{person.sublabel}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{person.label}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{person.sublabel}</p>
                 </div>
                 {i < 3 && (
-                  <div style={{ color: 'var(--primary)' }}>
+                  <div className="text-[#55B2DE]">
                     <ArrowRightIcon />
                   </div>
                 )}
@@ -412,25 +377,25 @@ export default function LandingPage() {
       {/* SECTION 5: Social Proof / Founder Story */}
       <section className="px-4 py-16 md:py-24">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-sm uppercase tracking-wider mb-8" style={{ color: 'var(--primary)' }}>
+          <p className="text-sm uppercase tracking-wider mb-8 text-[#55B2DE]">
             Built for book lovers, by a book lover.
           </p>
-          <blockquote className="text-xl md:text-2xl font-display italic mb-8" style={{ color: 'var(--foreground)' }}>
+          <blockquote className="text-xl md:text-2xl font-display italic mb-8 text-gray-900 dark:text-white">
             "PagePass started at a kitchen table when my wife returned a book she'd forgotten she'd borrowed — and I realized she had three books on her shelf she didn't know who they belonged to. I built this to fix that."
           </blockquote>
-          <p className="font-medium" style={{ color: 'var(--foreground-muted)' }}>
+          <p className="font-medium text-gray-600 dark:text-gray-400">
             — Mathieu, founder
           </p>
         </div>
       </section>
 
       {/* SECTION 6: Features Grid */}
-      <section className="px-4 py-16 md:py-24" style={{ backgroundColor: 'var(--background-card)' }}>
+      <section className="px-4 py-16 md:py-24 bg-white dark:bg-[#1E293B]">
         <div className="max-w-5xl mx-auto">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-4" style={{ color: 'var(--foreground)' }}>
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">
             Everything you need.
           </h2>
-          <p className="text-center text-lg mb-12" style={{ color: 'var(--foreground-muted)' }}>
+          <p className="text-center text-lg mb-12 text-gray-600 dark:text-gray-400">
             Nothing you don't.
           </p>
           <div className="grid md:grid-cols-2 gap-6">
@@ -466,15 +431,15 @@ export default function LandingPage() {
                 description: "That's the whole point."
               }
             ].map((feature, i) => (
-              <div key={i} className="flex gap-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--background)' }}>
-                <div className="flex-shrink-0" style={{ color: 'var(--primary)' }}>
+              <div key={i} className="flex gap-4 p-4 rounded-lg bg-gray-50 dark:bg-[#121212]">
+                <div className="flex-shrink-0 text-[#55B2DE]">
                   {feature.icon}
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1" style={{ color: 'var(--foreground)' }}>
+                  <h3 className="font-semibold mb-1 text-gray-900 dark:text-white">
                     {feature.title}
                   </h3>
-                  <p className="text-sm" style={{ color: 'var(--foreground-muted)' }}>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     {feature.description}
                   </p>
                 </div>
@@ -487,15 +452,15 @@ export default function LandingPage() {
       {/* SECTION 7: Final CTA */}
       <section className="px-4 py-20 md:py-32">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4" style={{ color: 'var(--foreground)' }}>
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
             Your books are meant to be shared.
           </h2>
-          <p className="text-lg md:text-xl mb-8" style={{ color: 'var(--foreground-muted)' }}>
+          <p className="text-lg md:text-xl mb-8 text-gray-600 dark:text-gray-400">
             Start a circle. Add your books. See where they go.
           </p>
           <Link 
             href="/auth/signup" 
-            className="btn-primary inline-block text-xl px-10 py-4"
+            className="inline-block bg-[#55B2DE] hover:bg-[#4A9FCB] text-white text-xl font-semibold px-10 py-4 rounded-lg transition-colors"
           >
             Get Started — It's Free
           </Link>
@@ -503,25 +468,25 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="px-4 py-8" style={{ backgroundColor: 'var(--background-card)', borderTop: '1px solid var(--border-muted)' }}>
+      <footer className="px-4 py-8 bg-white dark:bg-[#1E293B] border-t border-gray-200 dark:border-[#1E293B]">
         <div className="max-w-5xl mx-auto text-center space-y-4">
-          <div className="flex items-center justify-center gap-6 text-sm" style={{ color: 'var(--foreground-muted)' }}>
+          <div className="flex items-center justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
             <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
             <span>|</span>
             <Link href="/terms" className="hover:underline">Terms of Service</Link>
           </div>
           <div className="flex items-center justify-center gap-6">
-            <a href="#" aria-label="Instagram" className="transition-colors hover:opacity-80" style={{ color: 'var(--foreground-muted)' }}>
+            <a href="#" aria-label="Instagram" className="transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
               <InstagramIcon />
             </a>
-            <a href="#" aria-label="TikTok" className="transition-colors hover:opacity-80" style={{ color: 'var(--foreground-muted)' }}>
+            <a href="#" aria-label="TikTok" className="transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
               <TikTokIcon />
             </a>
           </div>
-          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             As an Amazon Associate, PagePass earns from qualifying purchases.
           </p>
-          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             © 2026 PagePass
           </p>
         </div>
