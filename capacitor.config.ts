@@ -4,9 +4,9 @@ const config: CapacitorConfig = {
   appId: 'app.pagepass',
   appName: 'PagePass',
   server: {
-    url: 'https://pagepass.app',
+    url: 'https://www.pagepass.app',
     cleartext: false,
-    hostname: 'pagepass.app',
+    hostname: 'www.pagepass.app',
     iosScheme: 'https',
     androidScheme: 'https'
   },
@@ -15,7 +15,6 @@ const config: CapacitorConfig = {
     preferredContentMode: 'mobile',
     scheme: 'pagepass',
     allowsLinkPreview: false,
-    limitsNavigationsToAppBoundDomains: false
   },
   android: {
     allowMixedContent: false
