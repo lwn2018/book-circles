@@ -184,8 +184,12 @@ export default function LandingPage() {
       {/* Sticky Nav */}
       <nav className="sticky top-0 z-50 px-4 py-3 backdrop-blur-md bg-white/90 dark:bg-[#121212]/90 border-b border-gray-200 dark:border-[#1E293B]">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold font-display text-gray-900 dark:text-white">
-            PagePass
+          <Link href="/" className="flex items-center">
+            <img 
+              src="/brand/pagepass-logo.svg" 
+              alt="PagePass" 
+              className="h-8 w-auto dark:invert"
+            />
           </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="192.82668"
+   height="232.70667"
+   viewBox="0 0 192.82668 232.70667"
+   sodipodi:docname="PagePass Logo Black (1).eps"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1">
+    <inkscape:page
+       x="0"
+       y="0"
+       inkscape:label="1"
+       id="page1"
+       width="192.82668"
+       height="232.70667"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <g
+     id="g1"
+     inkscape:groupmode="layer"
+     inkscape:label="1">
+    <g
+       id="group-R5">
+      <path
+         id="path2"
+         d="m 1334,1457.61 c -60.56,92.38 -146.38,163.42 -257.4,213.14 -111.045,49.69 -242.651,74.55 -394.827,74.55 H 118.137 C 52.8906,1745.3 0,1692.41 0,1627.16 V 704.449 C 127.727,1304.16 603.113,1335.84 625.691,1337 v 73.2 c 0,29.25 33.211,46.12 56.832,28.87 l 371.897,-271.52 c 19.56,-14.28 19.56,-43.46 0,-57.75 L 682.523,838.281 c -23.621,-17.246 -56.832,-0.375 -56.832,28.875 v 76.809 C 97.1133,938.379 0,0 0,0 h 431.605 c 65.243,0 118.133,52.8906 118.133,118.129 v 397.242 h 132.035 c 152.176,0 283.782,25.219 394.827,75.699 111.02,50.442 196.84,121.5 257.4,213.149 60.57,91.605 90.85,200.321 90.85,326.111 0,125.79 -30.28,234.87 -90.85,327.28"
+         style="fill:#231f20;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         transform="matrix(0.13333333,0,0,-0.13333333,0,232.70667)" />
+      <path
+         id="path3"
+         d="m 923.992,358.922 v 48.808 c 0,18.579 -21.101,29.309 -36.113,18.352 L 651.555,253.539 c -12.43,-9.078 -12.43,-27.617 0,-36.699 L 887.879,44.3008 c 15.012,-10.961 36.113,-0.2422 36.113,18.3476 v 46.4726 c 12.387,-0.391 522.198,-13.3007 522.198,562.188 0,0 -185.58,-310.528 -522.198,-312.387"
+         style="fill:#66b6e3;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         transform="matrix(0.13333333,0,0,-0.13333333,0,232.70667)" />
+    </g>
+  </g>
+</svg>
