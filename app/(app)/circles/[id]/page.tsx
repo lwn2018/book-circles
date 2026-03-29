@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Avatar from '@/app/components/Avatar'
+import MembersModal from './MembersModal'
 import BooksListWithFilters from './BooksListWithFilters'
 import InviteLink from './InviteLink'
 import RecentlyAddedCarousel from './RecentlyAddedCarousel'
@@ -202,15 +203,13 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
           Founded {foundedDate} • {circle.is_private ? 'Private' : 'Public'} Circle
         </p>
 
-        {/* Members Row */}
-        <div className="flex items-center gap-3 ml-9 mb-6">
-          <StackedAvatars members={visibleMembers} maxDisplay={5} />
-          <span 
-            className="text-[#9F9FA9] text-sm"
-            style={{ fontFamily: 'var(--font-figtree)' }}
-          >
-            {memberCount} Active Member{memberCount !== 1 ? 's' : ''}
-          </span>
+        {/* Members Row - tap to see full list */}
+        <div className="ml-9 mb-6">
+          <MembersModal 
+            members={visibleMembers} 
+            currentUserId={user.id}
+            circleName={circle.name}
+          />
         </div>
 
         {/* Stats Cards */}
