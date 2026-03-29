@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import BackButton from '@/app/components/BackButton'
+import StickyHeader from '@/app/components/StickyHeader'
 import DownloadDataSection from '../DownloadDataSection'
 import CloseAccountSection from '../CloseAccountSection'
 import RestartOnboardingButton from '../RestartOnboardingButton'
@@ -12,11 +12,9 @@ export default async function AccountSettingsPage() {
   if (!user) redirect('/auth/signin')
 
   return (
-    <div className="min-h-screen bg-[#121212] px-4 py-6 pb-32">
-      <div className="flex items-center gap-4 mb-6">
-        <BackButton fallbackHref="/settings" />
-        <h1 className="text-xl font-bold text-white">Account Settings</h1>
-      </div>
+    <div className="min-h-screen bg-[#121212] py-6 pb-32">
+      <StickyHeader title="Account Settings" fallbackHref="/settings" />
+      <div className="px-4">
 
       <div className="max-w-lg mx-auto space-y-6">
         {/* Email Display */}

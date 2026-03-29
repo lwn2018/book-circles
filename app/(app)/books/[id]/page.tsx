@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import BackButton from '@/app/components/BackButton'
+import StickyHeader from '@/app/components/StickyHeader'
 import BookCover from '@/app/components/BookCover'
 import Avatar from '@/app/components/Avatar'
 import BookActions from './BookActions'
@@ -81,13 +81,10 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
   const statusLabel = book.status === 'available' ? 'Available' : book.status === 'borrowed' ? 'Currently Reading' : book.status === 'in_transit' ? 'In Transit' : 'Off Shelf'
 
   return (
-    <div className="min-h-screen bg-[#121212] px-4 py-6 pb-32">
-      <BackButton fallbackHref="/library" />
+    <div className="min-h-screen bg-[#121212] pb-32">
+      <StickyHeader title="Book Details" fallbackHref="/library" />
       
-      <h1 className="text-2xl font-bold text-white mb-1 mt-4" style={{ fontFamily: 'var(--font-display)' }}>
-        My Library
-      </h1>
-      <p className="text-[#9CA3AF] text-sm mb-6">View book information and manage its availability.</p>
+      <div className="px-4 py-6">
 
       {/* Large Book Cover */}
       <div className="bg-[#1E293B] rounded-xl p-6 mb-6 flex justify-center">

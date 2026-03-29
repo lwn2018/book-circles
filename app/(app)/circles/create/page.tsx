@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { trackEvent } from '@/lib/analytics'
+import StickyHeader from '@/app/components/StickyHeader'
 import { logEvent } from '@/lib/gamification/log-event-action'
 
 export default function CreateCircle() {

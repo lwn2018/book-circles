@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import BackButton from '@/app/components/BackButton'
+import StickyHeader from '@/app/components/StickyHeader'
 import { getAvatarBySlug } from '@/lib/avatars'
 import BlockedUsersSection from './BlockedUsersSection'
 
@@ -109,14 +109,13 @@ export default async function Settings() {
   const memberSince = formatMemberSince(user.created_at)
 
   return (
-    <div className="min-h-screen bg-[#121212] px-4 py-6 pb-32">
-      {/* Header */}
-      <div className="mb-6">
-        <BackButton fallbackHref="/circles" />
-      </div>
+    <div className="min-h-screen bg-[#121212] pb-32">
+      <StickyHeader title="Settings" fallbackHref="/circles" />
+      
+      <div className="px-4 py-6">
 
       {/* Profile Header */}
-      <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-8">
         <div className="relative mb-4">
           <div 
             className="w-32 h-32 rounded-full overflow-hidden"

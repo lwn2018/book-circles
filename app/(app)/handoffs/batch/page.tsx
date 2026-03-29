@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BatchSelector from './BatchSelector'
+import StickyHeader from '@/app/components/StickyHeader'
 
 export default async function BatchHandoffPage() {
   const supabase = await createServerSupabaseClient()

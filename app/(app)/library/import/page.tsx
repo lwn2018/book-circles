@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import BackButton from '@/app/components/BackButton'
+import StickyHeader from '@/app/components/StickyHeader'
 import GoodreadsImporter from './GoodreadsImporter'
 
 export default async function ImportBooks() {
@@ -17,14 +17,9 @@ export default async function ImportBooks() {
   const circles = userCircles?.map(m => m.circles) || []
 
   return (
-    <div className="min-h-screen bg-[#121212] px-4 py-6 pb-32">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <BackButton fallbackHref="/settings" />
-        <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>
-          Import from Goodreads
-        </h1>
-      </div>
+    <div className="min-h-screen bg-[#121212] pb-32">
+      <StickyHeader title="Import from Goodreads" fallbackHref="/settings" />
+      <div className="px-4 py-6">
 
       <p className="text-[#9CA3AF] mb-6">
         Upload your Goodreads library and choose which books to add to your circles.

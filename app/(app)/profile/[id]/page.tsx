@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import BackButton from '@/app/components/BackButton'
+import StickyHeader from '@/app/components/StickyHeader'
 import Avatar from '@/app/components/Avatar'
 import ProfileActions from './ProfileActions'
 
@@ -59,9 +59,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   // If blocked and not own profile, show blocked message
   if (isBlocked && !isOwnProfile) {
     return (
-      <div className="min-h-screen bg-[#121212] px-4 py-6">
-        <BackButton fallbackHref="/circles" />
-        <div className="flex flex-col items-center justify-center mt-20">
+      <div className="min-h-screen bg-[#121212]">
+        <StickyHeader title="Profile" fallbackHref="/circles" />
+        <div className="px-4 py-6 flex flex-col items-center justify-center mt-10">
           <div className="w-20 h-20 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
             <svg className="w-10 h-10 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
@@ -104,8 +104,10 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   const memberYear = new Date(profile.created_at).getFullYear()
 
   return (
-    <div className="min-h-screen bg-[#121212] px-4 py-6">
-      {/* Back Arrow */}
+    <div className="min-h-screen bg-[#121212]">
+      <StickyHeader fallbackHref="/circles" />
+      <div className="px-4 py-6">
+      {/* Profile Content */}
       <BackButton fallbackHref="/circles" />
 
       {/* Profile Header */}

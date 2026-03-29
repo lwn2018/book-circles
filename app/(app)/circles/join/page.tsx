@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { trackEvent } from '@/lib/analytics'
+import StickyHeader from '@/app/components/StickyHeader'
 import { logEvent } from '@/lib/gamification/log-event-action'
 
 function JoinCircleForm() {
