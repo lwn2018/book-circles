@@ -176,3 +176,13 @@ body {
 
 /* Ensure html also has the background */
 
+
+/* Book page flip animation */
+@keyframes pageFlip {
+  0%, 100% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(-180deg);
+  }
+}
