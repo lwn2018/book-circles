@@ -122,7 +122,11 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
   const activeCount = books.filter(b => b.status === 'borrowed').length
 
   // Recently added books (last 10, sorted by created_at)
-  const recentlyAdded = [...books]
+  const recentlyAdded = [...books].map(book => ({
+    ...book,
+    owner: Array.isArray(book.owner) ? book.owner[0] : book.owner,
+    current_borrower: Array.isArray(book.current_borrower) ? book.current_borrower[0] : book.current_borrower
+  }))
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 10)
 
@@ -237,7 +241,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
         {/* Recently Added Section */}
         {recentlyAdded.length > 0 && (
           <RecentlyAddedCarousel 
-            books={recentlyAdded} 
+            books={recentlyAdded as any} 
             userId={user.id}
             circleId={id}
           />
