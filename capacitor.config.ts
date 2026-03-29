@@ -15,11 +15,18 @@ const config: CapacitorConfig = {
     preferredContentMode: 'mobile',
     scheme: 'pagepass',
     allowsLinkPreview: false,
+    backgroundColor: '#121212'
   },
   android: {
-    allowMixedContent: false
+    allowMixedContent: false,
+    backgroundColor: '#121212'
   },
-  plugins: {}
+  plugins: {
+    StatusBar: {
+      style: 'DARK',
+      backgroundColor: '#121212'
+    }
+  }
 };
 
 export default config;

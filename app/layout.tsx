@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Figtree, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import NativeInit from "./components/NativeInit";
 import { PostHogProvider } from "./components/PostHogProvider";
 
 const inter = Inter({
@@ -25,6 +26,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
+  userScalable: false,
 };
 
 export const metadata: Metadata = {
@@ -70,11 +72,12 @@ export default function RootLayout({
         }}
       />
       </head>
+      <><NativeInit />
       <body className={`${inter.variable} ${figtree.variable} ${plusJakarta.variable} antialiased`}>
         <PostHogProvider>
           {children}
         </PostHogProvider>
       </body>
-    </html>
+    </></html>
   );
 }

@@ -167,21 +167,21 @@ body {
   display: none;
 }
 
+
+
+
+
+
 /* iOS Safe Area Support */
-html {
+body {
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+  background-color: #121212;
 }
 
-/* Ensure body fills the safe area */
-body {
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-}
-
-/* Fix for sticky elements with safe area */
-.sticky {
-  padding-top: env(safe-area-inset-top);
+/* Ensure html also has the background */
+html {
+  background-color: #121212;
 }
