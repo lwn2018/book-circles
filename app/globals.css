@@ -166,3 +166,17 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* iOS Safe Area Support */
+html {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Ensure body fills the safe area */
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}

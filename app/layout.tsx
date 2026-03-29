@@ -19,6 +19,14 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
+};
+
 export const metadata: Metadata = {
   title: "PagePass - Share Books with Your Circle",
   description: "PagePass is where book lovers share their personal libraries. Join trusted circles, borrow books from friends, and pass books along without returning them to the owner. Goodreads meets Letterboxd for physical book lending.",
