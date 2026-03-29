@@ -1,12 +1,36 @@
 @import "tailwindcss";
 
-/* CSS Reset - removes default browser margins/padding */
-html, body {
-  margin: 0;
-  padding: 0;
+/* Use class-based dark mode */
+@variant dark (&:where(.dark, .dark *));
+
+/* Light mode (default when no .dark class) */
+:root {
+  /* Backgrounds */
+  --background: #FFFFFF;
+  --background-card: #F8FAFC;
+  --background-elevated: #F1F5F9;
+  
+  /* Primary - Light Blue */
+  --primary: #55B2DE;
+  --primary-hover: #4A9FCB;
+  
+  /* Text */
+  --foreground: #1E293B;
+  --foreground-muted: #64748B;
+  --text-tertiary: #94A3B8;
+  
+  /* Status */
+  --success: #32D74B;
+  --warning: #FF9500;
+  --error: #FF3B30;
+  
+  /* Borders */
+  --border: #E2E8F0;
+  --border-muted: #F1F5F9;
 }
 
-:root {
+/* Dark mode */
+:root.dark {
   /* Backgrounds */
   --background: #121212;
   --background-card: #1E293B;
@@ -29,11 +53,6 @@ html, body {
   /* Borders */
   --border: #334155;
   --border-muted: #1E293B;
-  
-  /* Typography */
-  --font-display: var(--font-display), sans-serif;
-  --font-body: var(--font-figtree), sans-serif;
-  --font-ui: var(--font-inter), sans-serif;
 }
 
 @theme inline {

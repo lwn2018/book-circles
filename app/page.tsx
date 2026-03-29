@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import ThemeToggle from './components/ThemeToggle'
 
 export const metadata: Metadata = {
   title: 'PagePass - Share Books with Your Circle',
@@ -187,6 +188,7 @@ export default function LandingPage() {
             PagePass
           </Link>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link 
               href="/auth/signin" 
               className="text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
