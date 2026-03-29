@@ -44,16 +44,16 @@ export default function FounderBanner({ userId }: { userId: string }) {
   if (loading || dismissed) return null
 
   return (
-    <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg relative">
+    <div className="mx-4 mb-6 p-4 bg-[#1E293B] border border-[#334155] rounded-xl relative">
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl leading-none"
+        className="absolute top-3 right-3 text-zinc-400 hover:text-white text-xl leading-none p-1"
         aria-label="Dismiss"
       >
         ×
       </button>
-      <p className="text-gray-800 pr-6">
-        <span className="font-medium">You're a founding tester.</span>{' '}
+      <p className="text-[#E2E8F0] pr-8">
+        <span className="font-medium text-white">You're a founding member.</span>{' '}
         Your feedback shapes what PagePass becomes.{' '}
         <a 
           href="/roadmap" 
