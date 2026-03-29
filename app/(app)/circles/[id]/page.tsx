@@ -72,17 +72,37 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
 
   if (!membership) redirect('/dashboard')
 
+  // Get blocked user IDs (both directions)
+  const { data: blocksIInitiated } = await supabase
+    .from('blocked_users')
+    .select('blocked_id')
+    .eq('blocker_id', user.id)
+  
+  const { data: blocksAgainstMe } = await supabase
+    .from('blocked_users')
+    .select('blocker_id')
+    .eq('blocked_id', user.id)
+
+  const blockedUserIds = new Set<string>()
+  blocksIInitiated?.forEach(b => blockedUserIds.add(b.blocked_id))
+  blocksAgainstMe?.forEach(b => blockedUserIds.add(b.blocker_id))
+
   const { data: members } = await supabase
     .from('circle_members')
     .select(`*, profiles (id, full_name, email, avatar_slug)`)
     .eq('circle_id', id)
+
+  // Filter out blocked members from display
+  const visibleMembers = members?.filter(m => !blockedUserIds.has(m.user_id)) || []
 
   const { data: memberIds } = await supabase
     .from('circle_members')
     .select('user_id')
     .eq('circle_id', id)
   
-  const ownerIds = memberIds?.map(m => m.user_id) || []
+  // Filter owner IDs to exclude blocked users when fetching books
+  const allOwnerIds = memberIds?.map(m => m.user_id) || []
+  const visibleOwnerIds = allOwnerIds.filter(id => !blockedUserIds.has(id))
 
   const { data: allBooks } = await supabase
     .from('books')
@@ -93,7 +113,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
       current_borrower:current_borrower_id (full_name),
       book_queue (id, user_id, position, pass_count, last_pass_reason, profiles (full_name))
     `)
-    .in('owner_id', ownerIds)
+    .in('owner_id', visibleOwnerIds.length > 0 ? visibleOwnerIds : ['__none__'])
     .order('created_at', { ascending: false })
 
   const { data: hiddenBooks } = await supabase
@@ -116,8 +136,8 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
     return true
   })
 
-  // Stats
-  const memberCount = members?.length || 0
+  // Stats (use visible members count)
+  const memberCount = visibleMembers.length
   const sharedCount = books.length
   const activeCount = books.filter(b => b.status === 'borrowed').length
 
@@ -183,7 +203,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
 
         {/* Members Row */}
         <div className="flex items-center gap-3 ml-9 mb-6">
-          <StackedAvatars members={members || []} maxDisplay={5} />
+          <StackedAvatars members={visibleMembers} maxDisplay={5} />
           <span 
             className="text-[#9F9FA9] text-sm"
             style={{ fontFamily: 'var(--font-figtree)' }}
@@ -252,7 +272,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
           books={(books as any) || []} 
           userId={user.id} 
           circleId={id}
-          circleMemberIds={ownerIds}
+          circleMemberIds={visibleOwnerIds}
           defaultBrowseView={profile?.default_browse_view || 'card'}
         />
       </div>

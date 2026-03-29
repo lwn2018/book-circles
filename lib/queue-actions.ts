@@ -31,6 +31,22 @@ async function sendNotification(type: string, recipientId: string, bookId: strin
   }
 }
 
+
+/**
+ * Check if there's a block between two users
+ */
+async function isBlockedBetweenUsers(userId1: string, userId2: string): Promise<boolean> {
+  const supabase = await getSupabase()
+  
+  const { data } = await supabase
+    .from('blocked_users')
+    .select('id')
+    .or(`and(blocker_id.eq.${userId1},blocked_id.eq.${userId2}),and(blocker_id.eq.${userId2},blocked_id.eq.${userId1})`)
+    .limit(1)
+
+  return (data?.length ?? 0) > 0
+}
+
 /**
  * Mark book as ready to pass on to next person
  * Determines next recipient based on queue and owner recall status
@@ -391,6 +407,21 @@ export async function joinQueue(bookId: string, userId: string) {
 
   if (existing) {
     return { error: 'You are already in this queue' }
+  }
+
+  // Get book owner to check for blocks
+  const { data: book } = await supabase
+    .from('books')
+    .select('owner_id')
+    .eq('id', bookId)
+    .single()
+
+  if (book) {
+    // Check if user is blocked by or has blocked the book owner
+    const blocked = await isBlockedBetweenUsers(userId, book.owner_id)
+    if (blocked) {
+      return { error: 'Unable to join queue for this book' }
+    }
   }
 
   // Get next position

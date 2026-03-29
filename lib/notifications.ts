@@ -26,12 +26,37 @@ type NotificationData = {
   sendEmail?: boolean
   emailTemplate?: string
   emailParams?: Record<string, any>
+  senderId?: string  // Optional: the user sending/triggering the notification
+}
+
+/**
+ * Check if there's a block between two users
+ */
+async function isBlocked(userId1: string, userId2: string): Promise<boolean> {
+  const adminClient = createServiceRoleClient()
+  
+  const { data } = await adminClient
+    .from('blocked_users')
+    .select('id')
+    .or(`and(blocker_id.eq.${userId1},blocked_id.eq.${userId2}),and(blocker_id.eq.${userId2},blocked_id.eq.${userId1})`)
+    .limit(1)
+
+  return (data?.length ?? 0) > 0
 }
 
 export async function createNotification(notification: NotificationData) {
   try {
     // Use service role to bypass RLS for notification inserts
     const adminClient = createServiceRoleClient()
+
+    // If there's a sender, check if blocked
+    if (notification.senderId && notification.senderId !== notification.userId) {
+      const blocked = await isBlocked(notification.userId, notification.senderId)
+      if (blocked) {
+        console.log('[createNotification] Skipped - users are blocked:', notification.userId, notification.senderId)
+        return null
+      }
+    }
 
     console.log('[createNotification] Creating for user:', notification.userId, 'type:', notification.type)
 
@@ -44,7 +69,7 @@ export async function createNotification(notification: NotificationData) {
         message: notification.message,  // Include title in message if provided
         action_url: notification.link || null,
         book_id: notification.data?.bookId || notification.data?.book_id || null,
-        sender_id: notification.data?.senderId || null,
+        sender_id: notification.data?.senderId || notification.senderId || null,
         read: false
       })
       .select()
@@ -165,7 +190,7 @@ async function sendEmailNotification(
 
 // Convenience functions for specific notification types
 
-export async function notifyBookReady(userId: string, bookId: string, bookTitle: string) {
+export async function notifyBookReady(userId: string, bookId: string, bookTitle: string, senderId?: string) {
   return createNotification({
     userId,
     type: 'book_ready',
@@ -173,11 +198,12 @@ export async function notifyBookReady(userId: string, bookId: string, bookTitle:
     message: `"${bookTitle}" is now available for you to borrow.`,
     link: `/dashboard/offers`,
     data: { bookId },
+    senderId,
     sendEmail: true
   })
 }
 
-export async function notifyPassReminder(userId: string, bookId: string, bookTitle: string, hoursRemaining: number) {
+export async function notifyPassReminder(userId: string, bookId: string, bookTitle: string, hoursRemaining: number, senderId?: string) {
   return createNotification({
     userId,
     type: 'pass_reminder',
@@ -185,6 +211,7 @@ export async function notifyPassReminder(userId: string, bookId: string, bookTit
     message: `You have ${hoursRemaining} hours to accept or pass on "${bookTitle}". After that, it will automatically pass.`,
     link: `/dashboard/offers`,
     data: { bookId },
+    senderId,
     sendEmail: true
   })
 }
@@ -201,14 +228,15 @@ export async function notifyBookDueSoon(userId: string, bookId: string, bookTitl
   })
 }
 
-export async function notifyBookReturned(userId: string, bookId: string, bookTitle: string, borrowerName: string) {
+export async function notifyBookReturned(userId: string, bookId: string, bookTitle: string, borrowerName: string, senderId?: string) {
   return createNotification({
     userId,
     type: 'book_returned',
     title: '↩️ Book Returned',
     message: `${borrowerName} returned "${bookTitle}".`,
     link: `/library`,
-    data: { bookId }
+    data: { bookId },
+    senderId
   })
 }
 
@@ -223,13 +251,14 @@ export async function notifyInviteAccepted(userId: string, inviteeEmail: string)
   })
 }
 
-export async function notifyNewBook(userId: string, bookId: string, bookTitle: string, author: string | null, circleId: string, circleName: string, addedBy: string) {
+export async function notifyNewBook(userId: string, bookId: string, bookTitle: string, author: string | null, circleId: string, circleName: string, addedBy: string, senderId?: string) {
   return createNotification({
     userId,
     type: 'new_book',
     title: '✨ New Book Added',
     message: `${addedBy} added "${bookTitle}"${author ? ` by ${author}` : ''} to ${circleName}.`,
     link: `/circles/${circleId}`,
-    data: { bookId, circleId }
+    data: { bookId, circleId },
+    senderId
   })
 }

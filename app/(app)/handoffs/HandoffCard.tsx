@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BookCover from '@/app/components/BookCover'
+import UserActionsMenu from '@/app/components/UserActionsMenu'
 import { phoneToSmsLink } from '@/lib/formatPhone'
 
 type HandoffCardProps = {
@@ -95,12 +96,22 @@ export default function HandoffCard({ handoff, userId }: HandoffCardProps) {
           )}
 
           <div className="space-y-2 text-sm">
-            <p>
-              <span className="text-gray-600">
-                {isGiver ? 'Giving to:' : 'Getting from:'}
-              </span>{' '}
-              <span className="font-medium">{otherPerson.full_name}</span>
-            </p>
+            <div className="flex items-center justify-between">
+              <p>
+                <span className="text-gray-600">
+                  {isGiver ? 'Giving to:' : 'Getting from:'}
+                </span>{' '}
+                <span className="font-medium">{otherPerson.full_name}</span>
+              </p>
+              
+              {/* User Actions Menu */}
+              <UserActionsMenu
+                userId={otherPerson.id}
+                userName={otherPerson.full_name}
+                currentUserId={userId}
+                onBlockSuccess={() => router.refresh()}
+              />
+            </div>
 
             {showContact && (
               <div className="bg-blue-50 border border-blue-200 rounded p-3 mt-2">

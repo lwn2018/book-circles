@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import Avatar from '@/app/components/Avatar'
+import UserActionsMenu from '@/app/components/UserActionsMenu'
+import { useRouter } from 'next/navigation'
 
 type Member = {
   id: string
@@ -14,12 +16,19 @@ type Member = {
 
 type Props = {
   members: Member[]
+  currentUserId: string
 }
 
-export default function CollapsibleMembersList({ members }: Props) {
+export default function CollapsibleMembersList({ members, currentUserId }: Props) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const router = useRouter()
   const displayedMembers = isExpanded ? members : members.slice(0, 6)
   const remainingCount = members.length - 6
+
+  const handleBlockSuccess = () => {
+    // Refresh the page to update the members list
+    router.refresh()
+  }
 
   return (
     <div className="bg-[#27272A] rounded-xl p-4">
@@ -31,7 +40,7 @@ export default function CollapsibleMembersList({ members }: Props) {
         {displayedMembers.map((member) => (
           <div 
             key={member.id} 
-            className="flex flex-col items-center gap-1.5"
+            className="relative flex flex-col items-center gap-1.5 group"
           >
             <Avatar
               avatarSlug={member.profiles.avatar_slug}
@@ -42,6 +51,19 @@ export default function CollapsibleMembersList({ members }: Props) {
             <span className="text-xs text-gray-400 max-w-[60px] truncate text-center">
               {member.profiles.full_name.split(' ')[0]}
             </span>
+            
+            {/* Actions menu - only show for other users */}
+            {member.profiles.id !== currentUserId && (
+              <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <UserActionsMenu
+                  userId={member.profiles.id}
+                  userName={member.profiles.full_name}
+                  currentUserId={currentUserId}
+                  onBlockSuccess={handleBlockSuccess}
+                  buttonClassName="bg-zinc-800/90 w-6 h-6 p-0.5"
+                />
+              </div>
+            )}
           </div>
         ))}
         

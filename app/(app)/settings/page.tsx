@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BackButton from '@/app/components/BackButton'
 import { getAvatarBySlug } from '@/lib/avatars'
+import BlockedUsersSection from './BlockedUsersSection'
 
 function formatMemberSince(dateString: string): string {
   const date = new Date(dateString)
@@ -87,6 +88,22 @@ export default async function Settings() {
     .eq('user_id', user.id)
     .order('timestamp', { ascending: false })
     .limit(5)
+
+  // Get blocked users
+  const { data: blockedUsers } = await supabase
+    .from('blocked_users')
+    .select(`
+      id,
+      blocked_id,
+      created_at,
+      blocked_user:profiles!blocked_users_blocked_id_fkey (
+        id,
+        full_name,
+        avatar_slug
+      )
+    `)
+    .eq('blocker_id', user.id)
+    .order('created_at', { ascending: false })
 
   const avatar = getAvatarBySlug(profile?.avatar_slug)
   const memberSince = formatMemberSince(user.created_at)
@@ -210,6 +227,9 @@ export default async function Settings() {
           </div>
         </section>
       )}
+
+      {/* Blocked Users Section */}
+      <BlockedUsersSection blockedUsers={blockedUsers || []} />
 
       {/* Menu Options */}
       <section className="space-y-3">

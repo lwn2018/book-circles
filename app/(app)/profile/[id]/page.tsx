@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import BackButton from '@/app/components/BackButton'
 import Avatar from '@/app/components/Avatar'
+import ProfileActions from './ProfileActions'
 
 const BADGE_DATA: Record<string, { icon: string; name: string; description: string }> = {
   'shelf_starter': { icon: '📚', name: 'Shelf Starter', description: 'Added first book' },
@@ -35,6 +36,16 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
 
   if (!user) redirect('/auth/signin')
 
+  // Check if user is blocked
+  const { data: blockCheck } = await supabase
+    .from('blocked_users')
+    .select('id')
+    .or(`and(blocker_id.eq.${user.id},blocked_id.eq.${profileId}),and(blocker_id.eq.${profileId},blocked_id.eq.${user.id})`)
+    .limit(1)
+
+  // If blocked, show limited view or redirect
+  const isBlocked = (blockCheck?.length ?? 0) > 0
+
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
@@ -44,6 +55,26 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
   if (profileError || !profile) notFound()
 
   const isOwnProfile = user.id === profileId
+
+  // If blocked and not own profile, show blocked message
+  if (isBlocked && !isOwnProfile) {
+    return (
+      <div className="min-h-screen bg-[#121212] px-4 py-6">
+        <BackButton fallbackHref="/circles" />
+        <div className="flex flex-col items-center justify-center mt-20">
+          <div className="w-20 h-20 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
+            <svg className="w-10 h-10 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-white mb-2">Profile Unavailable</h1>
+          <p className="text-zinc-400 text-center max-w-xs">
+            This profile is not available to view.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   const { data: ownedBooks } = await supabase.from('books').select('id').eq('owner_id', profileId)
   const { data: lendEvents } = await supabase.from('user_events').select('id').eq('user_id', profileId).eq('event_type', 'book_lent')
@@ -109,6 +140,15 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
         <div className="mt-4 px-4 py-2 bg-[#1E293B] rounded-full">
           <span className="text-sm text-white">Member since {memberYear}</span>
         </div>
+
+        {/* Report/Block Actions for other users */}
+        {!isOwnProfile && (
+          <ProfileActions 
+            profileId={profileId} 
+            profileName={profile.full_name || 'User'} 
+            currentUserId={user.id} 
+          />
+        )}
       </div>
 
       {/* Reading Stats */}
@@ -184,7 +224,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm"><span className="font-semibold">You</span> {actionText}</p>
+                    <p className="text-white text-sm"><span className="font-semibold">{isOwnProfile ? 'You' : profile.full_name?.split(' ')[0]}</span> {actionText}</p>
                     <p className="text-xs text-[#6B7280] mt-1">{formatTimeAgo(activity.timestamp)}</p>
                   </div>
                 </div>
