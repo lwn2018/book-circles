@@ -41,6 +41,7 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen bg-[#121212] pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      <Suspense fallback={null}><LoadingBar /></Suspense>
       <AppHeader 
         user={{
           id: user.id,
@@ -62,6 +63,5 @@ export default async function AppLayout({
       <SearchOverlay userId={user.id} />
       <BetaFeedbackButton />
     </div>
-    </>
   )
 }
