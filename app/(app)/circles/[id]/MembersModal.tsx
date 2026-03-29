@@ -64,7 +64,7 @@ export default function MembersModal({ members, currentUserId, circleName }: Pro
           {/* Modal content */}
           <div 
             className="relative w-full max-w-lg bg-[#1E293B] rounded-t-2xl max-h-[70vh] flex flex-col"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+            style={{ marginBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-zinc-700">
