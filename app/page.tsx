@@ -181,8 +181,17 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#121212]">
+      {/* iOS Status Bar Background */}
+      <div 
+        className="fixed top-0 left-0 right-0 z-[60] bg-white dark:bg-[#121212]"
+        style={{ height: 'env(safe-area-inset-top)' }}
+      />
+
       {/* Sticky Nav */}
-      <nav className="sticky top-0 z-50 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md bg-white/90 dark:bg-[#121212]/90 border-b border-gray-200 dark:border-[#1E293B]">
+      <nav 
+        className="sticky z-50 px-4 py-3 backdrop-blur-md bg-white/90 dark:bg-[#121212]/90 border-b border-gray-200 dark:border-[#1E293B]"
+        style={{ top: 'env(safe-area-inset-top)' }}
+      >
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center">
             <img 
