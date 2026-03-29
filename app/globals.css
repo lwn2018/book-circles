@@ -172,16 +172,7 @@ body {
 
 
 
-/* iOS Safe Area Support */
-body {
-  /* padding-top handled by fixed headers */
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-  background-color: #121212;
-}
+/* iOS Safe Area Support - handled by individual components */
 
 /* Ensure html also has the background */
-html {
-  background-color: #121212;
-}
+

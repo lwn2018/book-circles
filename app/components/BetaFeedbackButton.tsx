@@ -66,7 +66,7 @@ export default function BetaFeedbackButton() {
       {/* Feedback Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-4 z-40 bg-[#55B2DE] text-white p-3 rounded-full shadow-lg hover:bg-[#4A9FCB] active:scale-95 transition"
+        className="fixed right-4" style={{ bottom: "calc(5rem + env(safe-area-inset-bottom) + 1rem)" z-40 bg-[#55B2DE] text-white p-3 rounded-full shadow-lg hover:bg-[#4A9FCB] active:scale-95 transition"
         aria-label="Report issue"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
