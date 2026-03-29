@@ -253,7 +253,7 @@ export default async function CirclesTab() {
       {/* Founder tester banner (dismissible) */}
       <FounderBanner userId={user.id} />
       
-      <div className="px-4 py-6">
+      <div className="px-4 py-6 pb-24">
         {/* Header Section */}
         <div className="mb-6">
           <h1 

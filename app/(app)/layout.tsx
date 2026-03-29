@@ -38,7 +38,7 @@ export default async function AppLayout({
   const circles = memberships?.map(m => m.circles) || []
 
   return (
-    <div className="min-h-screen bg-[#121212] pb-20">
+    <div className="min-h-screen bg-[#121212] pb-20" style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}>
       <AppHeader 
         user={{
           id: user.id,

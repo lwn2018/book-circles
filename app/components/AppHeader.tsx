@@ -65,7 +65,7 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
   
   // Default header for other pages
   return (
-    <div className="bg-[#121212] border-b border-[#334155] sticky top-0 z-40 shadow-sm">
+    <div className="bg-[#121212] border-b border-[#334155] sticky top-0 z-40 shadow-sm pt-[env(safe-area-inset-top)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left: Search Icon */}
