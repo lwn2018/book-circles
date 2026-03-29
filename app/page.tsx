@@ -182,7 +182,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#121212]">
       {/* Sticky Nav */}
-      <nav className="sticky top-0 z-50 px-4 py-3 backdrop-blur-md bg-white/90 dark:bg-[#121212]/90 border-b border-gray-200 dark:border-[#1E293B]">
+      <nav className="sticky top-0 z-50 px-4 py-3 pt-[env(safe-area-inset-top)] backdrop-blur-md bg-white/90 dark:bg-[#121212]/90 border-b border-gray-200 dark:border-[#1E293B]">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center">
             <img 

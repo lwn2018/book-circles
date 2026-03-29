@@ -46,7 +46,7 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
   // Circle detail page: simple back arrow only, no other header elements
   if (isCircleDetailPage) {
     return (
-      <div className="bg-[#121212] sticky top-0 z-40">
+      <div className="bg-[#121212] sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-14">
             <button 
