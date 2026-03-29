@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 // SVG Icons as components
 const CirclesIcon = ({ active }: { active: boolean }) => (
@@ -54,6 +55,12 @@ const ShelfIcon = ({ active }: { active: boolean }) => (
 
 export default function BottomNav() {
   const pathname = usePathname()
+  const [pendingPath, setPendingPath] = useState<string | null>(null)
+
+  // Clear pending state when pathname changes
+  useEffect(() => {
+    setPendingPath(null)
+  }, [pathname])
 
   const tabs = [
     {
@@ -77,10 +84,19 @@ export default function BottomNav() {
   ]
 
   const isActive = (path: string) => {
+    // Show as active if it's the pending path (user just clicked)
+    if (pendingPath === path) return true
+    
     if (path === '/circles') {
       return pathname === '/circles' || pathname === '/' || pathname === '/dashboard'
     }
     return pathname.startsWith(path)
+  }
+
+  const handleClick = (path: string) => {
+    if (!isActive(path)) {
+      setPendingPath(path)
+    }
   }
 
   return (
@@ -88,23 +104,23 @@ export default function BottomNav() {
       <div className="max-w-md mx-auto flex justify-around items-center h-16">
         {tabs.map((tab) => {
           const active = isActive(tab.path)
+          const isPending = pendingPath === tab.path
           const IconComponent = tab.icon
           return (
             <Link
               key={tab.id}
               href={tab.path}
+              onClick={() => handleClick(tab.path)}
               className={`flex flex-col items-center justify-center py-2 px-4 flex-1 min-w-0 transition-colors duration-200 ${
                 active 
                   ? 'text-[#55B2DE]' 
                   : 'text-[#64748B] hover:text-[#94A3B8]'
               }`}
             >
-              <div className={`mb-1 ${active ? 'transform scale-105' : ''}`}>
+              <div className={isPending ? 'animate-pulse' : ''}>
                 <IconComponent active={active} />
               </div>
-              <span className={`text-xs font-medium tracking-wide ${
-                active ? 'text-[#55B2DE]' : 'text-[#64748B]'
-              }`}>
+              <span className={`text-xs mt-1 font-medium ${isPending ? 'animate-pulse' : ''}`}>
                 {tab.label}
               </span>
             </Link>
