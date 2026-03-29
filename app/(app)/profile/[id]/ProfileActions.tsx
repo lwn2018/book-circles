@@ -19,13 +19,16 @@ export default function ProfileActions({ profileId, profileName, currentUserId }
 
   return (
     <div className="flex justify-center mt-4">
-      <UserActionsMenu
-        userId={profileId}
-        userName={profileName}
-        currentUserId={currentUserId}
-        onBlockSuccess={() => router.push('/circles')}
-        buttonClassName="bg-[#1E293B] px-4 py-2 rounded-full text-zinc-300"
-      />
+      <div className="flex items-center gap-2 text-zinc-400 text-sm">
+        <span>Report or block</span>
+        <UserActionsMenu
+          userId={profileId}
+          userName={profileName}
+          currentUserId={currentUserId}
+          onBlockSuccess={() => router.push('/circles')}
+          buttonClassName="bg-[#27272A] p-2 rounded-full hover:bg-zinc-600"
+        />
+      </div>
     </div>
   )
 }

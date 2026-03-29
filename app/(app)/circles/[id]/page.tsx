@@ -16,9 +16,10 @@ function StackedAvatars({ members, maxDisplay = 5 }: { members: any[], maxDispla
   return (
     <div className="flex items-center">
       {displayMembers.map((member, index) => (
-        <div 
+        <Link 
           key={member.profiles?.id || index}
-          className={`${index > 0 ? '-ml-3' : ''}`}
+          href={`/profile/${member.profiles?.id}`}
+          className={`${index > 0 ? '-ml-3' : ''} hover:z-10 transition-transform hover:scale-110`}
           title={member.profiles?.full_name || 'Member'}
         >
           <Avatar
@@ -28,7 +29,7 @@ function StackedAvatars({ members, maxDisplay = 5 }: { members: any[], maxDispla
             size="sm"
             className="border-2 border-[#121212]"
           />
-        </div>
+        </Link>
       ))}
       {remaining > 0 && (
         <div 
