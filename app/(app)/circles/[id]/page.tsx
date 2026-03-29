@@ -170,7 +170,7 @@ export default async function CirclePage({ params }: { params: Promise<{ id: str
           </div>
           
           {/* Invite Button */}
-          <InviteLink inviteCode={circle.invite_code} variant="pill" />
+          <InviteLink inviteCode={circle.invite_code} circleName={circle.name} variant="pill" />
         </div>
 
         {/* Subtitle */}
