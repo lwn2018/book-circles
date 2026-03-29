@@ -188,7 +188,12 @@ export default function LandingPage() {
             <img 
               src="/brand/pagepass-logo.svg" 
               alt="PagePass" 
-              className="h-8 w-auto dark:invert"
+              className="h-8 w-auto dark:hidden"
+            />
+            <img 
+              src="/brand/pagepass-logo-white.svg" 
+              alt="PagePass" 
+              className="h-8 w-auto hidden dark:block"
             />
           </Link>
           <div className="flex items-center gap-4">
