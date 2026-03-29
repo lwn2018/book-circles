@@ -1,9 +1,11 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import AppHeader from '../components/AppHeader'
 import BottomNav from '../components/BottomNav'
 import SearchOverlay from '../components/SearchOverlay'
 import BetaFeedbackButton from '../components/BetaFeedbackButton'
+import LoadingBar from '../components/LoadingBar'
 
 export default async function AppLayout({
   children,
@@ -60,5 +62,6 @@ export default async function AppLayout({
       <SearchOverlay userId={user.id} />
       <BetaFeedbackButton />
     </div>
+    </>
   )
 }
