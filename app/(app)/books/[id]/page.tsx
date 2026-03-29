@@ -85,8 +85,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
       <StickyHeader title="Book Details" fallbackHref="/library" />
       
       <div className="px-4 py-6">
-
-      {/* Large Book Cover */}
+        {/* Large Book Cover */}
       <div className="bg-[#1E293B] rounded-xl p-6 mb-6 flex justify-center">
         <div className="relative w-40 h-56 rounded-lg overflow-hidden shadow-xl">
           <BookCover coverUrl={book.cover_url} title={book.title} author={book.author} isbn={book.isbn} className="w-full h-full object-cover" />
@@ -220,6 +219,7 @@ export default async function BookDetailsPage({ params }: { params: Promise<{ id
           </Link>
         </div>
       )}
+      </div>
     </div>
   )
 }

@@ -107,10 +107,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
     <div className="min-h-screen bg-[#121212]">
       <StickyHeader fallbackHref="/circles" />
       <div className="px-4 py-6">
-      {/* Profile Content */}
-      <BackButton fallbackHref="/circles" />
-
-      {/* Profile Header */}
+        {/* Profile Header */}
       <div className="flex flex-col items-center mb-8 mt-6">
         <div className="relative">
           <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-[#55B2DE]/30">
@@ -278,6 +275,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
           </Link>
         </section>
       )}
+      </div>
     </div>
   )
 }

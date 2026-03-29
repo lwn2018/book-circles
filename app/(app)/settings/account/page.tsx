@@ -12,11 +12,9 @@ export default async function AccountSettingsPage() {
   if (!user) redirect('/auth/signin')
 
   return (
-    <div className="min-h-screen bg-[#121212] py-6 pb-32">
+    <div className="min-h-screen bg-[#121212] pb-32">
       <StickyHeader title="Account Settings" fallbackHref="/settings" />
-      <div className="px-4">
-
-      <div className="max-w-lg mx-auto space-y-6">
+      <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
         {/* Email Display */}
         <div className="bg-[#1E293B] rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Email</h2>

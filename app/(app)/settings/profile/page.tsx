@@ -17,11 +17,9 @@ export default async function EditProfilePage() {
     .single()
 
   return (
-    <div className="min-h-screen bg-[#121212] py-6 pb-32">
+    <div className="min-h-screen bg-[#121212] pb-32">
       <StickyHeader title="Edit Profile" fallbackHref="/settings" />
-      <div className="px-4">
-
-      <div className="max-w-lg mx-auto space-y-6">
+      <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
         <AvatarSection
           userId={user.id}
           userName={profile?.full_name || user.email || 'User'}

@@ -17,11 +17,9 @@ export default async function ManageCirclesPage() {
   const circles = memberCircles?.map(m => m.circles).filter(Boolean) || []
 
   return (
-    <div className="min-h-screen bg-[#121212] py-6 pb-32">
+    <div className="min-h-screen bg-[#121212] pb-32">
       <StickyHeader title="Manage Circles" fallbackHref="/settings" />
-      <div className="px-4">
-
-      <div className="max-w-lg mx-auto">
+      <div className="px-4 py-6 max-w-lg mx-auto">
         <CircleManagementSection
           circles={circles as any}
           userId={user.id}

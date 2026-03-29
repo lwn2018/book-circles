@@ -16,11 +16,9 @@ export default async function NotificationSettingsPage() {
     .single()
 
   return (
-    <div className="min-h-screen bg-[#121212] py-6 pb-32">
+    <div className="min-h-screen bg-[#121212] pb-32">
       <StickyHeader title="Notification Settings" fallbackHref="/settings" />
-      <div className="px-4">
-
-      <div className="max-w-lg mx-auto">
+      <div className="px-4 py-6 max-w-lg mx-auto">
         <NotificationSettings
           userId={user.id}
           emailNotifications={profile?.email_notifications ?? true}

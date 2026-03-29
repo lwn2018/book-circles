@@ -113,9 +113,8 @@ export default async function Settings() {
       <StickyHeader title="Settings" fallbackHref="/circles" />
       
       <div className="px-4 py-6">
-
       {/* Profile Header */}
-        <div className="flex flex-col items-center mb-8">
+      <div className="flex flex-col items-center mb-8">
         <div className="relative mb-4">
           <div 
             className="w-32 h-32 rounded-full overflow-hidden"
@@ -306,6 +305,7 @@ export default async function Settings() {
           </svg>
         </Link>
       </section>
+      </div>
     </div>
   )
 }
