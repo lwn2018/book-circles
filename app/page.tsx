@@ -508,6 +508,8 @@ export default function LandingPage() {
             <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
             <span>|</span>
             <Link href="/terms" className="hover:underline">Terms of Service</Link>
+            <span>|</span>
+            <Link href="/support" className="hover:underline">Support</Link>
           </div>
           <div className="flex items-center justify-center gap-6">
             <a href="#" aria-label="Instagram" className="transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
