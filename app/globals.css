@@ -180,3 +180,8 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
 }
+
+/* Fix for sticky elements with safe area */
+.sticky {
+  padding-top: env(safe-area-inset-top);
+}

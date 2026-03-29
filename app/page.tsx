@@ -182,7 +182,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#121212]">
       {/* Sticky Nav */}
-      <nav className="sticky top-0 z-50 px-4 py-3 backdrop-blur-md bg-white/90 dark:bg-[#121212]/90 border-b border-gray-200 dark:border-[#1E293B]">
+      <nav className="sticky top-0 z-50 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md bg-white/90 dark:bg-[#121212]/90 border-b border-gray-200 dark:border-[#1E293B]">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center">
             <img 
@@ -529,7 +529,7 @@ export default function LandingPage() {
       </footer>
 
       {/* Bottom Navigation Preview - Links to sign in */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1a1a2e] border-t border-gray-200 dark:border-gray-800 py-2 px-4 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1a1a2e] border-t border-gray-200 dark:border-gray-800 py-2 px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] z-50">
         <div className="max-w-md mx-auto flex items-center justify-around">
           <Link 
             href="/auth/signin" 
