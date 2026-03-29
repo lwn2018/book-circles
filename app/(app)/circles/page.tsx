@@ -373,7 +373,7 @@ export default async function CirclesTab() {
         )}
 
         {/* Bottom Action Buttons */}
-        <div className="fixed left-0 right-0 px-4 pb-4" style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" bg-gradient-to-t from-[#121212] via-[#121212] to-transparent pt-8">
+        <div className="fixed left-0 right-0 px-4 pb-4 bg-gradient-to-t from-[#121212] via-[#121212] to-transparent pt-8" style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}>
           <div className="flex gap-3 max-w-lg mx-auto">
             <Link
               href="/circles/create"
