@@ -63,11 +63,11 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
     )
   }
   
-  // Default header for other pages
+  // Default header for other pages - using 3-column grid for proper spacing
   return (
     <div className="bg-[#121212] border-b border-[#334155] sticky top-0 z-40 shadow-sm pt-[env(safe-area-inset-top)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center h-16 gap-3">
           {/* Left: Search Icon */}
           <button
             onClick={() => {
@@ -84,12 +84,12 @@ export default function AppHeader({ user, userCircles }: AppHeaderProps) {
           </button>
 
           {/* Center: Add Book Button */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
+          <div className="flex justify-center">
             <AddBookButton userId={user.id} userCircles={userCircles} />
           </div>
 
           {/* Right: Bell + User Menu */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             <NotificationBell />
             <UserMenu user={normalizedUser} />
           </div>
