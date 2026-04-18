@@ -37,33 +37,8 @@ const normalizeUser = (user: AppHeaderProps['user']) => ({
 
 export default function AppHeader({ user, userCircles }: AppHeaderProps) {
   const normalizedUser = normalizeUser(user)
-  const pathname = usePathname()
-  const router = useRouter()
   
-  // Detect if we're on a circle detail page
-  const isCircleDetailPage = pathname?.match(/^\/circles\/[^/]+$/) && !pathname.endsWith('/create') && !pathname.endsWith('/join')
-  
-  // Circle detail page: simple back arrow only, no other header elements
-  if (isCircleDetailPage) {
-    return (
-      <div className="bg-[#121212] sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-14">
-            <button 
-              onClick={() => router.back()}
-              className="flex items-center hover:opacity-80 transition text-white"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  
-  // Default header for other pages - using 3-column grid for proper spacing
+  // Always show full header with search, add book, bell, and avatar
   return (
     <div className="bg-[#121212] border-b border-[#334155] sticky top-0 z-40 shadow-sm pt-[env(safe-area-inset-top)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
