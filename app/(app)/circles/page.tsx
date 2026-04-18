@@ -43,13 +43,11 @@ function StackedAvatars({ members, maxDisplay = 3 }: { members: any[], maxDispla
 function CircleCard({ 
   circle, 
   memberCount, 
-  availableCount, 
   newBooksCount,
   members 
 }: { 
   circle: any
   memberCount: number
-  availableCount: number
   newBooksCount: number
   members: any[]
 }) {
@@ -96,12 +94,6 @@ function CircleCard({
               style={{ fontFamily: 'var(--font-body)' }}
             >
               {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
-            </span>
-            <span 
-              className="text-[#9F9FA9] text-xs flex items-center gap-1"
-              style={{ fontFamily: 'var(--font-body)' }}
-            >
-              📚 {availableCount} Available
             </span>
           </div>
         </div>
@@ -208,7 +200,6 @@ export default async function CirclesTab() {
   })
 
   // Calculate available books per circle
-  const availableByCircle: Record<string, number> = {}
   const newBooksByCircle: Record<string, number> = {}
   
   // TODO: For "new" books, we'd ideally track user's last_visited_at per circle
@@ -226,8 +217,6 @@ export default async function CirclesTab() {
       circleMemberIds.has(book.owner_id) && !hiddenBooks.has(book.id)
     ) || []
     
-    // Count available books (status = 'available')
-    availableByCircle[circle.id] = circleBooks.filter(b => b.status === 'available').length
     
     // Count "new" books (created in last 7 days)
     newBooksByCircle[circle.id] = circleBooks.filter(b => 
@@ -235,8 +224,6 @@ export default async function CirclesTab() {
     ).length
   })
 
-  // Calculate total available books across all circles
-  const totalAvailable = Object.values(availableByCircle).reduce((sum, count) => sum + count, 0)
 
   // Get count of books offered to user
   const { count: offersCount } = await supabase
@@ -270,28 +257,6 @@ export default async function CirclesTab() {
           </p>
         </div>
 
-        {/* Available Books Summary Card */}
-        <div className="bg-[#1E293B] rounded-xl p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#27272A] rounded-lg flex items-center justify-center">
-                <span className="text-xl">📚</span>
-              </div>
-              <span 
-                className="text-white font-medium"
-                style={{ fontFamily: 'var(--font-body)', fontSize: '16px' }}
-              >
-                Available Books
-              </span>
-            </div>
-            <span 
-              className="bg-[#55B2DE] text-white text-sm font-bold px-3 py-1 rounded-full min-w-[40px] text-center"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              {String(totalAvailable).padStart(2, '0')}
-            </span>
-          </div>
-        </div>
 
         {/* Books Offered Counter (if any) */}
         {offersCount !== null && offersCount > 0 && (
@@ -364,7 +329,6 @@ export default async function CirclesTab() {
                 key={circle.id}
                 circle={circle}
                 memberCount={memberCountByCircle[circle.id] || 0}
-                availableCount={availableByCircle[circle.id] || 0}
                 newBooksCount={newBooksByCircle[circle.id] || 0}
                 members={membersByCircle[circle.id] || []}
               />
