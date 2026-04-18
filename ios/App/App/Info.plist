@@ -47,5 +47,16 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>PagePass needs camera access to scan book barcodes</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>app.pagepass</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>pagepass</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
